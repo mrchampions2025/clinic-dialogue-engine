@@ -65,7 +65,7 @@ function Row({
 }: {
   label: string;
   hint: string;
-  defaultChecked?: boolean;
+  defaultChecked?: boolean | undefined;
 }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
@@ -73,7 +73,7 @@ function Row({
         <p className="text-sm font-medium">{label}</p>
         <p className="text-xs text-muted-foreground">{hint}</p>
       </div>
-      <Switch defaultChecked={defaultChecked} />
+      <Switch defaultChecked={defaultChecked ?? false} />
     </div>
   );
 }

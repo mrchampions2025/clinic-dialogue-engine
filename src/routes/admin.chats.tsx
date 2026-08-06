@@ -21,7 +21,7 @@ export const Route = createFileRoute("/admin/chats")({
 });
 
 function ChatsPage() {
-  const [activeId, setActiveId] = useState(chats[0].id);
+  const [activeId, setActiveId] = useState(chats[0]!.id);
   const [iaActiva, setIaActiva] = useState(true);
   const [draft, setDraft] = useState("");
   const active = chats.find((c) => c.id === activeId)!;
