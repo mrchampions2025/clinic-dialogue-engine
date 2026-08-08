@@ -13,13 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminChatsRouteImport } from './routes/admin.chats'
-import { Route as AdminCitasRouteImport } from './routes/admin.citas'
-import { Route as AdminConfiguracionRouteImport } from './routes/admin.configuracion'
-import { Route as AdminPacientesRouteImport } from './routes/admin.pacientes'
-import { Route as AdminTratamientosRouteImport } from './routes/admin.tratamientos'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminChatsRouteImport } from './routes/_authenticated/admin.chats'
+import { Route as AuthenticatedAdminCitasRouteImport } from './routes/_authenticated/admin.citas'
+import { Route as AuthenticatedAdminConfiguracionRouteImport } from './routes/_authenticated/admin.configuracion'
+import { Route as AuthenticatedAdminPacientesRouteImport } from './routes/_authenticated/admin.pacientes'
+import { Route as AuthenticatedAdminTratamientosRouteImport } from './routes/_authenticated/admin.tratamientos'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 
@@ -42,41 +42,44 @@ const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminChatsRoute = AdminChatsRouteImport.update({
-  id: '/admin/chats',
-  path: '/admin/chats',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminCitasRoute = AdminCitasRouteImport.update({
-  id: '/admin/citas',
-  path: '/admin/citas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminConfiguracionRoute = AdminConfiguracionRouteImport.update({
-  id: '/admin/configuracion',
-  path: '/admin/configuracion',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminPacientesRoute = AdminPacientesRouteImport.update({
-  id: '/admin/pacientes',
-  path: '/admin/pacientes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminTratamientosRoute = AdminTratamientosRouteImport.update({
-  id: '/admin/tratamientos',
-  path: '/admin/tratamientos',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminChatsRoute = AuthenticatedAdminChatsRouteImport.update({
+  id: '/admin/chats',
+  path: '/admin/chats',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminCitasRoute = AuthenticatedAdminCitasRouteImport.update({
+  id: '/admin/citas',
+  path: '/admin/citas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminConfiguracionRoute =
+  AuthenticatedAdminConfiguracionRouteImport.update({
+    id: '/admin/configuracion',
+    path: '/admin/configuracion',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminPacientesRoute =
+  AuthenticatedAdminPacientesRouteImport.update({
+    id: '/admin/pacientes',
+    path: '/admin/pacientes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminTratamientosRoute =
+  AuthenticatedAdminTratamientosRouteImport.update({
+    id: '/admin/tratamientos',
+    path: '/admin/tratamientos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -93,27 +96,27 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
-  '/admin/chats': typeof AdminChatsRoute
-  '/admin/citas': typeof AdminCitasRoute
-  '/admin/configuracion': typeof AdminConfiguracionRoute
-  '/admin/pacientes': typeof AdminPacientesRoute
-  '/admin/tratamientos': typeof AdminTratamientosRoute
   '/api/chat': typeof ApiChatRoute
-  '/admin/': typeof AdminIndexRoute
+  '/admin/chats': typeof AuthenticatedAdminChatsRoute
+  '/admin/citas': typeof AuthenticatedAdminCitasRoute
+  '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
+  '/admin/pacientes': typeof AuthenticatedAdminPacientesRoute
+  '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/admin/chats': typeof AdminChatsRoute
-  '/admin/citas': typeof AdminCitasRoute
-  '/admin/configuracion': typeof AdminConfiguracionRoute
-  '/admin/pacientes': typeof AdminPacientesRoute
-  '/admin/tratamientos': typeof AdminTratamientosRoute
   '/api/chat': typeof ApiChatRoute
-  '/admin': typeof AdminIndexRoute
+  '/admin/chats': typeof AuthenticatedAdminChatsRoute
+  '/admin/citas': typeof AuthenticatedAdminCitasRoute
+  '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
+  '/admin/pacientes': typeof AuthenticatedAdminPacientesRoute
+  '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
 }
 export interface FileRoutesById {
@@ -122,14 +125,14 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
-  '/admin/chats': typeof AdminChatsRoute
-  '/admin/citas': typeof AdminCitasRoute
-  '/admin/configuracion': typeof AdminConfiguracionRoute
-  '/admin/pacientes': typeof AdminPacientesRoute
-  '/admin/tratamientos': typeof AdminTratamientosRoute
   '/api/chat': typeof ApiChatRoute
-  '/admin/': typeof AdminIndexRoute
+  '/_authenticated/admin/chats': typeof AuthenticatedAdminChatsRoute
+  '/_authenticated/admin/citas': typeof AuthenticatedAdminCitasRoute
+  '/_authenticated/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
+  '/_authenticated/admin/pacientes': typeof AuthenticatedAdminPacientesRoute
+  '/_authenticated/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
 }
 export interface FileRouteTypes {
@@ -138,27 +141,27 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/chat'
+    | '/api/chat'
     | '/admin/chats'
     | '/admin/citas'
     | '/admin/configuracion'
     | '/admin/pacientes'
     | '/admin/tratamientos'
-    | '/api/chat'
-    | '/admin/'
     | '/chat/$threadId'
+    | '/admin/'
     | '/chat/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/api/chat'
     | '/admin/chats'
     | '/admin/citas'
     | '/admin/configuracion'
     | '/admin/pacientes'
     | '/admin/tratamientos'
-    | '/api/chat'
-    | '/admin'
     | '/chat/$threadId'
+    | '/admin'
     | '/chat'
   id:
     | '__root__'
@@ -166,14 +169,14 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/chat'
-    | '/admin/chats'
-    | '/admin/citas'
-    | '/admin/configuracion'
-    | '/admin/pacientes'
-    | '/admin/tratamientos'
     | '/api/chat'
-    | '/admin/'
+    | '/_authenticated/admin/chats'
+    | '/_authenticated/admin/citas'
+    | '/_authenticated/admin/configuracion'
+    | '/_authenticated/admin/pacientes'
+    | '/_authenticated/admin/tratamientos'
     | '/_authenticated/chat/$threadId'
+    | '/_authenticated/admin/'
     | '/_authenticated/chat/'
   fileRoutesById: FileRoutesById
 }
@@ -181,13 +184,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  AdminChatsRoute: typeof AdminChatsRoute
-  AdminCitasRoute: typeof AdminCitasRoute
-  AdminConfiguracionRoute: typeof AdminConfiguracionRoute
-  AdminPacientesRoute: typeof AdminPacientesRoute
-  AdminTratamientosRoute: typeof AdminTratamientosRoute
   ApiChatRoute: typeof ApiChatRoute
-  AdminIndexRoute: typeof AdminIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -220,54 +217,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/admin'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/chats': {
-      id: '/admin/chats'
-      path: '/admin/chats'
-      fullPath: '/admin/chats'
-      preLoaderRoute: typeof AdminChatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/citas': {
-      id: '/admin/citas'
-      path: '/admin/citas'
-      fullPath: '/admin/citas'
-      preLoaderRoute: typeof AdminCitasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/configuracion': {
-      id: '/admin/configuracion'
-      path: '/admin/configuracion'
-      fullPath: '/admin/configuracion'
-      preLoaderRoute: typeof AdminConfiguracionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/pacientes': {
-      id: '/admin/pacientes'
-      path: '/admin/pacientes'
-      fullPath: '/admin/pacientes'
-      preLoaderRoute: typeof AdminPacientesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/tratamientos': {
-      id: '/admin/tratamientos'
-      path: '/admin/tratamientos'
-      fullPath: '/admin/tratamientos'
-      preLoaderRoute: typeof AdminTratamientosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/chats': {
+      id: '/_authenticated/admin/chats'
+      path: '/admin/chats'
+      fullPath: '/admin/chats'
+      preLoaderRoute: typeof AuthenticatedAdminChatsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/citas': {
+      id: '/_authenticated/admin/citas'
+      path: '/admin/citas'
+      fullPath: '/admin/citas'
+      preLoaderRoute: typeof AuthenticatedAdminCitasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/configuracion': {
+      id: '/_authenticated/admin/configuracion'
+      path: '/admin/configuracion'
+      fullPath: '/admin/configuracion'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/pacientes': {
+      id: '/_authenticated/admin/pacientes'
+      path: '/admin/pacientes'
+      fullPath: '/admin/pacientes'
+      preLoaderRoute: typeof AuthenticatedAdminPacientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/tratamientos': {
+      id: '/_authenticated/admin/tratamientos'
+      path: '/admin/tratamientos'
+      fullPath: '/admin/tratamientos'
+      preLoaderRoute: typeof AuthenticatedAdminTratamientosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chat/': {
       id: '/_authenticated/chat/'
@@ -301,10 +298,22 @@ const AuthenticatedChatRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
+  AuthenticatedAdminChatsRoute: typeof AuthenticatedAdminChatsRoute
+  AuthenticatedAdminCitasRoute: typeof AuthenticatedAdminCitasRoute
+  AuthenticatedAdminConfiguracionRoute: typeof AuthenticatedAdminConfiguracionRoute
+  AuthenticatedAdminPacientesRoute: typeof AuthenticatedAdminPacientesRoute
+  AuthenticatedAdminTratamientosRoute: typeof AuthenticatedAdminTratamientosRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
+  AuthenticatedAdminChatsRoute: AuthenticatedAdminChatsRoute,
+  AuthenticatedAdminCitasRoute: AuthenticatedAdminCitasRoute,
+  AuthenticatedAdminConfiguracionRoute: AuthenticatedAdminConfiguracionRoute,
+  AuthenticatedAdminPacientesRoute: AuthenticatedAdminPacientesRoute,
+  AuthenticatedAdminTratamientosRoute: AuthenticatedAdminTratamientosRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -314,24 +323,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  AdminChatsRoute: AdminChatsRoute,
-  AdminCitasRoute: AdminCitasRoute,
-  AdminConfiguracionRoute: AdminConfiguracionRoute,
-  AdminPacientesRoute: AdminPacientesRoute,
-  AdminTratamientosRoute: AdminTratamientosRoute,
   ApiChatRoute: ApiChatRoute,
-  AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
