@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { chats } from "@/lib/admin-mock";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/chats")({
+export const Route = createFileRoute("/_authenticated/admin/chats")({
   head: () => ({
     meta: [
       { title: "Bandeja de chats · Dentix Admin" },

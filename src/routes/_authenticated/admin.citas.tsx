@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export const Route = createFileRoute("/admin/citas")({
+export const Route = createFileRoute("/_authenticated/admin/citas")({
   head: () => ({
     meta: [
       { title: "Citas · Dentix Admin" },
