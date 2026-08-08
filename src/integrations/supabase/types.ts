@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          canal: string
+          created_at: string
+          estado: string
+          fecha: string
+          hora: string
+          id: string
+          paciente: string
+          patient_id: string | null
+          telefono: string | null
+          tratamiento: string | null
+          updated_at: string
+        }
+        Insert: {
+          canal?: string
+          created_at?: string
+          estado?: string
+          fecha: string
+          hora: string
+          id?: string
+          paciente: string
+          patient_id?: string | null
+          telefono?: string | null
+          tratamiento?: string | null
+          updated_at?: string
+        }
+        Update: {
+          canal?: string
+          created_at?: string
+          estado?: string
+          fecha?: string
+          hora?: string
+          id?: string
+          paciente?: string
+          patient_id?: string | null
+          telefono?: string | null
+          tratamiento?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string
@@ -72,6 +122,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      patients: {
+        Row: {
+          created_at: string
+          email: string | null
+          etiqueta: string | null
+          id: string
+          nombre: string
+          proxima_cita: string | null
+          telefono: string | null
+          ultima_visita: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          etiqueta?: string | null
+          id?: string
+          nombre: string
+          proxima_cita?: string | null
+          telefono?: string | null
+          ultima_visita?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          etiqueta?: string | null
+          id?: string
+          nombre?: string
+          proxima_cita?: string | null
+          telefono?: string | null
+          ultima_visita?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      treatments: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          duracion: string | null
+          id: string
+          nombre: string
+          precio: string | null
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          duracion?: string | null
+          id?: string
+          nombre: string
+          precio?: string | null
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          duracion?: string | null
+          id?: string
+          nombre?: string
+          precio?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
