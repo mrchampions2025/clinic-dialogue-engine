@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { z } from "zod";
+import { convertToModelMessages, streamText, type UIMessage, tool } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { CLINIC_SYSTEM_PROMPT } from "@/lib/clinic-prompt";
 
@@ -67,6 +68,34 @@ export const Route = createFileRoute("/api/chat")({
           model: gateway("google/gemini-3.5-flash"),
           system: CLINIC_SYSTEM_PROMPT,
           messages: await convertToModelMessages(uiMessages),
+          maxSteps: 2,
+          tools: {
+            bookAppointment: tool({
+              description: "Reserva una cita médica en la base de datos de la clínica.",
+              parameters: z.object({
+                paciente: z.string().describe("El nombre completo del paciente."),
+                telefono: z.string().describe("El teléfono de contacto del paciente."),
+                fecha: z.string().describe("La fecha de la cita en formato YYYY-MM-DD."),
+                hora: z.string().describe("La hora de la cita en formato HH:MM."),
+                tratamiento: z.string().describe("El tratamiento o motivo de la visita."),
+              }),
+              execute: async (args) => {
+                const { error } = await supabase.from("appointments").insert({
+                  paciente: args.paciente,
+                  telefono: args.telefono,
+                  fecha: args.fecha,
+                  hora: args.hora,
+                  tratamiento: args.tratamiento,
+                  canal: "Chat IA",
+                  estado: "Confirmada",
+                });
+                if (error) {
+                  return { success: false, error: error.message };
+                }
+                return { success: true, message: "Cita reservada correctamente." };
+              },
+            }),
+          },
         });
 
         return result.toUIMessageStreamResponse({

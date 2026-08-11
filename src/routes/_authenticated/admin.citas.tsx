@@ -3,6 +3,10 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { es } from "date-fns/locale/es";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { EstadoBadge } from "@/components/admin/EstadoBadge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -50,6 +55,17 @@ export const Route = createFileRoute("/_authenticated/admin/citas")({
     ],
   }),
   component: CitasPage,
+});
+
+const locales = {
+  es: es,
+};
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales,
 });
 
 const empty: Partial<Appointment> = {
@@ -105,7 +121,16 @@ function CitasPage() {
         </Button>
       }
     >
-      <div className="rounded-2xl border border-border bg-card shadow-sm">
+      <Tabs defaultValue="list" className="w-full">
+        <div className="flex items-center mb-4">
+          <TabsList>
+            <TabsTrigger value="list">Lista</TabsTrigger>
+            <TabsTrigger value="calendar">Calendario</TabsTrigger>
+          </TabsList>
+        </div>
+        
+        <TabsContent value="list">
+          <div className="rounded-2xl border border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -180,6 +205,46 @@ function CitasPage() {
           </Table>
         </div>
       </div>
+      </TabsContent>
+
+      <TabsContent value="calendar">
+        <div className="h-[650px] bg-card border border-border rounded-xl p-4 shadow-sm">
+          <Calendar
+            localizer={localizer}
+            events={citas.map((c) => {
+              const start = new Date(`${c.fecha}T${c.hora}:00`);
+              return {
+                id: c.id,
+                title: `${c.paciente} - ${c.tratamiento || "Cita"}`,
+                start,
+                end: new Date(start.getTime() + 60 * 60 * 1000), // 1 hour duration
+                resource: c,
+              };
+            })}
+            startAccessor="start"
+            endAccessor="end"
+            culture="es"
+            messages={{
+              next: "Sig",
+              previous: "Ant",
+              today: "Hoy",
+              month: "Mes",
+              week: "Semana",
+              day: "Día",
+              agenda: "Agenda",
+              date: "Fecha",
+              time: "Hora",
+              event: "Evento",
+              noEventsInRange: "No hay citas en este periodo.",
+            }}
+            onSelectEvent={(event) => {
+              setForm({ ...event.resource, hora: formatTime(event.resource.hora) });
+              setOpen(true);
+            }}
+          />
+        </div>
+      </TabsContent>
+      </Tabs>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
