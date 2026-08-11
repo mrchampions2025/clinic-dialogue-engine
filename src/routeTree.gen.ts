@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminPacientesRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminTratamientosRouteImport } from './routes/_authenticated/admin.tratamientos'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
+import { Route as AuthenticatedAdminPacientesIdRouteImport } from './routes/_authenticated/admin.pacientes.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -103,6 +104,12 @@ const AuthenticatedChatThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedChatRoute,
   } as any)
+const AuthenticatedAdminPacientesIdRoute =
+  AuthenticatedAdminPacientesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminPacientesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -114,11 +121,12 @@ export interface FileRoutesByFullPath {
   '/admin/chats': typeof AuthenticatedAdminChatsRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
-  '/admin/pacientes': typeof AuthenticatedAdminPacientesRoute
+  '/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
+  '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -128,11 +136,12 @@ export interface FileRoutesByTo {
   '/admin/chats': typeof AuthenticatedAdminChatsRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
-  '/admin/pacientes': typeof AuthenticatedAdminPacientesRoute
+  '/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
+  '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -146,11 +155,12 @@ export interface FileRoutesById {
   '/_authenticated/admin/chats': typeof AuthenticatedAdminChatsRoute
   '/_authenticated/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/_authenticated/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
-  '/_authenticated/admin/pacientes': typeof AuthenticatedAdminPacientesRoute
+  '/_authenticated/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/_authenticated/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
+  '/_authenticated/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/chat/$threadId'
     | '/admin/'
     | '/chat/'
+    | '/admin/pacientes/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/chat/$threadId'
     | '/admin'
     | '/chat'
+    | '/admin/pacientes/$id'
   id:
     | '__root__'
     | '/'
@@ -200,6 +212,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/admin/'
     | '/_authenticated/chat/'
+    | '/_authenticated/admin/pacientes/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -316,14 +329,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedChatRoute
     }
+    '/_authenticated/admin/pacientes/$id': {
+      id: '/_authenticated/admin/pacientes/$id'
+      path: '/$id'
+      fullPath: '/admin/pacientes/$id'
+      preLoaderRoute: typeof AuthenticatedAdminPacientesIdRouteImport
+      parentRoute: typeof AuthenticatedAdminPacientesRoute
+    }
   }
 }
+
+interface AuthenticatedAdminPacientesRouteChildren {
+  AuthenticatedAdminPacientesIdRoute: typeof AuthenticatedAdminPacientesIdRoute
+}
+
+const AuthenticatedAdminPacientesRouteChildren: AuthenticatedAdminPacientesRouteChildren =
+  {
+    AuthenticatedAdminPacientesIdRoute: AuthenticatedAdminPacientesIdRoute,
+  }
+
+const AuthenticatedAdminPacientesRouteWithChildren =
+  AuthenticatedAdminPacientesRoute._addFileChildren(
+    AuthenticatedAdminPacientesRouteChildren,
+  )
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminChatsRoute: typeof AuthenticatedAdminChatsRoute
   AuthenticatedAdminCitasRoute: typeof AuthenticatedAdminCitasRoute
   AuthenticatedAdminConfiguracionRoute: typeof AuthenticatedAdminConfiguracionRoute
-  AuthenticatedAdminPacientesRoute: typeof AuthenticatedAdminPacientesRoute
+  AuthenticatedAdminPacientesRoute: typeof AuthenticatedAdminPacientesRouteWithChildren
   AuthenticatedAdminTratamientosRoute: typeof AuthenticatedAdminTratamientosRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -332,7 +366,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminChatsRoute: AuthenticatedAdminChatsRoute,
   AuthenticatedAdminCitasRoute: AuthenticatedAdminCitasRoute,
   AuthenticatedAdminConfiguracionRoute: AuthenticatedAdminConfiguracionRoute,
-  AuthenticatedAdminPacientesRoute: AuthenticatedAdminPacientesRoute,
+  AuthenticatedAdminPacientesRoute:
+    AuthenticatedAdminPacientesRouteWithChildren,
   AuthenticatedAdminTratamientosRoute: AuthenticatedAdminTratamientosRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }

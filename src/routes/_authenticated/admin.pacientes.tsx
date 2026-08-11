@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/button";
@@ -151,7 +151,9 @@ function PacientesPage() {
                           .join("")}
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{p.nombre}</p>
+                        <Link to="/admin/pacientes/$id" params={{ id: p.id }} className="truncate text-sm font-medium hover:underline text-primary">
+                          {p.nombre}
+                        </Link>
                         <p className="truncate text-xs text-muted-foreground">{p.etiqueta}</p>
                       </div>
                     </div>
@@ -162,6 +164,11 @@ function PacientesPage() {
                   <TableCell className="whitespace-nowrap">{formatDate(p.proxima_cita)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" aria-label="Ver ficha" asChild>
+                        <Link to="/admin/pacientes/$id" params={{ id: p.id }}>
+                          <Eye className="size-4" />
+                        </Link>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

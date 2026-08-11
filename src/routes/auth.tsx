@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getUserRole } from "@/lib/clinic-data";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,9 +35,15 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleRedirect = async (userId: string) => {
+    const role = await getUserRole(userId);
+    if (role === "admin") navigate({ to: "/admin" });
+    else navigate({ to: "/chat" });
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/chat" });
+      if (data.session) handleRedirect(data.session.user.id);
     });
   }, [navigate]);
 
@@ -45,9 +52,9 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/chat" });
+        await handleRedirect(data.user.id);
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -55,7 +62,7 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        if (data.session) navigate({ to: "/chat" });
+        if (data.session) await handleRedirect(data.session.user.id);
         else toast.success("Te hemos enviado un email para confirmar tu cuenta 😊");
       }
     } catch (error) {
@@ -74,7 +81,12 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/chat" });
+    
+    // Si no ha habido redirección, verificamos sesión
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      await handleRedirect(data.session.user.id);
+    }
   }
 
   return (
