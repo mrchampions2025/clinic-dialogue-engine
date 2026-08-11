@@ -13,17 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiWhatsappWebhookRouteImport } from './routes/api/whatsapp-webhook'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
-import { Route as AuthenticatedAdminChatsRouteImport } from './routes/_authenticated/admin.chats'
 import { Route as AuthenticatedAdminCitasRouteImport } from './routes/_authenticated/admin.citas'
 import { Route as AuthenticatedAdminConfiguracionRouteImport } from './routes/_authenticated/admin.configuracion'
 import { Route as AuthenticatedAdminPacientesRouteImport } from './routes/_authenticated/admin.pacientes'
 import { Route as AuthenticatedAdminTratamientosRouteImport } from './routes/_authenticated/admin.tratamientos'
-import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
-import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 import { Route as AuthenticatedAdminPacientesIdRouteImport } from './routes/_authenticated/admin.pacientes.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -45,29 +41,19 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
+const ApiWhatsappWebhookRoute = ApiWhatsappWebhookRouteImport.update({
+  id: '/api/whatsapp-webhook',
+  path: '/api/whatsapp-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any)
-const AuthenticatedAdminChatsRoute = AuthenticatedAdminChatsRouteImport.update({
-  id: '/chats',
-  path: '/chats',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedAdminCitasRoute = AuthenticatedAdminCitasRouteImport.update({
@@ -93,17 +79,6 @@ const AuthenticatedAdminTratamientosRoute =
     path: '/tratamientos',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedChatRoute,
-} as any)
-const AuthenticatedChatThreadIdRoute =
-  AuthenticatedChatThreadIdRouteImport.update({
-    id: '/$threadId',
-    path: '/$threadId',
-    getParentRoute: () => AuthenticatedChatRoute,
-  } as any)
 const AuthenticatedAdminPacientesIdRoute =
   AuthenticatedAdminPacientesIdRouteImport.update({
     id: '/$id',
@@ -115,32 +90,25 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/chat': typeof AuthenticatedChatRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
-  '/api/chat': typeof ApiChatRoute
-  '/admin/chats': typeof AuthenticatedAdminChatsRoute
+  '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
   '/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
-  '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
-  '/chat/': typeof AuthenticatedChatIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/perfil': typeof AuthenticatedPerfilRoute
-  '/api/chat': typeof ApiChatRoute
-  '/admin/chats': typeof AuthenticatedAdminChatsRoute
+  '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
   '/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
-  '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
-  '/chat': typeof AuthenticatedChatIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
 }
 export interface FileRoutesById {
@@ -149,17 +117,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
-  '/api/chat': typeof ApiChatRoute
-  '/_authenticated/admin/chats': typeof AuthenticatedAdminChatsRoute
+  '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/_authenticated/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/_authenticated/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
   '/_authenticated/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/_authenticated/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
-  '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
-  '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
 }
 export interface FileRouteTypes {
@@ -168,32 +132,25 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
-    | '/chat'
     | '/perfil'
-    | '/api/chat'
-    | '/admin/chats'
+    | '/api/whatsapp-webhook'
     | '/admin/citas'
     | '/admin/configuracion'
     | '/admin/pacientes'
     | '/admin/tratamientos'
-    | '/chat/$threadId'
     | '/admin/'
-    | '/chat/'
     | '/admin/pacientes/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/perfil'
-    | '/api/chat'
-    | '/admin/chats'
+    | '/api/whatsapp-webhook'
     | '/admin/citas'
     | '/admin/configuracion'
     | '/admin/pacientes'
     | '/admin/tratamientos'
-    | '/chat/$threadId'
     | '/admin'
-    | '/chat'
     | '/admin/pacientes/$id'
   id:
     | '__root__'
@@ -201,17 +158,13 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
-    | '/_authenticated/chat'
     | '/_authenticated/perfil'
-    | '/api/chat'
-    | '/_authenticated/admin/chats'
+    | '/api/whatsapp-webhook'
     | '/_authenticated/admin/citas'
     | '/_authenticated/admin/configuracion'
     | '/_authenticated/admin/pacientes'
     | '/_authenticated/admin/tratamientos'
-    | '/_authenticated/chat/$threadId'
     | '/_authenticated/admin/'
-    | '/_authenticated/chat/'
     | '/_authenticated/admin/pacientes/$id'
   fileRoutesById: FileRoutesById
 }
@@ -219,7 +172,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  ApiChatRoute: typeof ApiChatRoute
+  ApiWhatsappWebhookRoute: typeof ApiWhatsappWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,13 +205,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/chat': {
-      id: '/_authenticated/chat'
-      path: '/chat'
-      fullPath: '/chat'
-      preLoaderRoute: typeof AuthenticatedChatRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/perfil': {
       id: '/_authenticated/perfil'
       path: '/perfil'
@@ -266,11 +212,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
+    '/api/whatsapp-webhook': {
+      id: '/api/whatsapp-webhook'
+      path: '/api/whatsapp-webhook'
+      fullPath: '/api/whatsapp-webhook'
+      preLoaderRoute: typeof ApiWhatsappWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -278,13 +224,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/chats': {
-      id: '/_authenticated/admin/chats'
-      path: '/chats'
-      fullPath: '/admin/chats'
-      preLoaderRoute: typeof AuthenticatedAdminChatsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/citas': {
@@ -315,20 +254,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTratamientosRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/chat/': {
-      id: '/_authenticated/chat/'
-      path: '/'
-      fullPath: '/chat/'
-      preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
-      parentRoute: typeof AuthenticatedChatRoute
-    }
-    '/_authenticated/chat/$threadId': {
-      id: '/_authenticated/chat/$threadId'
-      path: '/$threadId'
-      fullPath: '/chat/$threadId'
-      preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
-      parentRoute: typeof AuthenticatedChatRoute
-    }
     '/_authenticated/admin/pacientes/$id': {
       id: '/_authenticated/admin/pacientes/$id'
       path: '/$id'
@@ -354,7 +279,6 @@ const AuthenticatedAdminPacientesRouteWithChildren =
   )
 
 interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminChatsRoute: typeof AuthenticatedAdminChatsRoute
   AuthenticatedAdminCitasRoute: typeof AuthenticatedAdminCitasRoute
   AuthenticatedAdminConfiguracionRoute: typeof AuthenticatedAdminConfiguracionRoute
   AuthenticatedAdminPacientesRoute: typeof AuthenticatedAdminPacientesRouteWithChildren
@@ -363,7 +287,6 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminChatsRoute: AuthenticatedAdminChatsRoute,
   AuthenticatedAdminCitasRoute: AuthenticatedAdminCitasRoute,
   AuthenticatedAdminConfiguracionRoute: AuthenticatedAdminConfiguracionRoute,
   AuthenticatedAdminPacientesRoute:
@@ -375,28 +298,13 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
-interface AuthenticatedChatRouteChildren {
-  AuthenticatedChatThreadIdRoute: typeof AuthenticatedChatThreadIdRoute
-  AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
-}
-
-const AuthenticatedChatRouteChildren: AuthenticatedChatRouteChildren = {
-  AuthenticatedChatThreadIdRoute: AuthenticatedChatThreadIdRoute,
-  AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
-}
-
-const AuthenticatedChatRouteWithChildren =
-  AuthenticatedChatRoute._addFileChildren(AuthenticatedChatRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
 }
 
@@ -407,7 +315,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  ApiChatRoute: ApiChatRoute,
+  ApiWhatsappWebhookRoute: ApiWhatsappWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

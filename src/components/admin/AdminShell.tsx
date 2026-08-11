@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 
 const nav = [
   { to: "/admin", label: "Panel general", icon: LayoutDashboard, exact: true },
-  { to: "/admin/chats", label: "Chats", icon: MessageSquare },
   { to: "/admin/citas", label: "Citas", icon: CalendarDays },
   { to: "/admin/pacientes", label: "Pacientes", icon: Users },
   { to: "/admin/tratamientos", label: "Tratamientos", icon: Stethoscope },

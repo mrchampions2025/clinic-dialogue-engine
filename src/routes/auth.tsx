@@ -38,7 +38,7 @@ function AuthPage() {
   const handleRedirect = async (userId: string) => {
     const role = await getUserRole(userId);
     if (role === "admin") navigate({ to: "/admin" });
-    else navigate({ to: "/chat" });
+    else navigate({ to: "/perfil" });
   };
 
   useEffect(() => {
