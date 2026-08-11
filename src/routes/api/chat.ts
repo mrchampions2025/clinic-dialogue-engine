@@ -19,7 +19,10 @@ export const Route = createFileRoute("/api/chat")({
     handlers: {
       POST: async ({ request }) => {
         const token = request.headers.get("authorization")?.replace("Bearer ", "");
-        if (!token) return new Response("No autorizado", { status: 401 });
+        if (!token) {
+          console.error("Falta token de autorización");
+          return new Response("No autorizado", { status: 401 });
+        }
 
         const body = (await request.json()) as ChatRequestBody;
         const messages = body.messages;
@@ -38,7 +41,10 @@ export const Route = createFileRoute("/api/chat")({
         );
 
         const { data: userData, error: userError } = await supabase.auth.getUser(token);
-        if (userError || !userData.user) return new Response("No autorizado", { status: 401 });
+        if (userError || !userData.user) {
+          console.error("Error validando usuario de supabase", userError);
+          return new Response("No autorizado", { status: 401 });
+        }
         const userId = userData.user.id;
 
         const { data: conversation } = await supabase
@@ -46,7 +52,10 @@ export const Route = createFileRoute("/api/chat")({
           .select("id")
           .eq("id", conversationId)
           .maybeSingle();
-        if (!conversation) return new Response("Conversación no encontrada", { status: 404 });
+        if (!conversation) {
+          console.error("Conversación no encontrada:", conversationId);
+          return new Response("Conversación no encontrada", { status: 404 });
+        }
 
         const uiMessages = messages as UIMessage[];
         const last = uiMessages[uiMessages.length - 1];
@@ -61,11 +70,14 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         const key = process.env["LOVABLE_API_KEY"];
-        if (!key) return new Response("Falta la configuración de IA", { status: 500 });
+        if (!key) {
+          console.error("Falta la configuración de IA (LOVABLE_API_KEY no encontrada en .env)");
+          return new Response("Falta la configuración de IA", { status: 500 });
+        }
 
         const gateway = createLovableAiGatewayProvider(key);
         const result = streamText({
-          model: gateway("google/gemini-3.5-flash"),
+          model: gateway("google/gemini-1.5-flash"),
           system: CLINIC_SYSTEM_PROMPT,
           messages: await convertToModelMessages(uiMessages),
           maxSteps: 2,
