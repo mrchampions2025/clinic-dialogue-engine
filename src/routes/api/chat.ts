@@ -88,6 +88,7 @@ export const Route = createFileRoute("/api/chat")({
                   tratamiento: args.tratamiento,
                   canal: "Chat IA",
                   estado: "Confirmada",
+                  patient_id: userId,
                 });
                 if (error) {
                   return { success: false, error: error.message };

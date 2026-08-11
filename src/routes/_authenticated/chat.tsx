@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, LogOut, Stethoscope } from "lucide-react";
+import { Plus, Trash2, LogOut, Stethoscope, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { createConversation, deleteConversation, listConversations } from "@/lib/chat-store";
 import { Button } from "@/components/ui/button";
@@ -94,8 +94,13 @@ function ChatLayout() {
         </nav>
 
         <div className="border-t border-sidebar-border p-3">
+          <Button variant="ghost" className="w-full justify-start" asChild>
+            <Link to="/perfil">
+              <User className="mr-2 size-4" /> Mis Citas
+            </Link>
+          </Button>
           <Button variant="ghost" className="w-full justify-start" onClick={signOut}>
-            <LogOut className="size-4" /> Salir
+            <LogOut className="mr-2 size-4" /> Salir
           </Button>
         </div>
       </aside>

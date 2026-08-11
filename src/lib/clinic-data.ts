@@ -36,6 +36,12 @@ function unwrap<T>({ data, error }: { data: T | null; error: { message: string }
   return data as T;
 }
 
+export async function getUserRole(userId: string): Promise<string | null> {
+  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle();
+  if (error) return null;
+  return data?.role || null;
+}
+
 /* Pacientes */
 export async function listPatients(): Promise<Patient[]> {
   return unwrap(await supabase.from("patients").select("*").order("nombre"));
@@ -63,6 +69,11 @@ export async function deletePatient(id: string): Promise<void> {
 export async function listAppointments(): Promise<Appointment[]> {
   return unwrap(
     await supabase.from("appointments").select("*").order("fecha").order("hora"),
+  ) as Appointment[];
+}
+export async function listUserAppointments(userId: string): Promise<Appointment[]> {
+  return unwrap(
+    await supabase.from("appointments").select("*").eq("patient_id", userId).order("fecha").order("hora"),
   ) as Appointment[];
 }
 export async function upsertAppointment(a: Partial<Appointment>): Promise<void> {
