@@ -41,7 +41,7 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
       {/* Contenedor del documento (A4 aprox) */}
       <div 
         ref={componentRef}
-        className="print-only-container relative bg-white shadow-2xl w-full max-w-[210mm] min-h-[297mm] overflow-hidden flex flex-col print:shadow-none print:w-full print:h-auto print:min-h-0"
+        className="print-only-container relative bg-white shadow-2xl w-full max-w-[210mm] min-h-[297mm] overflow-hidden flex flex-col print:shadow-none print:w-full print:h-auto print:min-h-0 scale-[0.85] origin-top mt-10 print:mt-0 print:scale-100 print:origin-top-left"
         style={{ aspectRatio: '1 / 1.414' }}
       >
         {/* Header con corte poligonal */}
@@ -184,8 +184,8 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                 <div className="border-b border-slate-400 w-full h-8 relative">
                   {/* Firma de ejemplo para relleno visual si está aceptado */}
                   {budget.estado === 'Aceptado' && (
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 font-['Brush_Script_MT',cursive] text-2xl text-slate-700 opacity-80 -rotate-2">
-                      {patient.nombre}
+                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 font-['Brush_Script_MT',cursive] text-2xl text-slate-700 opacity-80 -rotate-2 whitespace-nowrap">
+                      {budget.firma_paciente || patient.nombre}
                     </div>
                   )}
                 </div>
