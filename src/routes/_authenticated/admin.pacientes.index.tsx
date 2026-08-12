@@ -30,7 +30,7 @@ import {
   type Patient,
 } from "@/lib/clinic-data";
 
-export const Route = createFileRoute("/_authenticated/admin/pacientes")({
+export const Route = createFileRoute("/_authenticated/admin/pacientes/")({
   head: () => ({
     meta: [
       { title: "Pacientes · Dentix Admin" },

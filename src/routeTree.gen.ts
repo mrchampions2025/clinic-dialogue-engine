@@ -18,8 +18,8 @@ import { Route as ApiWhatsappWebhookRouteImport } from './routes/api/whatsapp-we
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminCitasRouteImport } from './routes/_authenticated/admin.citas'
 import { Route as AuthenticatedAdminConfiguracionRouteImport } from './routes/_authenticated/admin.configuracion'
-import { Route as AuthenticatedAdminPacientesRouteImport } from './routes/_authenticated/admin.pacientes'
 import { Route as AuthenticatedAdminTratamientosRouteImport } from './routes/_authenticated/admin.tratamientos'
+import { Route as AuthenticatedAdminPacientesIndexRouteImport } from './routes/_authenticated/admin.pacientes.index'
 import { Route as AuthenticatedAdminPacientesIdRouteImport } from './routes/_authenticated/admin.pacientes.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -67,23 +67,23 @@ const AuthenticatedAdminConfiguracionRoute =
     path: '/configuracion',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminPacientesRoute =
-  AuthenticatedAdminPacientesRouteImport.update({
-    id: '/pacientes',
-    path: '/pacientes',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
 const AuthenticatedAdminTratamientosRoute =
   AuthenticatedAdminTratamientosRouteImport.update({
     id: '/tratamientos',
     path: '/tratamientos',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminPacientesIndexRoute =
+  AuthenticatedAdminPacientesIndexRouteImport.update({
+    id: '/pacientes/',
+    path: '/pacientes/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminPacientesIdRoute =
   AuthenticatedAdminPacientesIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedAdminPacientesRoute,
+    id: '/pacientes/$id',
+    path: '/pacientes/$id',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -94,10 +94,10 @@ export interface FileRoutesByFullPath {
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
-  '/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
+  '/admin/pacientes/': typeof AuthenticatedAdminPacientesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -106,10 +106,10 @@ export interface FileRoutesByTo {
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
-  '/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
+  '/admin/pacientes': typeof AuthenticatedAdminPacientesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,10 +121,10 @@ export interface FileRoutesById {
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/_authenticated/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/_authenticated/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
-  '/_authenticated/admin/pacientes': typeof AuthenticatedAdminPacientesRouteWithChildren
   '/_authenticated/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
+  '/_authenticated/admin/pacientes/': typeof AuthenticatedAdminPacientesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -136,10 +136,10 @@ export interface FileRouteTypes {
     | '/api/whatsapp-webhook'
     | '/admin/citas'
     | '/admin/configuracion'
-    | '/admin/pacientes'
     | '/admin/tratamientos'
     | '/admin/'
     | '/admin/pacientes/$id'
+    | '/admin/pacientes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -148,10 +148,10 @@ export interface FileRouteTypes {
     | '/api/whatsapp-webhook'
     | '/admin/citas'
     | '/admin/configuracion'
-    | '/admin/pacientes'
     | '/admin/tratamientos'
     | '/admin'
     | '/admin/pacientes/$id'
+    | '/admin/pacientes'
   id:
     | '__root__'
     | '/'
@@ -162,10 +162,10 @@ export interface FileRouteTypes {
     | '/api/whatsapp-webhook'
     | '/_authenticated/admin/citas'
     | '/_authenticated/admin/configuracion'
-    | '/_authenticated/admin/pacientes'
     | '/_authenticated/admin/tratamientos'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/pacientes/$id'
+    | '/_authenticated/admin/pacientes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -240,13 +240,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracionRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/pacientes': {
-      id: '/_authenticated/admin/pacientes'
-      path: '/pacientes'
-      fullPath: '/admin/pacientes'
-      preLoaderRoute: typeof AuthenticatedAdminPacientesRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
     '/_authenticated/admin/tratamientos': {
       id: '/_authenticated/admin/tratamientos'
       path: '/tratamientos'
@@ -254,45 +247,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTratamientosRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/pacientes/': {
+      id: '/_authenticated/admin/pacientes/'
+      path: '/pacientes'
+      fullPath: '/admin/pacientes/'
+      preLoaderRoute: typeof AuthenticatedAdminPacientesIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/pacientes/$id': {
       id: '/_authenticated/admin/pacientes/$id'
-      path: '/$id'
+      path: '/pacientes/$id'
       fullPath: '/admin/pacientes/$id'
       preLoaderRoute: typeof AuthenticatedAdminPacientesIdRouteImport
-      parentRoute: typeof AuthenticatedAdminPacientesRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
   }
 }
 
-interface AuthenticatedAdminPacientesRouteChildren {
-  AuthenticatedAdminPacientesIdRoute: typeof AuthenticatedAdminPacientesIdRoute
-}
-
-const AuthenticatedAdminPacientesRouteChildren: AuthenticatedAdminPacientesRouteChildren =
-  {
-    AuthenticatedAdminPacientesIdRoute: AuthenticatedAdminPacientesIdRoute,
-  }
-
-const AuthenticatedAdminPacientesRouteWithChildren =
-  AuthenticatedAdminPacientesRoute._addFileChildren(
-    AuthenticatedAdminPacientesRouteChildren,
-  )
-
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCitasRoute: typeof AuthenticatedAdminCitasRoute
   AuthenticatedAdminConfiguracionRoute: typeof AuthenticatedAdminConfiguracionRoute
-  AuthenticatedAdminPacientesRoute: typeof AuthenticatedAdminPacientesRouteWithChildren
   AuthenticatedAdminTratamientosRoute: typeof AuthenticatedAdminTratamientosRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminPacientesIdRoute: typeof AuthenticatedAdminPacientesIdRoute
+  AuthenticatedAdminPacientesIndexRoute: typeof AuthenticatedAdminPacientesIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCitasRoute: AuthenticatedAdminCitasRoute,
   AuthenticatedAdminConfiguracionRoute: AuthenticatedAdminConfiguracionRoute,
-  AuthenticatedAdminPacientesRoute:
-    AuthenticatedAdminPacientesRouteWithChildren,
   AuthenticatedAdminTratamientosRoute: AuthenticatedAdminTratamientosRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminPacientesIdRoute: AuthenticatedAdminPacientesIdRoute,
+  AuthenticatedAdminPacientesIndexRoute: AuthenticatedAdminPacientesIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
