@@ -23,7 +23,9 @@ export type Database = {
           hora: string
           id: string
           paciente: string
+          pagado: boolean | null
           patient_id: string | null
+          precio: number | null
           telefono: string | null
           tratamiento: string | null
           updated_at: string
@@ -36,7 +38,9 @@ export type Database = {
           hora: string
           id?: string
           paciente: string
+          pagado?: boolean | null
           patient_id?: string | null
+          precio?: number | null
           telefono?: string | null
           tratamiento?: string | null
           updated_at?: string
@@ -49,7 +53,9 @@ export type Database = {
           hora?: string
           id?: string
           paciente?: string
+          pagado?: boolean | null
           patient_id?: string | null
+          precio?: number | null
           telefono?: string | null
           tratamiento?: string | null
           updated_at?: string
@@ -57,6 +63,79 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_items: {
+        Row: {
+          budget_id: string
+          cantidad: number
+          created_at: string | null
+          id: string
+          precio: number
+          tratamiento: string
+        }
+        Insert: {
+          budget_id: string
+          cantidad?: number
+          created_at?: string | null
+          id?: string
+          precio?: number
+          tratamiento: string
+        }
+        Update: {
+          budget_id?: string
+          cantidad?: number
+          created_at?: string | null
+          id?: string
+          precio?: number
+          tratamiento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_items_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          created_at: string | null
+          estado: string
+          fecha: string
+          id: string
+          notas: string | null
+          patient_id: string
+          total: number
+        }
+        Insert: {
+          created_at?: string | null
+          estado?: string
+          fecha?: string
+          id?: string
+          notas?: string | null
+          patient_id: string
+          total?: number
+        }
+        Update: {
+          created_at?: string | null
+          estado?: string
+          fecha?: string
+          id?: string
+          notas?: string | null
+          patient_id?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
@@ -87,6 +166,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      medical_records: {
+        Row: {
+          created_at: string | null
+          fecha: string
+          id: string
+          notas: string
+          patient_id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          notas: string
+          patient_id: string
+          tipo: string
+        }
+        Update: {
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          notas?: string
+          patient_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -119,6 +233,44 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      odontogram_states: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          state: string
+          tooth_number: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          state: string
+          tooth_number: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          state?: string
+          tooth_number?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "odontogram_states_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
@@ -158,6 +310,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          appointment_id: string | null
+          created_at: string | null
+          fecha: string
+          id: string
+          metodo: string
+          monto: number
+          patient_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          metodo?: string
+          monto: number
+          patient_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          metodo?: string
+          monto?: number
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       treatments: {
         Row: {
