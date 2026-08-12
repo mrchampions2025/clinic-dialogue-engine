@@ -78,7 +78,7 @@ export async function listAllBudgets(): Promise<Budget[]> {
 }
 
 export type BudgetDraft = {
-  id?: string;
+  id?: string | undefined;
   patient_id: string;
   titulo: string;
   fecha: string;
