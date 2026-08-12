@@ -10,10 +10,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/clinic-data";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Trash2, CheckCircle2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/pacientes/$id")({
   component: PatientDetailPage,
@@ -63,7 +65,11 @@ function PatientDetailPage() {
   const { data: budgets = [], isLoading: loadingBudgets } = useQuery({
     queryKey: ["patient_budgets", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("budgets" as any).select("*").eq("patient_id", id).order("fecha", { ascending: false });
+      const { data, error } = await supabase
+        .from("budgets" as any)
+        .select("*, budget_items(*)")
+        .eq("patient_id", id)
+        .order("fecha", { ascending: false });
       if (error && error.code !== '42P01') {
         console.error(error);
         return [];
@@ -74,27 +80,54 @@ function PatientDetailPage() {
 
   // Mutación para crear Presupuesto
   const [openBudget, setOpenBudget] = useState(false);
-  const [budgetTotal, setBudgetTotal] = useState("");
   const [budgetNotes, setBudgetNotes] = useState("");
+  const [budgetItems, setBudgetItems] = useState([{ tratamiento: "", cantidad: 1, precio: 0 }]);
+
+  const budgetTotalComputed = budgetItems.reduce((acc, item) => acc + (item.cantidad * item.precio), 0);
 
   const createBudget = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("budgets" as any).insert({
+      // 1. Insert budget
+      const { data: budgetData, error: budgetError } = await supabase.from("budgets" as any).insert({
         patient_id: id,
-        total: Number(budgetTotal),
+        total: budgetTotalComputed,
         notas: budgetNotes,
         estado: "Pendiente"
-      });
-      if (error) throw new Error(error.message);
+      }).select().single();
+      if (budgetError) throw new Error(budgetError.message);
+
+      // 2. Insert items
+      const itemsToInsert = budgetItems.filter(i => i.tratamiento.trim() !== "").map(i => ({
+        budget_id: budgetData.id,
+        tratamiento: i.tratamiento,
+        cantidad: i.cantidad,
+        precio: i.precio
+      }));
+
+      if (itemsToInsert.length > 0) {
+        const { error: itemsError } = await supabase.from("budget_items" as any).insert(itemsToInsert);
+        if (itemsError) throw new Error(itemsError.message);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["patient_budgets", id] });
       toast.success("Presupuesto creado");
       setOpenBudget(false);
-      setBudgetTotal("");
+      setBudgetItems([{ tratamiento: "", cantidad: 1, precio: 0 }]);
       setBudgetNotes("");
     },
     onError: (e: any) => toast.error(e.message)
+  });
+
+  const updateBudgetStatus = useMutation({
+    mutationFn: async ({ budgetId, status }: { budgetId: string, status: string }) => {
+      const { error } = await supabase.from("budgets" as any).update({ estado: status }).eq("id", budgetId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["patient_budgets", id] });
+      toast.success("Estado actualizado");
+    }
   });
 
   // Mutación para actualizar Odontograma
@@ -189,42 +222,187 @@ function PatientDetailPage() {
                 <DialogTrigger asChild>
                   <Button size="sm"><Plus className="size-4 mr-1" /> Nuevo Presupuesto</Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Crear Presupuesto</DialogTitle></DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label>Total (€)</Label>
-                      <Input type="number" value={budgetTotal} onChange={e => setBudgetTotal(e.target.value)} placeholder="0.00" />
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader><DialogTitle>Crear Nuevo Presupuesto</DialogTitle></DialogHeader>
+                  <div className="grid gap-6 py-4">
+                    <div>
+                      <Label className="mb-2 block">Líneas de Tratamiento</Label>
+                      <div className="rounded-xl border border-border bg-slate-50/50 overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Tratamiento</TableHead>
+                              <TableHead className="w-24">Cant.</TableHead>
+                              <TableHead className="w-32">Precio Und.</TableHead>
+                              <TableHead className="w-32">Subtotal</TableHead>
+                              <TableHead className="w-12"></TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {budgetItems.map((item, index) => (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <Input 
+                                    value={item.tratamiento} 
+                                    onChange={(e) => {
+                                      const newItems = [...budgetItems];
+                                      newItems[index].tratamiento = e.target.value;
+                                      setBudgetItems(newItems);
+                                    }} 
+                                    placeholder="Ej: Corona Zirconio" 
+                                    className="bg-background"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input 
+                                    type="number" 
+                                    min="1"
+                                    value={item.cantidad} 
+                                    onChange={(e) => {
+                                      const newItems = [...budgetItems];
+                                      newItems[index].cantidad = Number(e.target.value);
+                                      setBudgetItems(newItems);
+                                    }} 
+                                    className="bg-background"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input 
+                                    type="number" 
+                                    value={item.precio} 
+                                    onChange={(e) => {
+                                      const newItems = [...budgetItems];
+                                      newItems[index].precio = Number(e.target.value);
+                                      setBudgetItems(newItems);
+                                    }} 
+                                    className="bg-background"
+                                  />
+                                </TableCell>
+                                <TableCell className="font-medium text-slate-700">
+                                  {(item.cantidad * item.precio).toFixed(2)} €
+                                </TableCell>
+                                <TableCell>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="text-destructive"
+                                    onClick={() => {
+                                      if (budgetItems.length > 1) {
+                                        setBudgetItems(budgetItems.filter((_, i) => i !== index));
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="mt-3"
+                        onClick={() => setBudgetItems([...budgetItems, { tratamiento: "", cantidad: 1, precio: 0 }])}
+                      >
+                        <Plus className="size-4 mr-1" /> Añadir Línea
+                      </Button>
                     </div>
+
                     <div className="grid gap-2">
-                      <Label>Detalles / Tratamientos</Label>
-                      <Textarea value={budgetNotes} onChange={e => setBudgetNotes(e.target.value)} placeholder="Ej: 2 Empastes, 1 Limpieza..." />
+                      <Label>Notas Adicionales</Label>
+                      <Textarea value={budgetNotes} onChange={e => setBudgetNotes(e.target.value)} placeholder="Condiciones, descuentos especiales..." />
+                    </div>
+
+                    <div className="flex justify-end pt-4 border-t border-border">
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground mb-1">Total Presupuesto</p>
+                        <p className="text-3xl font-bold text-primary">{budgetTotalComputed.toFixed(2)} €</p>
+                      </div>
                     </div>
                   </div>
-                  <Button onClick={() => createBudget.mutate()} disabled={createBudget.isPending}>
-                    Guardar Presupuesto
-                  </Button>
+                  <DialogFooter>
+                    <Button onClick={() => createBudget.mutate()} disabled={createBudget.isPending || budgetItems.length === 0}>
+                      Generar Presupuesto
+                    </Button>
+                  </DialogFooter>
                 </DialogContent>
               </Dialog>
             </div>
 
             {budgets.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8 border border-dashed rounded-xl">
+              <p className="text-sm text-muted-foreground text-center py-8 border border-dashed rounded-xl bg-slate-50/50">
                 No hay presupuestos registrados para este paciente.
               </p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {budgets.map((b: any) => (
-                  <div key={b.id} className="p-4 border border-border rounded-xl flex justify-between items-center bg-slate-50/50">
-                    <div>
-                      <span className="font-semibold text-lg text-primary">{b.total} €</span>
-                      <p className="text-sm mt-1">{b.notas}</p>
-                      <p className="text-xs text-muted-foreground mt-2">{formatDate(b.fecha)}</p>
+                  <div key={b.id} className="border border-border rounded-xl bg-card overflow-hidden shadow-sm transition-all hover:shadow-md">
+                    {/* Cabecera del Presupuesto */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border-b border-border bg-slate-50/50">
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <h4 className="font-bold text-xl text-primary">{b.total} €</h4>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                            ${b.estado === 'Aceptado' ? 'bg-green-100 text-green-700' : 
+                              b.estado === 'Rechazado' ? 'bg-red-100 text-red-700' : 
+                              'bg-purple-100 text-purple-700'}`}>
+                            {b.estado}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground font-medium">Emitido: {formatDate(b.fecha)}</p>
+                      </div>
+                      
+                      {b.estado === 'Pendiente' && (
+                        <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => updateBudgetStatus.mutate({ budgetId: b.id, status: 'Aceptado' })}
+                          >
+                            <CheckCircle2 className="size-4 mr-1.5" /> Aceptar
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => updateBudgetStatus.mutate({ budgetId: b.id, status: 'Rechazado' })}
+                          >
+                            <XCircle className="size-4 mr-1.5" /> Rechazar
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                        {b.estado}
-                      </span>
+                    
+                    {/* Cuerpo del Presupuesto (Line Items) */}
+                    <div className="p-5">
+                      {b.budget_items && b.budget_items.length > 0 ? (
+                        <div className="mb-4">
+                          <p className="text-sm font-semibold text-slate-700 mb-2">Tratamientos Incluidos</p>
+                          <ul className="space-y-2">
+                            {b.budget_items.map((item: any) => (
+                              <li key={item.id} className="flex justify-between items-center text-sm py-2 border-b border-slate-100 last:border-0">
+                                <div>
+                                  <span className="font-medium">{item.tratamiento}</span>
+                                  <span className="text-muted-foreground ml-2">x{item.cantidad}</span>
+                                </div>
+                                <span className="font-medium text-slate-600">{(item.cantidad * item.precio).toFixed(2)} €</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic mb-4">No hay líneas de detalle.</p>
+                      )}
+                      
+                      {b.notas && (
+                        <div className="mt-4 p-3 bg-yellow-50/50 rounded-lg border border-yellow-100">
+                          <p className="text-xs font-semibold text-yellow-800 mb-1">Notas</p>
+                          <p className="text-sm text-slate-700">{b.notas}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
