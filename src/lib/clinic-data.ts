@@ -125,3 +125,16 @@ export function formatDate(iso: string | null): string {
 export function formatTime(t: string): string {
   return t.slice(0, 5);
 }
+
+/* Finances & Budgets */
+export async function listPayments(): Promise<any[]> {
+  const { data, error } = await supabase.from("payments" as any).select("*");
+  if (error && error.code !== "42P01") throw error;
+  return data || [];
+}
+
+export async function listBudgets(): Promise<any[]> {
+  const { data, error } = await supabase.from("budgets" as any).select("*");
+  if (error && error.code !== "42P01") throw error;
+  return data || [];
+}
