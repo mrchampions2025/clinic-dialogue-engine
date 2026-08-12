@@ -185,7 +185,7 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                   {/* Firma de ejemplo para relleno visual si está aceptado */}
                   {budget.estado === 'Aceptado' && (
                     <div className="absolute bottom-1 left-1/2 -translate-x-1/2 font-['Brush_Script_MT',cursive] text-2xl text-slate-700 opacity-80 -rotate-2 whitespace-nowrap">
-                      {budget.firma_paciente || patient.nombre}
+                      {budget.firma_nombre || patient.nombre}
                     </div>
                   )}
                 </div>
