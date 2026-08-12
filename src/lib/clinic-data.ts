@@ -21,6 +21,8 @@ export type Appointment = {
   hora: string;
   canal: string;
   estado: Estado;
+  precio?: number | null;
+  pagado?: boolean;
 };
 
 export type Treatment = {
@@ -85,6 +87,8 @@ export async function upsertAppointment(a: Partial<Appointment>): Promise<void> 
     hora: a.hora!,
     canal: a.canal || "WhatsApp IA",
     estado: a.estado || "Pendiente",
+    precio: a.precio || null,
+    pagado: a.pagado || false,
   };
   const res = a.id
     ? await supabase.from("appointments").update(payload).eq("id", a.id)

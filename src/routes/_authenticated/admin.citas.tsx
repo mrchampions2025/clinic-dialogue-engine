@@ -12,6 +12,7 @@ import { EstadoBadge } from "@/components/admin/EstadoBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +77,8 @@ const empty: Partial<Appointment> = {
   hora: "09:00",
   canal: "WhatsApp IA",
   estado: "Pendiente",
+  precio: 0,
+  pagado: false,
 };
 
 function CitasPage() {
@@ -142,20 +145,21 @@ function CitasPage() {
                 <TableHead>Tratamiento</TableHead>
                 <TableHead>Canal</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Cobro</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
                     Cargando citas…
                   </TableCell>
                 </TableRow>
               )}
               {!isLoading && citas.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
                     Todavía no hay citas registradas.
                   </TableCell>
                 </TableRow>
@@ -174,6 +178,18 @@ function CitasPage() {
                   </TableCell>
                   <TableCell>
                     <EstadoBadge estado={c.estado} />
+                  </TableCell>
+                  <TableCell>
+                    {c.precio != null && c.precio > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-medium">{c.precio} €</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full w-max ${c.pagado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {c.pagado ? "Pagado" : "Pendiente"}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
@@ -339,7 +355,24 @@ function CitasPage() {
                 </SelectContent>
               </Select>
             </div>
-            <DialogFooter className="sm:col-span-2">
+            <div>
+              <Label htmlFor="precio">Precio (€)</Label>
+              <Input
+                id="precio"
+                type="number"
+                value={form.precio ?? ""}
+                onChange={(e) => setForm({ ...form, precio: Number(e.target.value) })}
+              />
+            </div>
+            <div className="flex items-center space-x-2 pt-8">
+              <Switch
+                id="pagado"
+                checked={form.pagado ?? false}
+                onCheckedChange={(checked) => setForm({ ...form, pagado: checked })}
+              />
+              <Label htmlFor="pagado" className="cursor-pointer">Marcar como pagado</Label>
+            </div>
+            <DialogFooter className="sm:col-span-2 mt-4">
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>
