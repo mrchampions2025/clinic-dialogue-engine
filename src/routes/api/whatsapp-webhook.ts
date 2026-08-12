@@ -90,18 +90,17 @@ async function processMessageWithAI(phone: string, text: string, userName: strin
     model: gateway("google/gemini-1.5-flash"),
     system: CLINIC_SYSTEM_PROMPT + `\n\nEl paciente se llama ${userName} y su número es ${phone}.`,
     prompt: text,
-    maxSteps: 2,
     tools: {
       bookAppointment: tool({
         description: "Reserva una cita médica en la base de datos de la clínica.",
-        parameters: z.object({
+        inputSchema: z.object({
           paciente: z.string().describe("El nombre completo del paciente."),
           telefono: z.string().describe("El teléfono de contacto del paciente."),
           fecha: z.string().describe("La fecha de la cita en formato YYYY-MM-DD."),
           hora: z.string().describe("La hora de la cita en formato HH:MM."),
           tratamiento: z.string().describe("El tratamiento o motivo de la visita."),
         }),
-        execute: async (args) => {
+        execute: async (args: any) => {
           // Buscamos si existe el paciente por número para asociarlo
           let patientId = null;
           const { data: existingPatient } = await supabase

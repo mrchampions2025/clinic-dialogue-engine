@@ -48,7 +48,7 @@ function PatientDetailPage() {
         console.error(error);
         return [];
       }
-      return (data as ToothRecord[]) || [];
+      return (data as unknown as ToothRecord[]) || [];
     },
   });
 
@@ -90,7 +90,6 @@ function PatientDetailPage() {
       toast.success("Estado actualizado");
     },
     onError: (e: any) => toast.error(e.message),
-  });
   });
 
   // Mutación para actualizar Odontograma
