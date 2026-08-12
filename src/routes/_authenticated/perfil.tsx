@@ -2,7 +2,10 @@ import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { listUserAppointments, formatDate, formatTime } from "@/lib/clinic-data";
-import { CalendarCheck, User, Plus, FileText, Euro } from "lucide-react";
+import { CalendarCheck, User, Plus, FileText, Euro, PenLine } from "lucide-react";
+import { BudgetDocument } from "@/components/budgets/BudgetDocument";
+import { BudgetSignDialog } from "@/components/budgets/BudgetSignDialog";
+import { Budget, isExpired, listPatientBudgets } from "@/lib/budgets";
 import { EstadoBadge } from "@/components/admin/EstadoBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,16 +62,10 @@ function PerfilPage() {
 
   const { data: presupuestos = [], isLoading: loadingPresupuestos } = useQuery({
     queryKey: ["mis-presupuestos", user.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("budgets" as any)
-        .select("*")
-        .eq("patient_id", user.id)
-        .order("fecha", { ascending: false });
-      if (error && error.code !== "42P01") throw error;
-      return data || [];
-    },
+    queryFn: () => listPatientBudgets(user.id),
   });
+
+  const [firmando, setFirmando] = useState<Budget | null>(null);
 
   const agendarMutation = useMutation({
     mutationFn: async () => {
@@ -228,40 +225,56 @@ function PerfilPage() {
           </TabsContent>
 
           <TabsContent value="presupuestos" className="mt-0">
-            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-              {loadingPresupuestos ? (
-                <p className="py-8 text-center text-muted-foreground animate-pulse">Cargando tus tratamientos y presupuestos...</p>
-              ) : presupuestos.length === 0 ? (
-                <div className="py-12 text-center">
-                  <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
-                    <Euro className="size-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-medium">No hay presupuestos registrados</h3>
-                  <p className="text-muted-foreground mt-1">Aquí verás los presupuestos y planes de tratamiento de la clínica.</p>
+          <section className="space-y-6">
+            {loadingPresupuestos ? (
+              <p className="py-8 text-center text-muted-foreground animate-pulse">Cargando tus presupuestos...</p>
+            ) : presupuestos.length === 0 ? (
+              <div className="rounded-2xl border border-border bg-card p-6 py-12 text-center shadow-sm">
+                <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
+                  <Euro className="size-8 text-muted-foreground" />
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {presupuestos.map((b: any) => (
-                    <div key={b.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border border-border rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                      <div>
-                        <span className="font-bold text-xl text-primary">{b.total} €</span>
-                        <p className="text-sm mt-2 text-slate-700">{b.notas}</p>
-                        <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
-                          <CalendarCheck className="size-3" />
-                          Emitido el {formatDate(b.fecha)}
-                        </p>
-                      </div>
-                      <div className="mt-4 sm:mt-0 shrink-0">
-                        <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${b.estado === 'Aceptado' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
-                          {b.estado}
-                        </span>
-                      </div>
+                <h3 className="text-lg font-medium">No hay presupuestos registrados</h3>
+                <p className="mt-1 text-muted-foreground">
+                  Aquí verás los planes de tratamiento que te prepare la clínica, y podrás aceptarlos y firmarlos.
+                </p>
+              </div>
+            ) : (
+              presupuestos.map((b) => (
+                <div key={b.id} className="space-y-3">
+                  <BudgetDocument budget={b} />
+                  {b.estado === "Pendiente" && !isExpired(b) && (
+                    <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Revisa el plan de tratamiento. Para iniciarlo necesitamos tu aceptación firmada.
+                      </p>
+                      <Button onClick={() => setFirmando(b)} className="shrink-0">
+                        <PenLine className="mr-2 size-4" /> Aceptar y firmar
+                      </Button>
                     </div>
-                  ))}
+                  )}
+                  {isExpired(b) && (
+                    <p className="text-sm text-muted-foreground">
+                      Este presupuesto ha caducado. Contacta con la clínica para renovarlo.
+                    </p>
+                  )}
+                  {b.estado === "Rechazado" && (
+                    <p className="text-sm text-muted-foreground">Rechazaste este presupuesto.</p>
+                  )}
                 </div>
-              )}
-            </section>
-          </TabsContent>
+              ))
+            )}
+          </section>
+
+          {firmando && (
+            <BudgetSignDialog
+              budget={firmando}
+              open={!!firmando}
+              onOpenChange={(v) => !v && setFirmando(null)}
+              defaultName={nombre || user.email}
+              invalidateKey={["mis-presupuestos", user.id]}
+            />
+          )}
+        </TabsContent>
         </Tabs>
       </div>
     </main>
