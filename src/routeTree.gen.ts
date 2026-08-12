@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as ApiWhatsappRemindersRouteImport } from './routes/api/whatsapp-reminders'
 import { Route as ApiWhatsappWebhookRouteImport } from './routes/api/whatsapp-webhook'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminCitasRouteImport } from './routes/_authenticated/admin.citas'
@@ -45,6 +46,11 @@ const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiWhatsappRemindersRoute = ApiWhatsappRemindersRouteImport.update({
+  id: '/api/whatsapp-reminders',
+  path: '/api/whatsapp-reminders',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWhatsappWebhookRoute = ApiWhatsappWebhookRouteImport.update({
   id: '/api/whatsapp-webhook',
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/_authenticated/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/_authenticated/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/perfil'
+    | '/api/whatsapp-reminders'
     | '/api/whatsapp-webhook'
     | '/admin/citas'
     | '/admin/configuracion'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/perfil'
+    | '/api/whatsapp-reminders'
     | '/api/whatsapp-webhook'
     | '/admin/citas'
     | '/admin/configuracion'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/perfil'
+    | '/api/whatsapp-reminders'
     | '/api/whatsapp-webhook'
     | '/_authenticated/admin/citas'
     | '/_authenticated/admin/configuracion'
@@ -172,6 +184,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiWhatsappRemindersRoute: typeof ApiWhatsappRemindersRoute
   ApiWhatsappWebhookRoute: typeof ApiWhatsappWebhookRoute
 }
 
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/perfil'
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/whatsapp-reminders': {
+      id: '/api/whatsapp-reminders'
+      path: '/api/whatsapp-reminders'
+      fullPath: '/api/whatsapp-reminders'
+      preLoaderRoute: typeof ApiWhatsappRemindersRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/whatsapp-webhook': {
       id: '/api/whatsapp-webhook'
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiWhatsappRemindersRoute: ApiWhatsappRemindersRoute,
   ApiWhatsappWebhookRoute: ApiWhatsappWebhookRoute,
 }
 export const routeTree = rootRouteImport
