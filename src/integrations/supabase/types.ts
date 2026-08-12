@@ -75,6 +75,8 @@ export type Database = {
           budget_id: string
           cantidad: number
           created_at: string | null
+          descripcion: string | null
+          descuento: number
           id: string
           precio: number
           tratamiento: string
@@ -83,6 +85,8 @@ export type Database = {
           budget_id: string
           cantidad?: number
           created_at?: string | null
+          descripcion?: string | null
+          descuento?: number
           id?: string
           precio?: number
           tratamiento: string
@@ -91,6 +95,8 @@ export type Database = {
           budget_id?: string
           cantidad?: number
           created_at?: string | null
+          descripcion?: string | null
+          descuento?: number
           id?: string
           precio?: number
           tratamiento?: string
@@ -107,31 +113,64 @@ export type Database = {
       }
       budgets: {
         Row: {
+          condiciones: string | null
           created_at: string | null
+          descuento: number
           estado: string
           fecha: string
+          firma_data: string | null
+          firma_dni: string | null
+          firma_nombre: string | null
+          firmado_at: string | null
           id: string
           notas: string | null
+          numero: string | null
           patient_id: string
+          rechazado_at: string | null
+          titulo: string
           total: number
+          updated_at: string
+          valido_hasta: string | null
         }
         Insert: {
+          condiciones?: string | null
           created_at?: string | null
+          descuento?: number
           estado?: string
           fecha?: string
+          firma_data?: string | null
+          firma_dni?: string | null
+          firma_nombre?: string | null
+          firmado_at?: string | null
           id?: string
           notas?: string | null
+          numero?: string | null
           patient_id: string
+          rechazado_at?: string | null
+          titulo?: string
           total?: number
+          updated_at?: string
+          valido_hasta?: string | null
         }
         Update: {
+          condiciones?: string | null
           created_at?: string | null
+          descuento?: number
           estado?: string
           fecha?: string
+          firma_data?: string | null
+          firma_dni?: string | null
+          firma_nombre?: string | null
+          firmado_at?: string | null
           id?: string
           notas?: string | null
+          numero?: string | null
           patient_id?: string
+          rechazado_at?: string | null
+          titulo?: string
           total?: number
+          updated_at?: string
+          valido_hasta?: string | null
         }
         Relationships: [
           {
