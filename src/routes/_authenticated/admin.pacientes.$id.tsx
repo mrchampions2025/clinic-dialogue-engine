@@ -1,21 +1,25 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { listPatients } from "@/lib/clinic-data";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Odontograma, ToothState, ToothRecord } from "@/components/admin/Odontograma";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, Activity, Euro, Plus } from "lucide-react";
+import { ArrowLeft, FileText, Activity, Euro, Plus, Pencil, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/clinic-data";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { BudgetDocument } from "@/components/budgets/BudgetDocument";
+import { BudgetEditorDialog } from "@/components/budgets/BudgetEditorDialog";
+import {
+  Budget,
+  BudgetEstado,
+  deleteBudget,
+  formatMoney,
+  listPatientBudgets,
+  setBudgetEstado,
+} from "@/lib/budgets";
+
 
 export const Route = createFileRoute("/_authenticated/admin/pacientes/$id")({
   component: PatientDetailPage,
