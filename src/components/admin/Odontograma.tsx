@@ -30,7 +30,7 @@ const TEETH_LOWER = [
 ];
 
 const STATE_COLORS: Record<ToothState, string> = {
-  Sano: "bg-white border-slate-300",
+  Sano: "bg-yellow-400 border-yellow-500 text-yellow-950",
   Caries: "bg-red-500 border-red-600 text-white",
   Empaste: "bg-blue-500 border-blue-600 text-white",
   Ausente: "bg-slate-800 border-slate-900 text-white opacity-50",

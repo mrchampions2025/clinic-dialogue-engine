@@ -2,7 +2,7 @@ import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { listUserAppointments, formatDate, formatTime } from "@/lib/clinic-data";
-import { CalendarCheck, User, Plus, FileText } from "lucide-react";
+import { CalendarCheck, User, Plus, FileText, Euro } from "lucide-react";
 import { EstadoBadge } from "@/components/admin/EstadoBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +49,19 @@ function PerfilPage() {
       // Intentamos buscar historial si la tabla existe
       const { data, error } = await supabase
         .from("medical_records" as any)
+        .select("*")
+        .eq("patient_id", user.id)
+        .order("fecha", { ascending: false });
+      if (error && error.code !== "42P01") throw error;
+      return data || [];
+    },
+  });
+
+  const { data: presupuestos = [], isLoading: loadingPresupuestos } = useQuery({
+    queryKey: ["mis-presupuestos", user.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("budgets" as any)
         .select("*")
         .eq("patient_id", user.id)
         .order("fecha", { ascending: false });
@@ -148,6 +161,9 @@ function PerfilPage() {
             <TabsTrigger value="tratamientos" className="rounded-lg px-6 data-[state=active]:shadow-sm">
               <FileText className="mr-2 size-4" /> Mi Historial
             </TabsTrigger>
+            <TabsTrigger value="presupuestos" className="rounded-lg px-6 data-[state=active]:shadow-sm">
+              <Euro className="mr-2 size-4" /> Mis Tratamientos
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="citas" className="mt-0">
@@ -204,6 +220,42 @@ function PerfilPage() {
                         <span className="text-sm font-medium text-muted-foreground">{formatDate(h.fecha)}</span>
                       </div>
                       <p className="text-sm leading-relaxed text-slate-700">{h.notas}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </TabsContent>
+
+          <TabsContent value="presupuestos" className="mt-0">
+            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              {loadingPresupuestos ? (
+                <p className="py-8 text-center text-muted-foreground animate-pulse">Cargando tus tratamientos y presupuestos...</p>
+              ) : presupuestos.length === 0 ? (
+                <div className="py-12 text-center">
+                  <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
+                    <Euro className="size-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-medium">No hay presupuestos registrados</h3>
+                  <p className="text-muted-foreground mt-1">Aquí verás los presupuestos y planes de tratamiento de la clínica.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {presupuestos.map((b: any) => (
+                    <div key={b.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border border-border rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                      <div>
+                        <span className="font-bold text-xl text-primary">{b.total} €</span>
+                        <p className="text-sm mt-2 text-slate-700">{b.notas}</p>
+                        <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
+                          <CalendarCheck className="size-3" />
+                          Emitido el {formatDate(b.fecha)}
+                        </p>
+                      </div>
+                      <div className="mt-4 sm:mt-0 shrink-0">
+                        <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${b.estado === 'Aceptado' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {b.estado}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
