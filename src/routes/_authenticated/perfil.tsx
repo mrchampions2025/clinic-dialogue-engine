@@ -5,6 +5,7 @@ import { listUserAppointments, formatDate, formatTime } from "@/lib/clinic-data"
 import { CalendarCheck, User, Plus, FileText, Euro, PenLine } from "lucide-react";
 import { BudgetDocument } from "@/components/budgets/BudgetDocument";
 import { BudgetSignDialog } from "@/components/budgets/BudgetSignDialog";
+import { BudgetInvoice } from "@/components/admin/BudgetInvoice";
 import { Budget, isExpired, listPatientBudgets } from "@/lib/budgets";
 import { EstadoBadge } from "@/components/admin/EstadoBadge";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,7 @@ function PerfilPage() {
   });
 
   const [firmando, setFirmando] = useState<Budget | null>(null);
+  const [selectedBudgetForPrint, setSelectedBudgetForPrint] = useState<any | null>(null);
 
   const agendarMutation = useMutation({
     mutationFn: async () => {
@@ -242,6 +244,15 @@ function PerfilPage() {
               presupuestos.map((b) => (
                 <div key={b.id} className="space-y-3">
                   <BudgetDocument budget={b} />
+                  <div className="flex justify-end mt-2 mb-4">
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      onClick={() => setSelectedBudgetForPrint(b)}
+                    >
+                      <FileText className="size-4 mr-1.5" /> Ver PDF
+                    </Button>
+                  </div>
                   {b.estado === "Pendiente" && !isExpired(b) && (
                     <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
                       <p className="text-sm text-muted-foreground">
@@ -277,6 +288,14 @@ function PerfilPage() {
         </TabsContent>
         </Tabs>
       </div>
+
+      {selectedBudgetForPrint && (
+        <BudgetInvoice 
+          budget={selectedBudgetForPrint} 
+          patient={{ nombre: nombre || user.email, email: user.email, telefono: telefono }} 
+          onClose={() => setSelectedBudgetForPrint(null)} 
+        />
+      )}
     </main>
   );
 }
