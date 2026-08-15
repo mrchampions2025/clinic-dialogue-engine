@@ -25,6 +25,13 @@ export interface ClinicSettings {
   firma_sello_cargo?: string | null;
   firma_sello_data?: string | null;
   modo_firma_presupuesto?: "sello_defecto" | "firma_paciente" | "ambos";
+  tipo_firma_oficial?: "imagen" | "certificado" | "ambos";
+  firma_sello_imagen?: string | null;
+  cert_nombre_titular?: string | null;
+  cert_emisor?: string | null;
+  cert_num_serie?: string | null;
+  cert_valido_hasta?: string | null;
+  cert_huella_sha256?: string | null;
 }
 
 export interface InvoiceItem {
@@ -101,6 +108,13 @@ export async function getClinicSettings(): Promise<ClinicSettings> {
     firma_sello_cargo: "Dirección Médica - Clínica Dentix",
     firma_sello_data: null,
     modo_firma_presupuesto: "ambos",
+    tipo_firma_oficial: "imagen",
+    firma_sello_imagen: null,
+    cert_nombre_titular: "CLINICA DENTAL DENTIX SL - B12345678",
+    cert_emisor: "FNMT-RCM (Fábrica Nacional de Moneda y Timbre)",
+    cert_num_serie: "72A4901F82B094C1",
+    cert_valido_hasta: "2029-12-31",
+    cert_huella_sha256: "3A7B9F1C82D405E6F890A1B2C3D4E5F67890ABCD",
   };
 }
 

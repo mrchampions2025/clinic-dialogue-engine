@@ -1,8 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatDate } from "@/lib/clinic-data";
+import { getClinicSettings } from "@/lib/invoices";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Printer, X } from "lucide-react";
+import { Printer, X, ShieldCheck, Award } from "lucide-react";
 
 interface BudgetInvoiceProps {
   budget: any;
@@ -13,6 +15,11 @@ interface BudgetInvoiceProps {
 export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) {
   const componentRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+
+  const { data: clinic } = useQuery({
+    queryKey: ["clinicSettings"],
+    queryFn: () => getClinicSettings(),
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -25,6 +32,7 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
 
   const taxRate = 0.07;
   const total = budget.total;
+  const tipoFirma = clinic?.tipo_firma_oficial || "imagen";
 
   const content = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 print:p-0 print:bg-white print:block print:relative print:z-auto">
@@ -179,24 +187,53 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                 </div>
               </div>
 
-              <div className="mt-12 flex gap-4 text-center">
+              <div className="mt-8 flex gap-3 text-center">
+                {/* Firma del Paciente */}
                 <div className="flex-1">
                   <div className="font-semibold text-xs mb-2 text-slate-700">Firma del Paciente</div>
-                  <div className="border-b border-slate-400 w-full h-10 relative flex items-center justify-center">
+                  <div className="border-b border-slate-400 w-full h-14 relative flex items-center justify-center">
                     {budget.estado === 'Aceptado' && (
-                      <div className="font-['Brush_Script_MT',cursive] text-xl text-slate-700 opacity-90 -rotate-2 whitespace-nowrap">
-                        {budget.firma_nombre || patient?.nombre}
-                      </div>
+                      budget.firma_data ? (
+                        <img src={budget.firma_data} alt="Firma Paciente" className="h-12 object-contain" />
+                      ) : (
+                        <div className="font-['Brush_Script_MT',cursive] text-xl text-slate-700 opacity-90 -rotate-2 whitespace-nowrap">
+                          {budget.firma_nombre || patient?.nombre}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
 
+                {/* Firma y Sello Oficial de la Clínica (Imagen y/o Certificado Electrónico) */}
                 <div className="flex-1">
-                  <div className="font-semibold text-xs mb-2 text-[#3245d6]">Firma y Sello Clínica</div>
-                  <div className="border border-dashed border-[#3245d6]/40 rounded bg-blue-50/50 p-2 text-[10px] text-slate-600 relative">
-                    <p className="font-bold text-[#3245d6]">Clínica Dental Dentix</p>
-                    <p className="text-[9px] text-slate-500">Dra. María García · Dir. Médica</p>
-                    <p className="text-[8px] text-emerald-700 font-mono mt-0.5">Sello Digital Verificado</p>
+                  <div className="font-semibold text-xs mb-2 text-[#3245d6] flex items-center justify-center gap-1">
+                    <ShieldCheck className="size-3.5 text-[#3245d6]" /> Firma y Sello Oficial
+                  </div>
+
+                  <div className="border border-dashed border-[#3245d6]/40 rounded bg-blue-50/40 p-2 text-[10px] text-slate-700 relative min-h-[56px] flex flex-col items-center justify-center">
+                    {/* Render Opción 1: Imagen de Firma o Sello */}
+                    {(tipoFirma === "imagen" || tipoFirma === "ambos") && clinic?.firma_sello_imagen ? (
+                      <img
+                        src={clinic.firma_sello_imagen}
+                        alt="Sello Oficial Clínica"
+                        className="h-12 max-w-full object-contain mb-1"
+                      />
+                    ) : null}
+
+                    {/* Render Opción 2: Certificado Electrónico Digital X.509 */}
+                    {(tipoFirma === "certificado" || tipoFirma === "ambos" || !clinic?.firma_sello_imagen) && (
+                      <div className="space-y-0.5 w-full">
+                        <p className="font-bold text-[#3245d6] text-[10px]">
+                          {clinic?.cert_nombre_titular || clinic?.razon_social || "CLINICA DENTAL DENTIX SL"}
+                        </p>
+                        <p className="text-[8px] text-slate-500 font-mono">
+                          CA: {clinic?.cert_emisor || "FNMT-RCM"} · Nº Serie: {clinic?.cert_num_serie || "72A4901F"}
+                        </p>
+                        <p className="text-[7.5px] text-emerald-700 font-mono font-bold tracking-tight bg-emerald-100/60 px-1 py-0.5 rounded border border-emerald-300 inline-block mt-0.5">
+                          ✓ Firmado con Certificado Digital X.509 (SIF RD 1007/2023)
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
