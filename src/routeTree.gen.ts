@@ -21,6 +21,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminCitasRouteImport } from './routes/_authenticated/admin.citas'
 import { Route as AuthenticatedAdminConfiguracionRouteImport } from './routes/_authenticated/admin.configuracion'
 import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_authenticated/admin.facturacion'
+import { Route as AuthenticatedAdminPresupuestosRouteImport } from './routes/_authenticated/admin.presupuestos'
 import { Route as AuthenticatedAdminTratamientosRouteImport } from './routes/_authenticated/admin.tratamientos'
 import { Route as AuthenticatedAdminPacientesIndexRouteImport } from './routes/_authenticated/admin.pacientes.index'
 import { Route as AuthenticatedAdminPacientesIdRouteImport } from './routes/_authenticated/admin.pacientes.$id'
@@ -86,6 +87,12 @@ const AuthenticatedAdminFacturacionRoute =
     path: '/facturacion',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminPresupuestosRoute =
+  AuthenticatedAdminPresupuestosRouteImport.update({
+    id: '/presupuestos',
+    path: '/presupuestos',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminTratamientosRoute =
   AuthenticatedAdminTratamientosRouteImport.update({
     id: '/tratamientos',
@@ -116,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
+  '/admin/presupuestos': typeof AuthenticatedAdminPresupuestosRoute
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
@@ -131,6 +139,7 @@ export interface FileRoutesByTo {
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
+  '/admin/presupuestos': typeof AuthenticatedAdminPresupuestosRoute
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
@@ -149,6 +158,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/_authenticated/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
+  '/_authenticated/admin/presupuestos': typeof AuthenticatedAdminPresupuestosRoute
   '/_authenticated/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/admin/citas'
     | '/admin/configuracion'
     | '/admin/facturacion'
+    | '/admin/presupuestos'
     | '/admin/tratamientos'
     | '/admin/'
     | '/admin/pacientes/$id'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/admin/citas'
     | '/admin/configuracion'
     | '/admin/facturacion'
+    | '/admin/presupuestos'
     | '/admin/tratamientos'
     | '/admin'
     | '/admin/pacientes/$id'
@@ -199,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/citas'
     | '/_authenticated/admin/configuracion'
     | '/_authenticated/admin/facturacion'
+    | '/_authenticated/admin/presupuestos'
     | '/_authenticated/admin/tratamientos'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/pacientes/$id'
@@ -300,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFacturacionRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/presupuestos': {
+      id: '/_authenticated/admin/presupuestos'
+      path: '/presupuestos'
+      fullPath: '/admin/presupuestos'
+      preLoaderRoute: typeof AuthenticatedAdminPresupuestosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/tratamientos': {
       id: '/_authenticated/admin/tratamientos'
       path: '/tratamientos'
@@ -328,6 +348,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCitasRoute: typeof AuthenticatedAdminCitasRoute
   AuthenticatedAdminConfiguracionRoute: typeof AuthenticatedAdminConfiguracionRoute
   AuthenticatedAdminFacturacionRoute: typeof AuthenticatedAdminFacturacionRoute
+  AuthenticatedAdminPresupuestosRoute: typeof AuthenticatedAdminPresupuestosRoute
   AuthenticatedAdminTratamientosRoute: typeof AuthenticatedAdminTratamientosRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminPacientesIdRoute: typeof AuthenticatedAdminPacientesIdRoute
@@ -338,6 +359,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCitasRoute: AuthenticatedAdminCitasRoute,
   AuthenticatedAdminConfiguracionRoute: AuthenticatedAdminConfiguracionRoute,
   AuthenticatedAdminFacturacionRoute: AuthenticatedAdminFacturacionRoute,
+  AuthenticatedAdminPresupuestosRoute: AuthenticatedAdminPresupuestosRoute,
   AuthenticatedAdminTratamientosRoute: AuthenticatedAdminTratamientosRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminPacientesIdRoute: AuthenticatedAdminPacientesIdRoute,
