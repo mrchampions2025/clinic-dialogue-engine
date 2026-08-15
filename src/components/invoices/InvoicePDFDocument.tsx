@@ -50,7 +50,7 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
   const modoFacturacion = clinic?.modo_facturacion || "no_verifactu";
   const isVerifactu = modoFacturacion === "verifactu";
 
-  const qrDataUrl = invoice.qr_data || generateAEATQRUrl({
+  const qrDataUrl = generateAEATQRUrl({
     emisorNif: invoice.emisor_nif || clinic?.cif_nif || "B12345678",
     numFactura: invoice.numero || "FAC-2026-0001",
     fechaExpedicion: invoice.fecha_expedicion || new Date().toISOString(),
