@@ -1,279 +1,263 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Plus, Trash2, Search } from "lucide-react";
-import { toast } from "sonner";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { listInvoices, createRectifyingInvoice, Invoice } from "@/lib/invoices";
+import { InvoicePDFDocument } from "@/components/invoices/InvoicePDFDocument";
+import { formatDate } from "@/lib/clinic-data";
+import { formatMoney } from "@/lib/budgets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { InvoiceEditorDialog } from "@/components/admin/InvoiceEditorDialog";
-import {
-  deleteInvoice,
-  draftFromBudget,
-  formatMoney,
-  listInvoices,
-  setInvoiceEstado,
-  type Invoice,
-  type InvoiceDraft,
-} from "@/lib/invoices";
-import { formatDate } from "@/lib/clinic-data";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { FileText, Search, ShieldCheck, RefreshCw, Eye, AlertTriangle, Euro, FileCheck, Layers } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/facturacion")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    budget: typeof search['budget'] === "string" ? (search['budget'] as string) : undefined,
-  }),
-  component: FacturacionPage,
-  head: () => ({
-    meta: [
-      { title: "Facturación | Clínica Dentix" },
-      { name: "description", content: "Emite y gestiona las facturas de la clínica a partir de presupuestos aceptados." },
-      { property: "og:title", content: "Facturación | Clínica Dentix" },
-      { property: "og:description", content: "Emite y gestiona las facturas de la clínica a partir de presupuestos aceptados." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  component: AdminFacturacionPage,
 });
 
-function emptyDraft(): InvoiceDraft {
-  return {
-    patient_id: "",
-    budget_id: null,
-    numero: null,
-    fecha: new Date().toISOString().slice(0, 10),
-    vencimiento: null,
-    cliente_nombre: "",
-    cliente_dni: null,
-    cliente_direccion: null,
-    cliente_ciudad: null,
-    cliente_cp: null,
-    cliente_email: null,
-    cliente_telefono: null,
-    descuento: 0,
-    iva_porcentaje: 0,
-    estado: "Emitida",
-    metodo_pago: "Efectivo",
-    notas: null,
-    items: [],
-  };
-}
-
-function invoiceToDraft(inv: Invoice): InvoiceDraft {
-  return {
-    id: inv.id,
-    patient_id: inv.patient_id,
-    budget_id: inv.budget_id,
-    numero: inv.numero,
-    fecha: inv.fecha,
-    vencimiento: inv.vencimiento,
-    cliente_nombre: inv.cliente_nombre,
-    cliente_dni: inv.cliente_dni,
-    cliente_direccion: inv.cliente_direccion,
-    cliente_ciudad: inv.cliente_ciudad,
-    cliente_cp: inv.cliente_cp,
-    cliente_email: inv.cliente_email,
-    cliente_telefono: inv.cliente_telefono,
-    descuento: Number(inv.descuento) || 0,
-    iva_porcentaje: Number(inv.iva_porcentaje) || 0,
-    estado: inv.estado,
-    metodo_pago: inv.metodo_pago,
-    notas: inv.notas,
-    items: (inv.invoice_items || []).map((i) => ({
-      concepto: i.concepto,
-      descripcion: i.descripcion,
-      cantidad: Number(i.cantidad) || 1,
-      precio: Number(i.precio) || 0,
-      descuento: Number(i.descuento) || 0,
-    })),
-  };
-}
-
-function FacturacionPage() {
+function AdminFacturacionPage() {
   const qc = useQueryClient();
-  const navigate = useNavigate();
-  const { budget } = Route.useSearch();
-
-  const [ref, setRef] = useState("");
-  const [draft, setDraft] = useState<InvoiceDraft | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [rectifyingTarget, setRectifyingTarget] = useState<Invoice | null>(null);
+  const [rectifyingReason, setRectifyingReason] = useState("");
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices"],
-    queryFn: listInvoices,
+    queryFn: () => listInvoices(),
   });
 
-  const loadFromBudget = useMutation({
-    mutationFn: (value: string) => draftFromBudget(value),
-    onSuccess: (d) => {
-      setDraft(d);
-      setRef("");
+  const rectifyingMutation = useMutation({
+    mutationFn: async () => {
+      if (!rectifyingTarget) return;
+      if (!rectifyingReason.trim()) throw new Error("Debes indicar el motivo de la rectificación");
+      return createRectifyingInvoice(rectifyingTarget.id, rectifyingReason.trim());
     },
-    onError: (e: any) => toast.error(e.message),
-  });
-
-  // Llegada desde un presupuesto ("Facturar")
-  useEffect(() => {
-    if (budget) {
-      loadFromBudget.mutate(budget);
-      navigate({ to: "/admin/facturacion", search: () => ({ budget: undefined }), replace: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [budget]);
-
-  const remove = useMutation({
-    mutationFn: (id: string) => deleteInvoice(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
-      toast.success("Factura eliminada");
+      toast.success("Factura rectificativa emitida correctamente");
+      setRectifyingTarget(null);
+      setRectifyingReason("");
     },
     onError: (e: any) => toast.error(e.message),
   });
 
-  const markPaid = useMutation({
-    mutationFn: (id: string) => setInvoiceEstado(id, "Pagada"),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["invoices"] });
-      toast.success("Factura marcada como pagada");
-    },
-    onError: (e: any) => toast.error(e.message),
+  const filteredInvoices = invoices.filter((inv) => {
+    const query = searchTerm.toLowerCase();
+    return (
+      inv.numero.toLowerCase().includes(query) ||
+      inv.receptor_nombre.toLowerCase().includes(query) ||
+      (inv.receptor_nif && inv.receptor_nif.toLowerCase().includes(query))
+    );
   });
 
-  const facturado = invoices
-    .filter((i) => i.estado !== "Anulada")
-    .reduce((a, i) => a + Number(i.total), 0);
+  const currentYear = new Date().getFullYear();
+  const yearInvoices = invoices.filter((inv) => inv.ejercicio === currentYear && inv.estado === "emitida");
+  const totalFacturado = yearInvoices.reduce((acc, inv) => acc + Number(inv.total), 0);
+  const totalOrdinarias = invoices.filter((i) => i.tipo === "ordinaria").length;
+  const totalRectificativas = invoices.filter((i) => i.tipo === "rectificativa").length;
 
   return (
     <AdminShell
-      title="Facturación"
-      subtitle={`${invoices.length} factura(s) · ${formatMoney(facturado)} facturado`}
-      actions={
-        <Button onClick={() => setDraft(emptyDraft())}>
-          <Plus className="mr-1 size-4" /> Nueva factura
-        </Button>
-      }
+      title="Gestión de Facturación SIF"
+      subtitle="Sistema inalterable con encadenamiento SHA-256 y cumplimiento RD 1007/2023 (Modo No Veri*factu)"
     >
-      <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <h3 className="text-sm font-semibold">Facturar desde presupuesto</h3>
-        <p className="mb-3 text-sm text-muted-foreground">
-          Introduce el número de referencia del presupuesto aceptado (ej. PRE-2026-1234) y la factura se rellenará
-          automáticamente con el paciente, sus datos fiscales y los tratamientos.
-        </p>
-        <form
-          className="flex flex-col gap-2 sm:flex-row"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (ref.trim()) loadFromBudget.mutate(ref.trim());
-          }}
-        >
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 mb-6">
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex items-center gap-4">
+          <div className="size-12 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
+            <Euro className="size-6" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase">Facturado Ejercicio {currentYear}</p>
+            <p className="text-2xl font-bold">{formatMoney(totalFacturado)}</p>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex items-center gap-4">
+          <div className="size-12 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+            <FileCheck className="size-6" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase">Facturas Ordinarias</p>
+            <p className="text-2xl font-bold">{totalOrdinarias}</p>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex items-center gap-4">
+          <div className="size-12 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+            <AlertTriangle className="size-6" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase">Facturas Rectificativas</p>
+            <p className="text-2xl font-bold">{totalRectificativas}</p>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex items-center gap-4">
+          <div className="size-12 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center">
+            <ShieldCheck className="size-6" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase">Trazabilidad SIF</p>
+            <p className="text-sm font-semibold text-emerald-600 flex items-center gap-1 mt-1">
+              <Layers className="size-4" /> Hash SHA-256 Activo
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-4 rounded-xl border border-border mb-6">
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="PRE-2026-1234"
-            value={ref}
-            onChange={(e) => setRef(e.target.value)}
-            className="sm:max-w-xs"
+            placeholder="Buscar por Nº de factura, paciente o DNI..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
           />
-          <Button type="submit" variant="secondary" disabled={loadFromBudget.isPending}>
-            <Search className="mr-1 size-4" />
-            {loadFromBudget.isPending ? "Buscando…" : "Cargar presupuesto"}
-          </Button>
-        </form>
+        </div>
+        <p className="text-xs text-muted-foreground text-right">
+          Mostrando {filteredInvoices.length} de {invoices.length} registro(s) fiscales inalterables
+        </p>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nº factura</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>DNI/NIF</TableHead>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading && (
-              <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
-                  Cargando facturas…
-                </TableCell>
-              </TableRow>
-            )}
-            {!isLoading && invoices.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
-                  Todavía no hay facturas emitidas.
-                </TableCell>
-              </TableRow>
-            )}
-            {invoices.map((inv) => (
-              <TableRow key={inv.id}>
-                <TableCell className="font-medium">
-                  <span className="flex items-center gap-2">
-                    <FileText className="size-4 text-primary" />
-                    {inv.numero || "—"}
-                  </span>
-                </TableCell>
-                <TableCell>{inv.cliente_nombre}</TableCell>
-                <TableCell className="text-muted-foreground">{inv.cliente_dni || "—"}</TableCell>
-                <TableCell className="whitespace-nowrap">{formatDate(inv.fecha)}</TableCell>
-                <TableCell>
-                  <span
-                    className={
-                      "rounded-full px-2.5 py-1 text-xs font-medium " +
-                      (inv.estado === "Pagada"
-                        ? "bg-primary/10 text-primary"
-                        : inv.estado === "Anulada"
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-secondary text-secondary-foreground")
-                    }
-                  >
-                    {inv.estado}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right font-semibold">{formatMoney(inv.total)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    {inv.estado === "Emitida" && (
-                      <Button variant="outline" size="sm" onClick={() => markPaid.mutate(inv.id)}>
-                        Marcar pagada
+      {isLoading ? (
+        <p className="text-center py-12 text-muted-foreground">Cargando facturas inalterables...</p>
+      ) : filteredInvoices.length === 0 ? (
+        <div className="bg-card rounded-xl border border-dashed border-border p-12 text-center text-muted-foreground">
+          <FileText className="size-10 mx-auto mb-3 opacity-40" />
+          <p className="font-semibold">No se encontraron facturas</p>
+          <p className="text-xs mt-1">Las facturas emitidas a partir de presupuestos aceptados aparecerán aquí con su huella digital SHA-256.</p>
+        </div>
+      ) : (
+        <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold">
+                <tr>
+                  <th className="py-3 px-4 text-left">Nº Factura</th>
+                  <th className="py-3 px-4 text-left">Fecha</th>
+                  <th className="py-3 px-4 text-left">Paciente</th>
+                  <th className="py-3 px-4 text-left">Tipo</th>
+                  <th className="py-3 px-4 text-right">Base Imponible</th>
+                  <th className="py-3 px-4 text-right">Total</th>
+                  <th className="py-3 px-4 text-center">Huella SIF (SHA-256)</th>
+                  <th className="py-3 px-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredInvoices.map((inv) => (
+                  <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-4 font-mono font-semibold text-primary">
+                      {inv.numero}
+                    </td>
+                    <td className="py-3 px-4 text-muted-foreground">{formatDate(inv.fecha_expedicion)}</td>
+                    <td className="py-3 px-4 font-medium">
+                      {inv.receptor_nombre}
+                      {inv.receptor_nif && <span className="block text-xs text-muted-foreground font-mono">{inv.receptor_nif}</span>}
+                    </td>
+                    <td className="py-3 px-4">
+                      {inv.tipo === "rectificativa" ? (
+                        <Badge variant="destructive" className="font-mono text-[10px]">
+                          RECTIFICATIVA
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="font-mono text-[10px] bg-blue-500/10 text-blue-700 dark:text-blue-400">
+                          ORDINARIA
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right text-muted-foreground">{formatMoney(inv.subtotal)}</td>
+                    <td className="py-3 px-4 text-right font-bold">{formatMoney(inv.total)}</td>
+                    <td className="py-3 px-4 text-center font-mono text-[11px] text-muted-foreground">
+                      <span className="bg-muted px-2 py-1 rounded border border-border inline-block" title={inv.hash_actual}>
+                        {inv.hash_actual.slice(0, 8)}...{inv.hash_actual.slice(-6)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedInvoice(inv)}
+                      >
+                        <Eye className="size-3.5 mr-1" /> PDF
                       </Button>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={() => setDraft(invoiceToDraft(inv))}>
-                      Editar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive"
-                      onClick={() => {
-                        if (confirm("¿Eliminar esta factura?")) remove.mutate(inv.id);
-                      }}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
 
-      {draft && (
-        <InvoiceEditorDialog
-          key={draft.id ?? draft.budget_id ?? "new"}
-          draft={draft}
-          open={!!draft}
-          onOpenChange={(v) => !v && setDraft(null)}
+                      {inv.tipo === "ordinaria" && inv.estado === "emitida" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                          onClick={() => setRectifyingTarget(inv)}
+                        >
+                          <RefreshCw className="size-3.5 mr-1" /> Rectificar
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {selectedInvoice && (
+        <InvoicePDFDocument
+          invoice={selectedInvoice}
+          onClose={() => setSelectedInvoice(null)}
         />
+      )}
+
+      {rectifyingTarget && (
+        <Dialog open={!!rectifyingTarget} onOpenChange={() => setRectifyingTarget(null)}>
+          <DialogContent className="sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-amber-600">
+                <AlertTriangle className="size-5" />
+                Emitir Factura Rectificativa
+              </DialogTitle>
+              <DialogDescription>
+                Se emitirá una factura rectificativa inalterable para anular la factura original{" "}
+                <span className="font-mono font-bold text-foreground">{rectifyingTarget.numero}</span> por un importe de{" "}
+                <span className="font-bold text-foreground">{formatMoney(rectifyingTarget.total)}</span>.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 py-2">
+              <label className="text-sm font-medium">Motivo legal de la rectificación:</label>
+              <Textarea
+                placeholder="Ejemplo: Error en el importe abonado, devolución parcial o cancelación del tratamiento..."
+                value={rectifyingReason}
+                onChange={(e) => setRectifyingReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRectifyingTarget(null)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => rectifyingMutation.mutate()}
+                disabled={rectifyingMutation.isPending || !rectifyingReason.trim()}
+              >
+                {rectifyingMutation.isPending ? "Generando registro..." : "Emitir Rectificativa"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </AdminShell>
   );

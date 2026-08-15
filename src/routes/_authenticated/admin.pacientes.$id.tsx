@@ -20,6 +20,8 @@ import {
   listPatientBudgets,
   setBudgetEstado,
 } from "@/lib/budgets";
+import { createInvoiceFromBudget, listInvoices, Invoice } from "@/lib/invoices";
+import { InvoicePDFDocument } from "@/components/invoices/InvoicePDFDocument";
 
 
 export const Route = createFileRoute("/_authenticated/admin/pacientes/$id")({
@@ -72,9 +74,26 @@ function PatientDetailPage() {
     queryFn: () => listPatientBudgets(id),
   });
 
+  // Facturas del paciente
+  const { data: patientInvoices = [] } = useQuery({
+    queryKey: ["patient_invoices", id],
+    queryFn: () => listInvoices(id),
+  });
+
   const [openBudget, setOpenBudget] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
   const [selectedBudgetForPrint, setSelectedBudgetForPrint] = useState<any | null>(null);
+  const [selectedInvoiceForPDF, setSelectedInvoiceForPDF] = useState<Invoice | null>(null);
+
+  const emitInvoiceMutation = useMutation({
+    mutationFn: (budgetId: string) => createInvoiceFromBudget(budgetId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["patient_invoices", id] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success("Factura oficial SIF emitida con éxito");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   const removeBudget = useMutation({
     mutationFn: (budgetId: string) => deleteBudget(budgetId),
@@ -146,6 +165,7 @@ function PatientDetailPage() {
           <TabsTrigger value="odontograma"><Activity className="size-4 mr-2" /> Odontograma</TabsTrigger>
           <TabsTrigger value="historial"><FileText className="size-4 mr-2" /> Historial Clínico</TabsTrigger>
           <TabsTrigger value="presupuestos"><Euro className="size-4 mr-2" /> Presupuestos</TabsTrigger>
+          <TabsTrigger value="facturas"><Receipt className="size-4 mr-2" /> Facturas SIF ({patientInvoices.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="odontograma" className="space-y-4">
@@ -216,13 +236,17 @@ function PatientDetailPage() {
                       size="sm" 
                       onClick={() => setSelectedBudgetForPrint(b)}
                     >
-                      <FileText className="size-4 mr-1.5" /> Ver PDF
+                      <FileText className="size-4 mr-1.5" /> Ver Vista Previa
                     </Button>
                     {b.estado === "Aceptado" && (
-                      <Button size="sm" asChild>
-                        <Link to="/admin/facturacion" search={{ budget: b.id }}>
-                          <Receipt className="mr-1.5 size-4" /> Facturar
-                        </Link>
+                      <Button
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm"
+                        onClick={() => emitInvoiceMutation.mutate(b.id)}
+                        disabled={emitInvoiceMutation.isPending}
+                      >
+                        <Receipt className="mr-1.5 size-4" />
+                        {emitInvoiceMutation.isPending ? "Generando SIF..." : "Emitir Factura SIF"}
                       </Button>
                     )}
                     {b.estado !== "Aceptado" && (
@@ -277,6 +301,47 @@ function PatientDetailPage() {
             />
           )}
         </TabsContent>
+
+        <TabsContent value="facturas" className="space-y-4">
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+            <h3 className="text-lg font-medium mb-1">Facturas Oficiales SIF</h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Registros fiscales inalterables con huella digital SHA-256 y código QR oficial RD 1007/2023.
+            </p>
+
+            {patientInvoices.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10 border border-dashed rounded-xl">
+                No hay facturas emitidas para este paciente. Genera una factura aceptando un presupuesto o emitiéndola desde el panel de Facturación.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {patientInvoices.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-muted/40 transition-colors">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-primary">{inv.numero}</span>
+                        <span className="text-xs text-muted-foreground">({formatDate(inv.fecha_expedicion)})</span>
+                        <span className="text-xs font-mono uppercase bg-muted px-2 py-0.5 rounded border border-border">
+                          {inv.tipo}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 font-mono">
+                        Huella SHA-256: {inv.hash_actual.slice(0, 16)}...
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <span className="font-bold text-base">{formatMoney(inv.total)}</span>
+                      <Button size="sm" variant="outline" onClick={() => setSelectedInvoiceForPDF(inv)}>
+                        <FileText className="size-4 mr-1.5" /> Ver PDF
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
 
       {selectedBudgetForPrint && (
@@ -284,6 +349,13 @@ function PatientDetailPage() {
           budget={selectedBudgetForPrint} 
           patient={patient} 
           onClose={() => setSelectedBudgetForPrint(null)} 
+        />
+      )}
+
+      {selectedInvoiceForPDF && (
+        <InvoicePDFDocument
+          invoice={selectedInvoiceForPDF}
+          onClose={() => setSelectedInvoiceForPDF(null)}
         />
       )}
     </AdminShell>
