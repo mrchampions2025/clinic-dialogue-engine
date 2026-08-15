@@ -118,6 +118,7 @@ function PacientesPage() {
               <TableRow>
                 <TableHead>Paciente</TableHead>
                 <TableHead>Teléfono</TableHead>
+                <TableHead>DNI/NIF</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Última visita</TableHead>
                 <TableHead>Próxima cita</TableHead>
@@ -127,14 +128,14 @@ function PacientesPage() {
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                     Cargando pacientes…
                   </TableCell>
                 </TableRow>
               )}
               {!isLoading && filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                     No hay pacientes que mostrar.
                   </TableCell>
                 </TableRow>
@@ -159,6 +160,7 @@ function PacientesPage() {
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground">{p.telefono}</TableCell>
+                  <TableCell className="whitespace-nowrap text-muted-foreground">{p.dni || "—"}</TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground">{p.email}</TableCell>
                   <TableCell className="whitespace-nowrap">{formatDate(p.ultima_visita)}</TableCell>
                   <TableCell className="whitespace-nowrap">{formatDate(p.proxima_cita)}</TableCell>
@@ -234,6 +236,39 @@ function PacientesPage() {
                 type="email"
                 value={form.email ?? ""}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="dni">DNI / NIF</Label>
+              <Input
+                id="dni"
+                placeholder="12345678A"
+                value={form.dni ?? ""}
+                onChange={(e) => setForm({ ...form, dni: e.target.value })}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label htmlFor="direccion">Dirección</Label>
+              <Input
+                id="direccion"
+                value={form.direccion ?? ""}
+                onChange={(e) => setForm({ ...form, direccion: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="ciudad">Ciudad</Label>
+              <Input
+                id="ciudad"
+                value={form.ciudad ?? ""}
+                onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="cp">Código postal</Label>
+              <Input
+                id="cp"
+                value={form.codigo_postal ?? ""}
+                onChange={(e) => setForm({ ...form, codigo_postal: e.target.value })}
               />
             </div>
             <div>

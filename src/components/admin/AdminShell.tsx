@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Users,
   Stethoscope,
+  Receipt,
   Settings,
   Menu,
   Bell,
@@ -19,6 +20,7 @@ const nav = [
   { to: "/admin/citas", label: "Citas", icon: CalendarDays },
   { to: "/admin/pacientes", label: "Pacientes", icon: Users },
   { to: "/admin/tratamientos", label: "Tratamientos", icon: Stethoscope },
+  { to: "/admin/facturacion", label: "Facturación", icon: Receipt },
   { to: "/admin/configuracion", label: "Configuración", icon: Settings },
 ];
 

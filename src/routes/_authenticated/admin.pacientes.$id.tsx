@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Odontograma, ToothState, ToothRecord } from "@/components/admin/Odontograma";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, Activity, Euro, Plus, Pencil, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Activity, Euro, Plus, Pencil, Send, Trash2, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/clinic-data";
@@ -218,6 +218,13 @@ function PatientDetailPage() {
                     >
                       <FileText className="size-4 mr-1.5" /> Ver PDF
                     </Button>
+                    {b.estado === "Aceptado" && (
+                      <Button size="sm" asChild>
+                        <Link to="/admin/facturacion" search={{ budget: b.id }}>
+                          <Receipt className="mr-1.5 size-4" /> Facturar
+                        </Link>
+                      </Button>
+                    )}
                     {b.estado !== "Aceptado" && (
                       <Button
                         variant="outline"
