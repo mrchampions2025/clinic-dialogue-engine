@@ -206,6 +206,140 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_items: {
+        Row: {
+          cantidad: number
+          concepto: string
+          created_at: string
+          descripcion: string | null
+          descuento: number
+          id: string
+          invoice_id: string
+          precio: number
+        }
+        Insert: {
+          cantidad?: number
+          concepto: string
+          created_at?: string
+          descripcion?: string | null
+          descuento?: number
+          id?: string
+          invoice_id: string
+          precio?: number
+        }
+        Update: {
+          cantidad?: number
+          concepto?: string
+          created_at?: string
+          descripcion?: string | null
+          descuento?: number
+          id?: string
+          invoice_id?: string
+          precio?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          budget_id: string | null
+          cliente_ciudad: string | null
+          cliente_cp: string | null
+          cliente_direccion: string | null
+          cliente_dni: string | null
+          cliente_email: string | null
+          cliente_nombre: string
+          cliente_telefono: string | null
+          created_at: string
+          descuento: number
+          estado: string
+          fecha: string
+          id: string
+          iva_importe: number
+          iva_porcentaje: number
+          metodo_pago: string
+          notas: string | null
+          numero: string | null
+          patient_id: string
+          subtotal: number
+          total: number
+          updated_at: string
+          vencimiento: string | null
+        }
+        Insert: {
+          budget_id?: string | null
+          cliente_ciudad?: string | null
+          cliente_cp?: string | null
+          cliente_direccion?: string | null
+          cliente_dni?: string | null
+          cliente_email?: string | null
+          cliente_nombre?: string
+          cliente_telefono?: string | null
+          created_at?: string
+          descuento?: number
+          estado?: string
+          fecha?: string
+          id?: string
+          iva_importe?: number
+          iva_porcentaje?: number
+          metodo_pago?: string
+          notas?: string | null
+          numero?: string | null
+          patient_id: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          vencimiento?: string | null
+        }
+        Update: {
+          budget_id?: string | null
+          cliente_ciudad?: string | null
+          cliente_cp?: string | null
+          cliente_direccion?: string | null
+          cliente_dni?: string | null
+          cliente_email?: string | null
+          cliente_nombre?: string
+          cliente_telefono?: string | null
+          created_at?: string
+          descuento?: number
+          estado?: string
+          fecha?: string
+          id?: string
+          iva_importe?: number
+          iva_porcentaje?: number
+          metodo_pago?: string
+          notas?: string | null
+          numero?: string | null
+          patient_id?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          vencimiento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medical_records: {
         Row: {
           created_at: string | null
@@ -316,7 +450,11 @@ export type Database = {
       }
       patients: {
         Row: {
+          ciudad: string | null
+          codigo_postal: string | null
           created_at: string
+          direccion: string | null
+          dni: string | null
           email: string | null
           etiqueta: string | null
           id: string
@@ -327,7 +465,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ciudad?: string | null
+          codigo_postal?: string | null
           created_at?: string
+          direccion?: string | null
+          dni?: string | null
           email?: string | null
           etiqueta?: string | null
           id?: string
@@ -338,7 +480,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ciudad?: string | null
+          codigo_postal?: string | null
           created_at?: string
+          direccion?: string | null
+          dni?: string | null
           email?: string | null
           etiqueta?: string | null
           id?: string

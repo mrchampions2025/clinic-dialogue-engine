@@ -19,6 +19,7 @@ import { Route as ApiWhatsappWebhookRouteImport } from './routes/api/whatsapp-we
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminCitasRouteImport } from './routes/_authenticated/admin.citas'
 import { Route as AuthenticatedAdminConfiguracionRouteImport } from './routes/_authenticated/admin.configuracion'
+import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_authenticated/admin.facturacion'
 import { Route as AuthenticatedAdminTratamientosRouteImport } from './routes/_authenticated/admin.tratamientos'
 import { Route as AuthenticatedAdminPacientesIndexRouteImport } from './routes/_authenticated/admin.pacientes.index'
 import { Route as AuthenticatedAdminPacientesIdRouteImport } from './routes/_authenticated/admin.pacientes.$id'
@@ -73,6 +74,12 @@ const AuthenticatedAdminConfiguracionRoute =
     path: '/configuracion',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminFacturacionRoute =
+  AuthenticatedAdminFacturacionRouteImport.update({
+    id: '/facturacion',
+    path: '/facturacion',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminTratamientosRoute =
   AuthenticatedAdminTratamientosRouteImport.update({
     id: '/tratamientos',
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
+  '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
@@ -114,6 +122,7 @@ export interface FileRoutesByTo {
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
+  '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
@@ -130,6 +139,7 @@ export interface FileRoutesById {
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/_authenticated/admin/citas': typeof AuthenticatedAdminCitasRoute
   '/_authenticated/admin/configuracion': typeof AuthenticatedAdminConfiguracionRoute
+  '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/_authenticated/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/api/whatsapp-webhook'
     | '/admin/citas'
     | '/admin/configuracion'
+    | '/admin/facturacion'
     | '/admin/tratamientos'
     | '/admin/'
     | '/admin/pacientes/$id'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/api/whatsapp-webhook'
     | '/admin/citas'
     | '/admin/configuracion'
+    | '/admin/facturacion'
     | '/admin/tratamientos'
     | '/admin'
     | '/admin/pacientes/$id'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
     | '/api/whatsapp-webhook'
     | '/_authenticated/admin/citas'
     | '/_authenticated/admin/configuracion'
+    | '/_authenticated/admin/facturacion'
     | '/_authenticated/admin/tratamientos'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/pacientes/$id'
@@ -260,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracionRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/facturacion': {
+      id: '/_authenticated/admin/facturacion'
+      path: '/facturacion'
+      fullPath: '/admin/facturacion'
+      preLoaderRoute: typeof AuthenticatedAdminFacturacionRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/tratamientos': {
       id: '/_authenticated/admin/tratamientos'
       path: '/tratamientos'
@@ -287,6 +307,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCitasRoute: typeof AuthenticatedAdminCitasRoute
   AuthenticatedAdminConfiguracionRoute: typeof AuthenticatedAdminConfiguracionRoute
+  AuthenticatedAdminFacturacionRoute: typeof AuthenticatedAdminFacturacionRoute
   AuthenticatedAdminTratamientosRoute: typeof AuthenticatedAdminTratamientosRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminPacientesIdRoute: typeof AuthenticatedAdminPacientesIdRoute
@@ -296,6 +317,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCitasRoute: AuthenticatedAdminCitasRoute,
   AuthenticatedAdminConfiguracionRoute: AuthenticatedAdminConfiguracionRoute,
+  AuthenticatedAdminFacturacionRoute: AuthenticatedAdminFacturacionRoute,
   AuthenticatedAdminTratamientosRoute: AuthenticatedAdminTratamientosRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminPacientesIdRoute: AuthenticatedAdminPacientesIdRoute,

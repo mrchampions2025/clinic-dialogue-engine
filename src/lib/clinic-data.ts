@@ -8,6 +8,10 @@ export type Patient = {
   telefono: string | null;
   email: string | null;
   etiqueta: string | null;
+  dni: string | null;
+  direccion: string | null;
+  ciudad: string | null;
+  codigo_postal: string | null;
   ultima_visita: string | null;
   proxima_cita: string | null;
 };
@@ -54,6 +58,10 @@ export async function upsertPatient(p: Partial<Patient>): Promise<void> {
     telefono: p.telefono || null,
     email: p.email || null,
     etiqueta: p.etiqueta || null,
+    dni: p.dni || null,
+    direccion: p.direccion || null,
+    ciudad: p.ciudad || null,
+    codigo_postal: p.codigo_postal || null,
     ultima_visita: p.ultima_visita || null,
     proxima_cita: p.proxima_cita || null,
   };
