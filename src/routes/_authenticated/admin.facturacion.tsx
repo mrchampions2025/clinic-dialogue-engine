@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { listInvoices, createRectifyingInvoice, exportInvoicesToCSV, exportInvoicesToJSON_AEAT, getClinicSettings, updateClinicSettings, Invoice, ClinicSettings } from "@/lib/invoices";
+import { getBudgetById, Budget } from "@/lib/budgets";
 import { listSIFEventLogs, exportSIFEventsToCSV, SIFEventLog } from "@/lib/sif-event-logger";
 import { formatHashDisplay } from "@/lib/verifactu";
 import { InvoicePDFDocument } from "@/components/invoices/InvoicePDFDocument";
 import { DeclaracionResponsableDocument } from "@/components/invoices/DeclaracionResponsableDocument";
+import { EmitInvoiceDialog } from "@/components/invoices/EmitInvoiceDialog";
 import { formatDate } from "@/lib/clinic-data";
 import { formatMoney } from "@/lib/budgets";
 import { Button } from "@/components/ui/button";
@@ -44,6 +46,9 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/facturacion")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    fromBudget: (search.fromBudget as string) || undefined,
+  }),
   component: AdminFacturacionPage,
 });
 
@@ -70,7 +75,11 @@ ALTER TABLE public.clinic_settings
   ADD COLUMN IF NOT EXISTS fabricante_nombre text NOT NULL DEFAULT 'Clinic Dialogue Engine S.L.',
   ADD COLUMN IF NOT EXISTS nif_fabricante text NOT NULL DEFAULT 'B87654321',
   ADD COLUMN IF NOT EXISTS software_nombre text NOT NULL DEFAULT 'Clinic Dialogue Engine SIF',
-  ADD COLUMN IF NOT EXISTS software_version text NOT NULL DEFAULT 'v2.4.0-2027';
+  ADD COLUMN IF NOT EXISTS software_version text NOT NULL DEFAULT 'v2.4.0-2027',
+  ADD COLUMN IF NOT EXISTS firma_sello_nombre text DEFAULT 'Dra. María García',
+  ADD COLUMN IF NOT EXISTS firma_sello_cargo text DEFAULT 'Dirección Médica - Clínica Dentix',
+  ADD COLUMN IF NOT EXISTS firma_sello_data text,
+  ADD COLUMN IF NOT EXISTS modo_firma_presupuesto text DEFAULT 'ambos';
 
 INSERT INTO public.clinic_settings (id, razon_social, cif_nif, registro_sanitario, direccion, codigo_postal, ciudad, provincia, telefono, email, iban)
 SELECT '00000000-0000-0000-0000-000000000001', 'Clínica Dental Dentix', 'B12345678', 'CS-12345-M', 'Av. Principal 123', '28000', 'Madrid', 'Madrid', '+34 912 345 678', 'info@clinicadentix.es', 'ES91 2100 0418 4502 0005 1324'
@@ -224,6 +233,8 @@ FOR EACH ROW EXECUTE FUNCTION public.prevent_invoice_tampering();`;
 
 function AdminFacturacionPage() {
   const queryClient = useQueryClient();
+  const { fromBudget } = Route.useSearch();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [rectifyingTarget, setRectifyingTarget] = useState<Invoice | null>(null);
@@ -231,6 +242,19 @@ function AdminFacturacionPage() {
   const [showSqlDialog, setShowSqlDialog] = useState(false);
   const [showDeclaracion, setShowDeclaracion] = useState(false);
   const [activeTab, setActiveTab] = useState("facturas");
+
+  // Borrador de factura desde presupuesto para revisar y personalizar
+  const [draftBudgetForInvoice, setDraftBudgetForInvoice] = useState<Budget | null>(null);
+
+  useEffect(() => {
+    if (fromBudget) {
+      getBudgetById(fromBudget).then((b) => {
+        if (b) {
+          setDraftBudgetForInvoice(b);
+        }
+      });
+    }
+  }, [fromBudget]);
 
   // Cargar facturas
   const { data: invoices = [], isLoading, refetch } = useQuery({
@@ -616,6 +640,20 @@ function AdminFacturacionPage() {
         <InvoicePDFDocument
           invoice={selectedInvoice}
           onClose={() => setSelectedInvoice(null)}
+        />
+      )}
+
+      {/* Modal Revisor y Personalizador de Borrador desde Presupuesto */}
+      {draftBudgetForInvoice && (
+        <EmitInvoiceDialog
+          open={!!draftBudgetForInvoice}
+          onOpenChange={(open) => !open && setDraftBudgetForInvoice(null)}
+          budget={draftBudgetForInvoice}
+          onEmitted={() => {
+            refetch();
+            refetchLogs();
+            setDraftBudgetForInvoice(null);
+          }}
         />
       )}
 

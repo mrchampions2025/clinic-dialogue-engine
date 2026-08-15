@@ -21,6 +21,10 @@ export interface ClinicSettings {
   nif_fabricante?: string;
   software_nombre?: string;
   software_version?: string;
+  firma_sello_nombre?: string | null;
+  firma_sello_cargo?: string | null;
+  firma_sello_data?: string | null;
+  modo_firma_presupuesto?: "sello_defecto" | "firma_paciente" | "ambos";
 }
 
 export interface InvoiceItem {
@@ -93,6 +97,10 @@ export async function getClinicSettings(): Promise<ClinicSettings> {
     nif_fabricante: "B87654321",
     software_nombre: "Clinic Dialogue Engine SIF",
     software_version: "v2.4.0-2027",
+    firma_sello_nombre: "Dra. María García",
+    firma_sello_cargo: "Dirección Médica - Clínica Dentix",
+    firma_sello_data: null,
+    modo_firma_presupuesto: "ambos",
   };
 }
 
@@ -154,9 +162,26 @@ export async function getNextInvoiceSequence(tipo: "ordinaria" | "rectificativa"
   }
 }
 
+export interface CreateInvoiceOptions {
+  exentoIva?: boolean;
+  ivaPorcentaje?: number;
+  motivoExencion?: string;
+  receptorNif?: string;
+  receptorNombre?: string;
+  receptorDireccion?: string;
+  items?: Array<{
+    concepto: string;
+    descripcion?: string;
+    cantidad: number;
+    precio_unitario: number;
+    descuento: number;
+    subtotal: number;
+  }>;
+}
+
 export async function createInvoiceFromBudget(
   budgetId: string,
-  options: { exentoIva?: boolean; ivaPorcentaje?: number } = {}
+  options: CreateInvoiceOptions = {}
 ): Promise<string> {
   const { data: budget, error: bErr } = await db.from("budgets").select("*, budget_items(*)").eq("id", budgetId).single();
   if (bErr || !budget) throw new Error("Presupuesto no encontrado");
@@ -169,7 +194,26 @@ export async function createInvoiceFromBudget(
   const exentoIva = options.exentoIva ?? true;
   const ivaPorcentaje = exentoIva ? 0 : (options.ivaPorcentaje ?? 21);
   
-  const subtotal = Number(budget.total) || 0;
+  // Usar ítems personalizados o los ítems del presupuesto
+  const rawItems = options.items && options.items.length > 0 ? options.items : (budget.budget_items || []);
+  
+  const itemsToInsert = rawItems.map((bi: any) => {
+    const cant = Number(bi.cantidad) || 1;
+    const prec = Number(bi.precio_unitario ?? bi.precio) || 0;
+    const desc = Number(bi.descuento) || 0;
+    const itemSubtotal = Number((cant * prec - desc).toFixed(2));
+
+    return {
+      concepto: bi.concepto || bi.tratamiento,
+      descripcion: bi.descripcion || null,
+      cantidad: cant,
+      precio_unitario: prec,
+      descuento: desc,
+      subtotal: itemSubtotal,
+    };
+  });
+
+  const subtotal = itemsToInsert.reduce((acc, item) => acc + item.subtotal, 0);
   const ivaImporte = exentoIva ? 0 : Number((subtotal * (ivaPorcentaje / 100)).toFixed(2));
   const total = Number((subtotal + ivaImporte).toFixed(2));
 
@@ -196,6 +240,10 @@ export async function createInvoiceFromBudget(
     modo: clinic.modo_facturacion || "no_verifactu",
   });
 
+  const receptorNif = options.receptorNif ?? (patient.dni || patient.nif || null);
+  const receptorNombre = options.receptorNombre ?? patient.nombre;
+  const receptorDireccion = options.receptorDireccion ?? (patient.direccion || null);
+
   const { data: newInvoice, error: invErr } = await db
     .from("invoices")
     .insert({
@@ -210,12 +258,12 @@ export async function createInvoiceFromBudget(
       emisor_nif: clinic.cif_nif,
       emisor_nombre: clinic.razon_social,
       emisor_direccion: `${clinic.direccion}, ${clinic.codigo_postal} ${clinic.ciudad}`,
-      receptor_nif: patient.dni || patient.nif || null,
-      receptor_nombre: patient.nombre,
-      receptor_direccion: patient.direccion || null,
+      receptor_nif: receptorNif,
+      receptor_nombre: receptorNombre,
+      receptor_direccion: receptorDireccion,
       subtotal,
       exento_iva: exentoIva,
-      motivo_exencion: exentoIva ? "Art. 20.Uno.3º Ley 37/1992 de IVA (Servicios Médicos/Odontológicos)" : null,
+      motivo_exencion: exentoIva ? (options.motivoExencion || "Art. 20.Uno.3º Ley 37/1992 de IVA (Servicios Médicos/Odontológicos)") : null,
       iva_porcentaje: ivaPorcentaje,
       iva_importe: ivaImporte,
       total,
@@ -234,25 +282,13 @@ export async function createInvoiceFromBudget(
     throw new Error(invErr.message);
   }
 
-  const itemsToInsert = (budget.budget_items || []).map((bi: any) => {
-    const cant = Number(bi.cantidad) || 1;
-    const prec = Number(bi.precio) || 0;
-    const desc = Number(bi.descuento) || 0;
-    const itemSubtotal = Number((cant * prec - desc).toFixed(2));
+  const finalItemsWithInvoiceId = itemsToInsert.map((item) => ({
+    ...item,
+    invoice_id: newInvoice.id,
+  }));
 
-    return {
-      invoice_id: newInvoice.id,
-      concepto: bi.tratamiento,
-      descripcion: bi.descripcion || null,
-      cantidad: cant,
-      precio_unitario: prec,
-      descuento: desc,
-      subtotal: itemSubtotal,
-    };
-  });
-
-  if (itemsToInsert.length > 0) {
-    const { error: itemsErr } = await db.from("invoice_items").insert(itemsToInsert);
+  if (finalItemsWithInvoiceId.length > 0) {
+    const { error: itemsErr } = await db.from("invoice_items").insert(finalItemsWithInvoiceId);
     if (itemsErr) console.error("Error al insertar líneas de factura:", itemsErr);
   }
 
@@ -325,7 +361,7 @@ export async function createRectifyingInvoice(
       exento_iva: original.exento_iva,
       motivo_exencion: original.motivo_exencion,
       iva_porcentaje: original.iva_porcentaje,
-      iva_importe: ivaImporte,
+      iva_importe: original.iva_importe,
       total,
       hash_anterior: hashAnterior,
       hash_actual: hashActual,

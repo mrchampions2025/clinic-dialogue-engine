@@ -30,6 +30,7 @@ export type Budget = {
   firmado_at: string | null;
   rechazado_at: string | null;
   budget_items: BudgetItem[];
+  patient?: any;
 };
 
 const db = supabase as any;
@@ -75,6 +76,20 @@ export async function listAllBudgets(): Promise<Budget[]> {
     .order("fecha", { ascending: false });
   if (error) throw new Error(error.message);
   return attachItems(data);
+}
+
+export async function getBudgetById(id: string): Promise<Budget | null> {
+  try {
+    const { data, error } = await db
+      .from("budgets")
+      .select("*, budget_items(*), patient:patients(*)")
+      .eq("id", id)
+      .single();
+    if (error || !data) return null;
+    return { ...data, budget_items: data.budget_items || [] } as Budget;
+  } catch (e) {
+    return null;
+  }
 }
 
 export type BudgetDraft = {

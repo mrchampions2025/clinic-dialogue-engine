@@ -179,15 +179,25 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                 </div>
               </div>
 
-              <div className="mt-16 text-center">
-                <div className="font-bold text-sm mb-4">Firma del Paciente</div>
-                <div className="border-b border-slate-400 w-full h-8 relative">
-                  {/* Firma de ejemplo para relleno visual si está aceptado */}
-                  {budget.estado === 'Aceptado' && (
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 font-['Brush_Script_MT',cursive] text-2xl text-slate-700 opacity-80 -rotate-2 whitespace-nowrap">
-                      {budget.firma_nombre || patient.nombre}
-                    </div>
-                  )}
+              <div className="mt-12 flex gap-4 text-center">
+                <div className="flex-1">
+                  <div className="font-semibold text-xs mb-2 text-slate-700">Firma del Paciente</div>
+                  <div className="border-b border-slate-400 w-full h-10 relative flex items-center justify-center">
+                    {budget.estado === 'Aceptado' && (
+                      <div className="font-['Brush_Script_MT',cursive] text-xl text-slate-700 opacity-90 -rotate-2 whitespace-nowrap">
+                        {budget.firma_nombre || patient?.nombre}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <div className="font-semibold text-xs mb-2 text-[#3245d6]">Firma y Sello Clínica</div>
+                  <div className="border border-dashed border-[#3245d6]/40 rounded bg-blue-50/50 p-2 text-[10px] text-slate-600 relative">
+                    <p className="font-bold text-[#3245d6]">Clínica Dental Dentix</p>
+                    <p className="text-[9px] text-slate-500">Dra. María García · Dir. Médica</p>
+                    <p className="text-[8px] text-emerald-700 font-mono mt-0.5">Sello Digital Verificado</p>
+                  </div>
                 </div>
               </div>
             </div>

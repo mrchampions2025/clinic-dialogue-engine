@@ -120,6 +120,53 @@ function AdminConfiguracionPage() {
             </div>
           </div>
 
+          {/* Configuración de Firma y Sello Oficial por Defecto para Presupuestos */}
+          <div className="bg-purple-50/50 dark:bg-purple-950/20 p-4 rounded-xl border border-purple-200 dark:border-purple-900 space-y-3">
+            <Label className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+              <Award className="size-4" /> Firma y Sello Oficial por Defecto (Presupuestos)
+            </Label>
+            <p className="text-[11px] text-muted-foreground">
+              Configura los datos del sello y firma oficial de la clínica que aparecerán por defecto en los documentos de presupuesto impresos o en PDF.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <div>
+                <Label htmlFor="firma_sello_nombre" className="text-xs">Nombre del Firmante / Doctor</Label>
+                <Input
+                  id="firma_sello_nombre"
+                  value={formData.firma_sello_nombre || ""}
+                  onChange={(e) => setFormData({ ...formData, firma_sello_nombre: e.target.value })}
+                  placeholder="Ej: Dra. María García"
+                  className="mt-1 text-xs bg-card"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="firma_sello_cargo" className="text-xs">Cargo / Colegiado</Label>
+                <Input
+                  id="firma_sello_cargo"
+                  value={formData.firma_sello_cargo || ""}
+                  onChange={(e) => setFormData({ ...formData, firma_sello_cargo: e.target.value })}
+                  placeholder="Ej: Dir. Médica - Col. N° 2800123"
+                  className="mt-1 text-xs bg-card"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">Modo de Firma en Documentos:</Label>
+              <select
+                value={formData.modo_firma_presupuesto || "ambos"}
+                onChange={(e) => setFormData({ ...formData, modo_firma_presupuesto: e.target.value as any })}
+                className="mt-1 w-full bg-card border border-border rounded-md px-3 py-1.5 text-xs font-medium"
+              >
+                <option value="ambos">Firma Manuscrita del Paciente + Sello Oficial de la Clínica</option>
+                <option value="sello_defecto">Solo Sello y Firma Oficial por Defecto de la Clínica</option>
+                <option value="firma_paciente">Solo Firma Manuscrita / Táctil del Paciente</option>
+              </select>
+            </div>
+          </div>
+
           <div className="grid gap-4 text-sm">
             <div className="grid grid-cols-2 gap-3">
               <div>

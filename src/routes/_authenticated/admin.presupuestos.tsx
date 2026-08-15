@@ -377,11 +377,10 @@ function AdminPresupuestosPage() {
                     <Button
                       size="sm"
                       className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm"
-                      onClick={() => emitInvoiceMutation.mutate(b.id)}
-                      disabled={emitInvoiceMutation.isPending}
+                      onClick={() => navigate({ to: "/admin/facturacion", search: { fromBudget: b.id } as any })}
                     >
                       <Receipt className="mr-1.5 size-4" />
-                      {emitInvoiceMutation.isPending ? "Generando SIF..." : "Emitir Factura SIF"}
+                      Emitir Factura SIF
                     </Button>
                   )}
                 </div>
