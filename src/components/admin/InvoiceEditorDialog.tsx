@@ -66,7 +66,10 @@ export function InvoiceEditorDialog({
           className="space-y-6"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!form.patient_id) return toast.error("Selecciona un paciente o un presupuesto de origen.");
+            if (!form.patient_id) {
+              toast.error("Selecciona un paciente o un presupuesto de origen.");
+              return;
+            }
             save.mutate();
           }}
         >
