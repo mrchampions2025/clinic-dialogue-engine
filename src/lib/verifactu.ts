@@ -1,6 +1,6 @@
 /**
- * Módulo de Utilidades para el Real Decreto 1007/2023 (Reglamento SIF / Veri*factu España)
- * Soporte para Modo No Veri*factu (Encadenamiento inalterable de registros SHA-256 y QR).
+ * Módulo de Utilidades para el Real Decreto 1007/2023 y Orden HAC/1177/2024 (Reglamento SIF / Veri*factu España)
+ * Soporte para Modo Dual: Modo Veri*factu (remisión voluntaria AEAT) y Modo No Veri*factu (conservación firmada SIF).
  */
 
 export const INITIAL_SIF_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
@@ -56,6 +56,7 @@ export function generateAEATQRUrl(payload: {
   fechaExpedicion: Date | string;
   importeTotal: number;
   hashActual?: string | null;
+  modo?: "verifactu" | "no_verifactu";
 }): string {
   const dateObj = typeof payload.fechaExpedicion === "string" ? new Date(payload.fechaExpedicion) : (payload.fechaExpedicion || new Date());
   const day = String(dateObj.getDate()).padStart(2, "0");
@@ -67,8 +68,30 @@ export function generateAEATQRUrl(payload: {
   const num = encodeURIComponent((payload.numFactura || "").trim());
   const imp = (payload.importeTotal || 0).toFixed(2);
   const hc = (payload.hashActual || "00000000").slice(0, 8);
+  const isVerifactu = payload.modo === "verifactu";
 
-  return `https://www2.agenciatributaria.gob.es/vl/validaqr?nif=${nif}&num=${num}&fecha=${fechaFormatted}&importe=${imp}&hc=${hc}`;
+  const baseUrl = isVerifactu
+    ? "https://www2.agenciatributaria.gob.es/vl/verifactu/validaqr"
+    : "https://www2.agenciatributaria.gob.es/vl/validaqr";
+
+  return `${baseUrl}?nif=${nif}&num=${num}&fecha=${fechaFormatted}&importe=${imp}&hc=${hc}`;
+}
+
+/**
+ * Retorna la leyenda legal requerida por la AEAT según el modo SIF activo
+ */
+export function getVerifactuLegend(modo: "verifactu" | "no_verifactu" = "no_verifactu"): string {
+  if (modo === "verifactu") {
+    return "VERI*FACTU - Factura verificable en la sede electrónica de la AEAT. Expedida con remisión instantánea de registro informático.";
+  }
+  return "Sistema informático de facturación garantizado según RD 1007/2023 (Modo No Veri*factu). Factura expedida con registro de huella digital inalterable SHA-256.";
+}
+
+/**
+ * Retorna la etiqueta formal del sello SIF
+ */
+export function getVerifactuBadgeText(modo: "verifactu" | "no_verifactu" = "no_verifactu"): string {
+  return modo === "verifactu" ? "VERI*FACTU AEAT" : "Registro Firmado SIF";
 }
 
 /**

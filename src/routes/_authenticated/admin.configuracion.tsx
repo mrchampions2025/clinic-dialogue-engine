@@ -5,43 +5,25 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { getClinicSettings, updateClinicSettings, ClinicSettings } from "@/lib/invoices";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Building2, ShieldCheck, Save } from "lucide-react";
+import { getClinicSettings, updateClinicSettings, ClinicSettings } from "@/lib/invoices";
+import { DeclaracionResponsableDocument } from "@/components/invoices/DeclaracionResponsableDocument";
+import { Building2, ShieldCheck, Save, Award, FileCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracion")({
-  head: () => ({
-    meta: [
-      { title: "Configuración · Dentix Admin" },
-      { name: "description", content: "Ajusta el comportamiento del agente de IA y los datos de la Clínica Dental Dentix." },
-      { property: "og:title", content: "Configuración · Dentix Admin" },
-      { property: "og:description", content: "Configuración de la IA y del sistema de la clínica." },
-    ],
-  }),
-  component: ConfiguracionPage,
+  component: AdminConfiguracionPage,
 });
 
-function ConfiguracionPage() {
+function AdminConfiguracionPage() {
   const qc = useQueryClient();
-  
+  const [formData, setFormData] = useState<Partial<ClinicSettings>>({});
+  const [showDeclaracion, setShowDeclaracion] = useState(false);
+
   const { data: clinicData } = useQuery({
     queryKey: ["clinic_settings"],
     queryFn: () => getClinicSettings(),
-  });
-
-  const [formData, setFormData] = useState<Partial<ClinicSettings>>({
-    razon_social: "Clínica Dental Dentix",
-    cif_nif: "B12345678",
-    registro_sanitario: "CS-12345-M",
-    direccion: "Av. Principal 123",
-    codigo_postal: "28000",
-    ciudad: "Madrid",
-    provincia: "Madrid",
-    telefono: "+34 912 345 678",
-    email: "info@clinicadentix.es",
-    iban: "ES91 2100 0418 4502 0005 1324",
   });
 
   useEffect(() => {
@@ -54,14 +36,15 @@ function ConfiguracionPage() {
     mutationFn: () => updateClinicSettings(formData),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clinic_settings"] });
-      toast.success("Datos fiscales de la clínica actualizados");
+      toast.success("Datos fiscales y configuración SIF actualizados con éxito");
     },
     onError: (e: any) => toast.error(e.message),
   });
 
   return (
-    <AdminShell title="Configuración" subtitle="IA, sistema y datos fiscales de facturación SIF">
+    <AdminShell title="Configuración SIF & Datos Fiscales" subtitle="IA, sistema y cumplimiento RD 1007/2023 / Orden HAC/1177/2024">
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Configuración IA WhatsApp */}
         <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h2 className="text-base font-semibold">Agente de IA</h2>
           <p className="text-sm text-muted-foreground">Comportamiento en WhatsApp</p>
@@ -83,20 +66,61 @@ function ConfiguracionPage() {
         </section>
 
         {/* Configuración Fiscal & SIF RD 1007/2023 */}
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold flex items-center gap-2">
-                <Building2 className="size-4 text-blue-600" /> Datos Fiscales de la Clínica (SIF)
+                <Building2 className="size-4 text-blue-600" /> Datos Fiscales y Modo SIF 2027
               </h2>
-              <p className="text-xs text-muted-foreground">Utilizados en la emisión de facturas oficiales y códigos QR RD 1007/2023</p>
+              <p className="text-xs text-muted-foreground">Reglamento SIF RD 1007/2023 y Orden HAC/1177/2024</p>
             </div>
-            <span className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded border border-emerald-200 flex items-center gap-1">
-              <ShieldCheck className="size-3" /> Veri*factu SIF
-            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs border-emerald-600 text-emerald-700"
+              onClick={() => setShowDeclaracion(true)}
+            >
+              <Award className="size-3.5 mr-1 text-emerald-600" /> Ver Declaración Fabricante (Art. 13)
+            </Button>
           </div>
 
-          <div className="mt-5 grid gap-4 text-sm">
+          {/* Selector de Modo de Facturación SIF */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Modo de Operación del SIF</Label>
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                className={`p-3 rounded-lg border text-left text-xs transition-all ${
+                  formData.modo_facturacion !== "verifactu"
+                    ? "bg-white dark:bg-slate-800 border-blue-500 text-blue-900 dark:text-blue-100 shadow-sm font-semibold"
+                    : "border-border text-muted-foreground hover:bg-muted"
+                }`}
+                onClick={() => setFormData({ ...formData, modo_facturacion: "no_verifactu" })}
+              >
+                <p className="font-bold flex items-center gap-1">
+                  <ShieldCheck className="size-3.5 text-blue-600" /> Modo No Veri*factu
+                </p>
+                <p className="text-[10px] opacity-80 mt-1">Registro local firmado inalterable con encadenamiento SHA-256 y conservación bajo requerimiento AEAT.</p>
+              </button>
+
+              <button
+                type="button"
+                className={`p-3 rounded-lg border text-left text-xs transition-all ${
+                  formData.modo_facturacion === "verifactu"
+                    ? "bg-white dark:bg-slate-800 border-emerald-500 text-emerald-900 dark:text-emerald-100 shadow-sm font-semibold"
+                    : "border-border text-muted-foreground hover:bg-muted"
+                }`}
+                onClick={() => setFormData({ ...formData, modo_facturacion: "verifactu" })}
+              >
+                <p className="font-bold flex items-center gap-1 text-emerald-600">
+                  <FileCheck className="size-3.5 text-emerald-600" /> Modo Veri*factu (AEAT)
+                </p>
+                <p className="text-[10px] opacity-80 mt-1">Remisión voluntaria instantánea de registros de facturación a la sede electrónica de la AEAT.</p>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 text-sm">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="razon_social">Razón Social</Label>
@@ -196,11 +220,19 @@ function ConfiguracionPage() {
               disabled={updateSettingsMutation.isPending}
             >
               <Save className="size-4 mr-2" />
-              {updateSettingsMutation.isPending ? "Guardando..." : "Actualizar Datos Fiscales"}
+              {updateSettingsMutation.isPending ? "Guardando..." : "Actualizar Datos Fiscales y SIF"}
             </Button>
           </div>
         </section>
       </div>
+
+      {/* Visor de Declaración Responsable del Fabricante */}
+      {showDeclaracion && (clinicData || formData) && (
+        <DeclaracionResponsableDocument
+          clinic={(clinicData || formData) as ClinicSettings}
+          onClose={() => setShowDeclaracion(false)}
+        />
+      )}
     </AdminShell>
   );
 }

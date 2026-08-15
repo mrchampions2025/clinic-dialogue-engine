@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { calculateInvoiceSHA256, generateAEATQRUrl, INITIAL_SIF_HASH } from "./verifactu";
+import { logSIFEvent } from "./sif-event-logger";
 
 const db = supabase as any;
 
@@ -15,6 +16,11 @@ export interface ClinicSettings {
   telefono: string | null;
   email: string | null;
   iban: string | null;
+  modo_facturacion?: "no_verifactu" | "verifactu";
+  fabricante_nombre?: string;
+  nif_fabricante?: string;
+  software_nombre?: string;
+  software_version?: string;
 }
 
 export interface InvoiceItem {
@@ -82,17 +88,36 @@ export async function getClinicSettings(): Promise<ClinicSettings> {
     telefono: "+34 912 345 678",
     email: "info@clinicadentix.es",
     iban: "ES91 2100 0418 4502 0005 1324",
+    modo_facturacion: "no_verifactu",
+    fabricante_nombre: "Clinic Dialogue Engine S.L.",
+    nif_fabricante: "B87654321",
+    software_nombre: "Clinic Dialogue Engine SIF",
+    software_version: "v2.4.0-2027",
   };
 }
 
 export async function updateClinicSettings(settings: Partial<ClinicSettings>): Promise<void> {
   const current = await getClinicSettings();
+  const oldMode = current.modo_facturacion;
+
   if (current.id) {
     const { error } = await db.from("clinic_settings").update({ ...settings, updated_at: new Date().toISOString() }).eq("id", current.id);
     if (error) throw new Error(error.message);
   } else {
     const { error } = await db.from("clinic_settings").insert(settings);
     if (error) throw new Error(error.message);
+  }
+
+  if (settings.modo_facturacion && settings.modo_facturacion !== oldMode) {
+    await logSIFEvent("CAMBIO_MODO_SIF", {
+      modo_anterior: oldMode,
+      nuevo_modo: settings.modo_facturacion,
+      motivo: "Actualización de configuración de SIF Veri*factu",
+    });
+  } else {
+    await logSIFEvent("CONFIGURACION_EMISOR", {
+      cambios: settings,
+    });
   }
 }
 
@@ -168,6 +193,7 @@ export async function createInvoiceFromBudget(
     fechaExpedicion,
     importeTotal: total,
     hashActual,
+    modo: clinic.modo_facturacion || "no_verifactu",
   });
 
   const { data: newInvoice, error: invErr } = await db
@@ -230,6 +256,15 @@ export async function createInvoiceFromBudget(
     if (itemsErr) console.error("Error al insertar líneas de factura:", itemsErr);
   }
 
+  // Registrar Evento SIF
+  await logSIFEvent("ALTA_FACTURA", {
+    invoice_id: newInvoice.id,
+    numero,
+    total,
+    hash_actual: hashActual,
+    modo: clinic.modo_facturacion || "no_verifactu",
+  });
+
   return newInvoice.id;
 }
 
@@ -266,6 +301,7 @@ export async function createRectifyingInvoice(
     fechaExpedicion,
     importeTotal: total,
     hashActual,
+    modo: clinic.modo_facturacion || "no_verifactu",
   });
 
   const { data: rectInvoice, error: rectErr } = await db
@@ -318,6 +354,16 @@ export async function createRectifyingInvoice(
     await db.from("invoice_items").insert(rectItems);
   }
 
+  // Registrar Evento SIF de Rectificación y Anulación
+  await logSIFEvent("RECTIFICACION_FACTURA", {
+    rectificativa_id: rectInvoice.id,
+    original_id: originalInvoiceId,
+    original_numero: original.numero,
+    numero_rectificativa: numero,
+    motivo,
+    hash_actual: hashActual,
+  });
+
   return rectInvoice.id;
 }
 
@@ -368,8 +414,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
 }
 
 /**
- * Genera y descarga el archivo CSV normalizado para la Agencia Tributaria (AEAT) / Hacienda.
- * Libro Registro de Facturas Emitidas según el estándar de RD 1007/2023.
+ * Exporta las facturas en formato CSV oficial Libro Registro de Facturas Emitidas AEAT
  */
 export function exportInvoicesToCSV(invoices: Invoice[]): void {
   const headers = [
@@ -424,4 +469,71 @@ export function exportInvoicesToCSV(invoices: Invoice[]): void {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
+  logSIFEvent("EXPORTACION_LIBRO_AEAT", {
+    formato: "CSV",
+    total_registros: invoices.length,
+  });
+}
+
+/**
+ * Exporta las facturas en formato JSON estructurado oficial SIF AEAT (RD 1007/2023)
+ */
+export function exportInvoicesToJSON_AEAT(invoices: Invoice[], clinic?: ClinicSettings): void {
+  const sifExportObject = {
+    cabecera: {
+      remite: {
+        nif: clinic?.cif_nif || "B12345678",
+        nombre: clinic?.razon_social || "Clínica Dental Dentix",
+      },
+      software: {
+        nombre: clinic?.software_nombre || "Clinic Dialogue Engine SIF",
+        version: clinic?.software_version || "v2.4.0-2027",
+        fabricanteNif: clinic?.nif_fabricante || "B87654321",
+      },
+      modoOperacion: clinic?.modo_facturacion || "no_verifactu",
+      fechaGeneracion: new Date().toISOString(),
+      reglamento: "RD 1007/2023 - Orden HAC/1177/2024",
+    },
+    registrosFacturacion: invoices.map((inv) => ({
+      IDFactura: {
+        IDEmisorFactura: inv.emisor_nif,
+        NumSerieFactura: inv.numero,
+        FechaExpedicionFactura: inv.fecha_expedicion ? new Date(inv.fecha_expedicion).toLocaleDateString("es-ES") : "",
+      },
+      TipoFactura: inv.tipo === "rectificativa" ? "R1" : "F1",
+      DatosReceptor: {
+        NombreRazon: inv.receptor_nombre,
+        NIF: inv.receptor_nif || "",
+      },
+      DesgloseFactura: {
+        BaseImponible: Number(inv.subtotal) || 0,
+        TipoImpositivo: Number(inv.iva_porcentaje) || 0,
+        CuotaRepercutida: Number(inv.iva_importe) || 0,
+        ImporteTotal: Number(inv.total) || 0,
+        Exencion: inv.exento_iva ? { causa: inv.motivo_exencion } : null,
+      },
+      TrazabilidadSIF: {
+        HuellaAnterior: inv.hash_anterior,
+        HuellaActual: inv.hash_actual,
+        CodigoQRData: inv.qr_data,
+      },
+      Estado: inv.estado,
+    })),
+  };
+
+  const jsonContent = JSON.stringify(sifExportObject, null, 2);
+  const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `Libro_Registro_SIF_AEAT_${new Date().getFullYear()}.json`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  logSIFEvent("EXPORTACION_LIBRO_AEAT", {
+    formato: "JSON_SIF",
+    total_registros: invoices.length,
+  });
 }

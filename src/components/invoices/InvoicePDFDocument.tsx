@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Invoice, getClinicSettings, ClinicSettings } from "@/lib/invoices";
-import { calculateInvoiceSHA256, generateAEATQRUrl, formatHashDisplay, INITIAL_SIF_HASH } from "@/lib/verifactu";
+import { calculateInvoiceSHA256, generateAEATQRUrl, formatHashDisplay, getVerifactuLegend, getVerifactuBadgeText, INITIAL_SIF_HASH } from "@/lib/verifactu";
 import { formatDate } from "@/lib/clinic-data";
 import { Button } from "@/components/ui/button";
-import { Printer, X, ShieldCheck, FileCheck, Info } from "lucide-react";
+import { Printer, X, ShieldCheck, FileCheck, Info, CheckCircle2 } from "lucide-react";
 
 interface InvoicePDFDocumentProps {
   invoice: Invoice;
@@ -47,6 +47,8 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
 
   const currentHash = computedHash || invoice.hash_actual || INITIAL_SIF_HASH;
   const currentPrevHash = invoice.hash_anterior || INITIAL_SIF_HASH;
+  const modoFacturacion = clinic?.modo_facturacion || "no_verifactu";
+  const isVerifactu = modoFacturacion === "verifactu";
 
   const qrDataUrl = invoice.qr_data || generateAEATQRUrl({
     emisorNif: invoice.emisor_nif || clinic?.cif_nif || "B12345678",
@@ -54,6 +56,7 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
     fechaExpedicion: invoice.fecha_expedicion || new Date().toISOString(),
     importeTotal: invoice.total || 0,
     hashActual: currentHash,
+    modo: modoFacturacion,
   });
 
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrDataUrl)}`;
@@ -91,6 +94,16 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
                   Motivo: {invoice.motivo_rectificacion}
                 </p>
               )}
+
+              {/* Distintivo Modo SIF */}
+              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold border" style={{
+                backgroundColor: isVerifactu ? "#ecfdf5" : "#f0f9ff",
+                borderColor: isVerifactu ? "#a7f3d0" : "#bae6fd",
+                color: isVerifactu ? "#047857" : "#0369a1",
+              }}>
+                <CheckCircle2 className="size-3" />
+                {isVerifactu ? "VERI*FACTU AEAT" : "SIF RD 1007/2023"}
+              </div>
             </div>
 
             <div className="text-right">
@@ -183,7 +196,7 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
           </div>
         </div>
 
-        {/* Sección Pie de Página - Cumplimiento SIF / RD 1007/2023 (Modo No Verifactu) */}
+        {/* Sección Pie de Página - Cumplimiento SIF / RD 1007/2023 */}
         <div className="border-t-2 border-slate-800 pt-4">
           <div className="flex items-center justify-between gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
             {/* Código QR AEAT SIF */}
@@ -193,13 +206,15 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
                 alt="Código QR Verifactu SIF AEAT"
                 className="size-20 border border-slate-300 rounded bg-white p-1"
               />
-              <div className="text-[10px] text-slate-600 space-y-0.5 max-w-[280px]">
+              <div className="text-[10px] text-slate-600 space-y-0.5 max-w-[290px]">
                 <p className="font-bold text-slate-800 flex items-center gap-1 text-[11px]">
                   <ShieldCheck className="size-3.5 text-blue-600 inline" />
-                  Sistema Garantizado RD 1007/2023
+                  {isVerifactu ? "VERI*FACTU - Agencia Tributaria" : "Sistema Garantizado RD 1007/2023"}
                 </p>
-                <p>Registro de Facturación inalterable (Modo No Veri*factu).</p>
-                <p className="font-mono text-[9px] text-slate-700 break-all">
+                <p className="text-[9.5px] leading-tight text-slate-600">
+                  {getVerifactuLegend(modoFacturacion)}
+                </p>
+                <p className="font-mono text-[9px] text-slate-700 break-all pt-0.5">
                   <span className="font-bold text-slate-900">Huella SHA-256:</span> {formatHashDisplay(currentHash)}
                 </p>
                 <p className="font-mono text-[8px] text-slate-400">
@@ -210,11 +225,11 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
 
             {/* Sello de Inalterabilidad */}
             <div className="text-right text-[10px] text-slate-500 space-y-1">
-              <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">
-                <FileCheck className="size-3" /> Registro Firmado SIF
+              <div className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                <FileCheck className="size-3" /> {getVerifactuBadgeText(modoFacturacion)}
               </div>
               <p>Expedido con trazabilidad y encadenamiento informático.</p>
-              <p className="font-semibold text-slate-700">Documento Fiscal Oficial</p>
+              <p className="font-semibold text-slate-700">Documento Fiscal Oficial 2027</p>
             </div>
           </div>
         </div>
