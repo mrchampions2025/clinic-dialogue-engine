@@ -48,7 +48,8 @@ export async function calculateInvoiceSHA256(payload: InvoiceSIFPayload): Promis
 }
 
 /**
- * Genera la URL normalizada de verificación de la AEAT (Código QR obligatorio en SIF)
+ * Genera la URL normalizada de verificación (Código QR obligatorio en SIF)
+ * Conforme al Anexo III de la Orden HAC/1177/2024.
  */
 export function generateAEATQRUrl(payload: {
   emisorNif: string;
@@ -64,15 +65,24 @@ export function generateAEATQRUrl(payload: {
   const year = dateObj.getFullYear();
   const fechaFormatted = `${day}-${month}-${year}`;
 
-  const nif = encodeURIComponent((payload.emisorNif || "").trim().toUpperCase());
+  const rawNif = (payload.emisorNif || "").trim().toUpperCase();
+  const nif = encodeURIComponent(rawNif);
   const num = encodeURIComponent((payload.numFactura || "").trim());
   const imp = (payload.importeTotal || 0).toFixed(2);
   const hc = (payload.hashActual || "00000000").slice(0, 8);
   const isVerifactu = payload.modo === "verifactu";
 
+  // Si se utiliza el NIF de pruebas/demo o estamos en entorno local, dirigir a la ruta interna de verificación
+  const isTestOrDemo = rawNif === "B12345678" || (typeof window !== "undefined" && window.location.hostname === "localhost");
+
+  if (isTestOrDemo && typeof window !== "undefined") {
+    return `${window.location.origin}/verificar-factura?nif=${nif}&num=${num}&fecha=${fechaFormatted}&importe=${imp}&hc=${hc}`;
+  }
+
+  // URL Oficial de la Sede Electrónica de la AEAT según la Orden HAC/1177/2024 Anexo III
   const baseUrl = isVerifactu
-    ? "https://www2.agenciatributaria.gob.es/vl/verifactu/validaqr"
-    : "https://www2.agenciatributaria.gob.es/vl/validaqr";
+    ? "https://www.agenciatributaria.gob.es/vl/verifactu/validaqr"
+    : "https://www.agenciatributaria.gob.es/vl/validaqr";
 
   return `${baseUrl}?nif=${nif}&num=${num}&fecha=${fechaFormatted}&importe=${imp}&hc=${hc}`;
 }

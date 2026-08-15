@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as VerificarFacturaRouteImport } from './routes/verificar-factura'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as ApiWhatsappRemindersRouteImport } from './routes/api/whatsapp-reminders'
@@ -36,6 +37,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificarFacturaRoute = VerificarFacturaRouteImport.update({
+  id: '/verificar-factura',
+  path: '/verificar-factura',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -102,6 +108,7 @@ const AuthenticatedAdminPacientesIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/verificar-factura': typeof VerificarFacturaRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
   '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/verificar-factura': typeof VerificarFacturaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/verificar-factura': typeof VerificarFacturaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/verificar-factura'
     | '/admin'
     | '/perfil'
     | '/api/whatsapp-reminders'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/verificar-factura'
     | '/perfil'
     | '/api/whatsapp-reminders'
     | '/api/whatsapp-webhook'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/verificar-factura'
     | '/_authenticated/admin'
     | '/_authenticated/perfil'
     | '/api/whatsapp-reminders'
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  VerificarFacturaRoute: typeof VerificarFacturaRoute
   ApiWhatsappRemindersRoute: typeof ApiWhatsappRemindersRoute
   ApiWhatsappWebhookRoute: typeof ApiWhatsappWebhookRoute
 }
@@ -222,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verificar-factura': {
+      id: '/verificar-factura'
+      path: '/verificar-factura'
+      fullPath: '/verificar-factura'
+      preLoaderRoute: typeof VerificarFacturaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -344,6 +364,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  VerificarFacturaRoute: VerificarFacturaRoute,
   ApiWhatsappRemindersRoute: ApiWhatsappRemindersRoute,
   ApiWhatsappWebhookRoute: ApiWhatsappWebhookRoute,
 }
