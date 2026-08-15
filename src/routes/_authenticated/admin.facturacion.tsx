@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { listInvoices, createRectifyingInvoice, Invoice } from "@/lib/invoices";
+import { listInvoices, createRectifyingInvoice, exportInvoicesToCSV, Invoice } from "@/lib/invoices";
 import { formatHashDisplay } from "@/lib/verifactu";
 import { InvoicePDFDocument } from "@/components/invoices/InvoicePDFDocument";
 import { formatDate } from "@/lib/clinic-data";
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { FileText, Search, ShieldCheck, RefreshCw, Eye, AlertTriangle, Euro, FileCheck, Layers, Database, Copy } from "lucide-react";
+import { FileText, Search, ShieldCheck, RefreshCw, Eye, AlertTriangle, Euro, FileCheck, Layers, Database, Copy, Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/facturacion")({
   component: AdminFacturacionPage,
@@ -161,9 +161,26 @@ function AdminFacturacionPage() {
       title="Gestión de Facturación SIF"
       subtitle="Sistema inalterable con encadenamiento SHA-256 y cumplimiento RD 1007/2023 (Modo No Veri*factu)"
       actions={
-        <Button variant="outline" size="sm" onClick={() => setShowSqlDialog(true)}>
-          <Database className="size-4 mr-2 text-blue-600" /> Configurar Tablas SQL
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm"
+            onClick={() => {
+              if (invoices.length === 0) {
+                toast.error("No hay facturas registradas en la base de datos para exportar");
+                return;
+              }
+              exportInvoicesToCSV(invoices);
+              toast.success("Libro Registro de Facturas (CSV AEAT) exportado con éxito");
+            }}
+          >
+            <Download className="size-4 mr-2" /> Exportar CSV Hacienda (AEAT)
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowSqlDialog(true)}>
+            <Database className="size-4 mr-2 text-blue-600" /> Configurar Tablas SQL
+          </Button>
+        </div>
       }
     >
       {/* Tarjetas de Estadísticas */}

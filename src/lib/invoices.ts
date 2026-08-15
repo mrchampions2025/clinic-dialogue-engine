@@ -366,3 +366,62 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
     return null;
   }
 }
+
+/**
+ * Genera y descarga el archivo CSV normalizado para la Agencia Tributaria (AEAT) / Hacienda.
+ * Libro Registro de Facturas Emitidas según el estándar de RD 1007/2023.
+ */
+export function exportInvoicesToCSV(invoices: Invoice[]): void {
+  const headers = [
+    "Numero_Factura",
+    "Tipo_Factura",
+    "Fecha_Expedicion",
+    "Ejercicio",
+    "NIF_Emisor",
+    "Razon_Social_Emisor",
+    "NIF_Cliente",
+    "Nombre_Cliente",
+    "Base_Imponible_EUR",
+    "Porcentaje_IVA",
+    "Cuota_IVA_EUR",
+    "Total_Factura_EUR",
+    "Exenta_IVA",
+    "Motivo_Exencion",
+    "Huella_SHA256_SIF",
+    "Huella_Anterior_SHA256",
+    "Estado",
+  ];
+
+  const rows = invoices.map((inv) => {
+    const dateFormatted = inv.fecha_expedicion ? new Date(inv.fecha_expedicion).toLocaleDateString("es-ES") : "—";
+    return [
+      `"${inv.numero || ""}"`,
+      `"${inv.tipo === "rectificativa" ? "RECTIFICATIVA (R1)" : "ORDINARIA (F1)"}"`,
+      `"${dateFormatted}"`,
+      `"${inv.ejercicio || new Date().getFullYear()}"`,
+      `"${inv.emisor_nif || ""}"`,
+      `"${inv.emisor_nombre || ""}"`,
+      `"${inv.receptor_nif || ""}"`,
+      `"${inv.receptor_nombre || ""}"`,
+      `"${(Number(inv.subtotal) || 0).toFixed(2)}"`,
+      `"${(Number(inv.iva_porcentaje) || 0).toFixed(2)}"`,
+      `"${(Number(inv.iva_importe) || 0).toFixed(2)}"`,
+      `"${(Number(inv.total) || 0).toFixed(2)}"`,
+      `"${inv.exento_iva ? "SI" : "NO"}"`,
+      `"${inv.motivo_exencion || ""}"`,
+      `"${inv.hash_actual || ""}"`,
+      `"${inv.hash_anterior || ""}"`,
+      `"${inv.estado || "emitida"}"`,
+    ].join(";");
+  });
+
+  const csvContent = "\uFEFF" + [headers.join(";"), ...rows].join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `Libro_Registro_Facturas_AEAT_${new Date().getFullYear()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}

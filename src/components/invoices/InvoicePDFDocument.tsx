@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Invoice, getClinicSettings, ClinicSettings } from "@/lib/invoices";
-import { formatHashDisplay } from "@/lib/verifactu";
+import { calculateInvoiceSHA256, generateAEATQRUrl, formatHashDisplay, INITIAL_SIF_HASH } from "@/lib/verifactu";
 import { formatDate } from "@/lib/clinic-data";
 import { Button } from "@/components/ui/button";
 import { Printer, X, ShieldCheck, FileCheck, Info } from "lucide-react";
@@ -15,6 +15,7 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
   const componentRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [clinic, setClinic] = useState<ClinicSettings | null>(null);
+  const [computedHash, setComputedHash] = useState<string>(invoice.hash_actual || "");
 
   useEffect(() => {
     setMounted(true);
@@ -22,14 +23,40 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
     return () => setMounted(false);
   }, []);
 
+  useEffect(() => {
+    if (!invoice.hash_actual) {
+      calculateInvoiceSHA256({
+        emisorNif: invoice.emisor_nif || clinic?.cif_nif || "B12345678",
+        numFactura: invoice.numero || "FAC-2026-0001",
+        fechaExpedicion: invoice.fecha_expedicion || new Date().toISOString(),
+        tipoFactura: invoice.tipo === "rectificativa" ? "R1" : "F1",
+        cuotaTotal: invoice.iva_importe || 0,
+        importeTotal: invoice.total || 0,
+        hashAnterior: invoice.hash_anterior || INITIAL_SIF_HASH,
+      }).then(setComputedHash);
+    } else {
+      setComputedHash(invoice.hash_actual);
+    }
+  }, [invoice, clinic]);
+
   const handlePrint = () => {
     window.print();
   };
 
   if (!mounted) return null;
 
-  // Generador de código QR como URL SVG de servicio para renderizado perfecto e imprimible
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(invoice.qr_data)}`;
+  const currentHash = computedHash || invoice.hash_actual || INITIAL_SIF_HASH;
+  const currentPrevHash = invoice.hash_anterior || INITIAL_SIF_HASH;
+
+  const qrDataUrl = invoice.qr_data || generateAEATQRUrl({
+    emisorNif: invoice.emisor_nif || clinic?.cif_nif || "B12345678",
+    numFactura: invoice.numero || "FAC-2026-0001",
+    fechaExpedicion: invoice.fecha_expedicion || new Date().toISOString(),
+    importeTotal: invoice.total || 0,
+    hashActual: currentHash,
+  });
+
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrDataUrl)}`;
 
   const content = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 print:p-0 print:bg-white print:block print:relative print:z-auto">
@@ -173,10 +200,10 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
                 </p>
                 <p>Registro de Facturación inalterable (Modo No Veri*factu).</p>
                 <p className="font-mono text-[9px] text-slate-700 break-all">
-                  <span className="font-bold text-slate-900">Huella SHA-256:</span> {formatHashDisplay(invoice.hash_actual)}
+                  <span className="font-bold text-slate-900">Huella SHA-256:</span> {formatHashDisplay(currentHash)}
                 </p>
                 <p className="font-mono text-[8px] text-slate-400">
-                  Ant.: {formatHashDisplay(invoice.hash_anterior)}
+                  Ant.: {formatHashDisplay(currentPrevHash)}
                 </p>
               </div>
             </div>
