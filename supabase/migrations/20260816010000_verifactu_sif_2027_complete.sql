@@ -31,43 +31,39 @@ WHERE NOT EXISTS (SELECT 1 FROM public.clinic_settings);
 CREATE SEQUENCE IF NOT EXISTS public.invoice_number_seq START WITH 1;
 CREATE SEQUENCE IF NOT EXISTS public.invoice_rectifying_seq START WITH 1;
 
--- 3. Tabla Facturas
+-- 3. Tabla Facturas y Alter Table para columnas faltantes
 CREATE TABLE IF NOT EXISTS public.invoices (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  numero text NOT NULL UNIQUE,
-  serie text NOT NULL DEFAULT 'FAC',
-  ejercicio integer NOT NULL DEFAULT extract(year from current_date)::integer,
-  secuencia integer NOT NULL,
-  tipo text NOT NULL DEFAULT 'ordinaria',
-  fecha_expedicion timestamptz NOT NULL DEFAULT now(),
-  patient_id uuid NOT NULL,
-  budget_id uuid,
-  
-  emisor_nif text NOT NULL,
-  emisor_nombre text NOT NULL,
-  emisor_direccion text NOT NULL,
-  
-  receptor_nif text,
-  receptor_nombre text NOT NULL,
-  receptor_direccion text,
-  
-  subtotal numeric(12,2) NOT NULL DEFAULT 0.00,
-  exento_iva boolean NOT NULL DEFAULT true,
-  motivo_exencion text DEFAULT 'Art. 20.Uno.3º Ley 37/1992 de IVA (Servicios Médicos/Odontológicos)',
-  iva_porcentaje numeric(5,2) NOT NULL DEFAULT 0.00,
-  iva_importe numeric(12,2) NOT NULL DEFAULT 0.00,
-  total numeric(12,2) NOT NULL DEFAULT 0.00,
-  
-  hash_anterior text NOT NULL,
-  hash_actual text NOT NULL UNIQUE,
-  qr_data text NOT NULL,
-  
-  rectifica_invoice_id uuid REFERENCES public.invoices(id),
-  motivo_rectificacion text,
-  
-  estado text NOT NULL DEFAULT 'emitida',
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.invoices
+  ADD COLUMN IF NOT EXISTS numero text,
+  ADD COLUMN IF NOT EXISTS serie text NOT NULL DEFAULT 'FAC',
+  ADD COLUMN IF NOT EXISTS ejercicio integer NOT NULL DEFAULT extract(year from current_date)::integer,
+  ADD COLUMN IF NOT EXISTS secuencia integer NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS tipo text NOT NULL DEFAULT 'ordinaria',
+  ADD COLUMN IF NOT EXISTS fecha_expedicion timestamptz NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS patient_id uuid,
+  ADD COLUMN IF NOT EXISTS budget_id uuid,
+  ADD COLUMN IF NOT EXISTS emisor_nif text NOT NULL DEFAULT 'B12345678',
+  ADD COLUMN IF NOT EXISTS emisor_nombre text NOT NULL DEFAULT 'Clínica Dental Dentix',
+  ADD COLUMN IF NOT EXISTS emisor_direccion text NOT NULL DEFAULT 'Av. Principal 123',
+  ADD COLUMN IF NOT EXISTS receptor_nif text,
+  ADD COLUMN IF NOT EXISTS receptor_nombre text NOT NULL DEFAULT 'Paciente',
+  ADD COLUMN IF NOT EXISTS receptor_direccion text,
+  ADD COLUMN IF NOT EXISTS subtotal numeric(12,2) NOT NULL DEFAULT 0.00,
+  ADD COLUMN IF NOT EXISTS exento_iva boolean NOT NULL DEFAULT true,
+  ADD COLUMN IF NOT EXISTS motivo_exencion text DEFAULT 'Art. 20.Uno.3º Ley 37/1992 de IVA (Servicios Médicos/Odontológicos)',
+  ADD COLUMN IF NOT EXISTS iva_porcentaje numeric(5,2) NOT NULL DEFAULT 0.00,
+  ADD COLUMN IF NOT EXISTS iva_importe numeric(12,2) NOT NULL DEFAULT 0.00,
+  ADD COLUMN IF NOT EXISTS total numeric(12,2) NOT NULL DEFAULT 0.00,
+  ADD COLUMN IF NOT EXISTS hash_anterior text NOT NULL DEFAULT '0000000000000000000000000000000000000000000000000000000000000000',
+  ADD COLUMN IF NOT EXISTS hash_actual text NOT NULL DEFAULT '0000000000000000000000000000000000000000000000000000000000000000',
+  ADD COLUMN IF NOT EXISTS qr_data text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS rectifica_invoice_id uuid,
+  ADD COLUMN IF NOT EXISTS motivo_rectificacion text,
+  ADD COLUMN IF NOT EXISTS estado text NOT NULL DEFAULT 'emitida';
 
 -- 4. Tabla Líneas de Factura
 CREATE TABLE IF NOT EXISTS public.invoice_items (
@@ -93,10 +89,20 @@ CREATE TABLE IF NOT EXISTS public.sif_event_logs (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Índices
-CREATE INDEX IF NOT EXISTS idx_invoices_patient ON public.invoices(patient_id);
-CREATE INDEX IF NOT EXISTS idx_invoices_fecha ON public.invoices(fecha_expedicion DESC);
-CREATE INDEX IF NOT EXISTS idx_invoices_hash ON public.invoices(hash_actual);
+-- Índices (solo si existen las columnas)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='invoices' AND column_name='patient_id') THEN
+    CREATE INDEX IF NOT EXISTS idx_invoices_patient ON public.invoices(patient_id);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='invoices' AND column_name='fecha_expedicion') THEN
+    CREATE INDEX IF NOT EXISTS idx_invoices_fecha ON public.invoices(fecha_expedicion DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='invoices' AND column_name='hash_actual') THEN
+    CREATE INDEX IF NOT EXISTS idx_invoices_hash ON public.invoices(hash_actual);
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_sif_event_logs_fecha ON public.sif_event_logs(fecha_hora DESC);
 
 -- RLS y Políticas (con DROP previo para evitar duplicados "already exists")
