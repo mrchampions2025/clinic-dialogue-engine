@@ -20,22 +20,20 @@ export interface InvoiceSIFPayload {
  * Calcula el hash SHA-256 hexadecimal en mayúsculas según las especificaciones del RD 1007/2023.
  */
 export async function calculateInvoiceSHA256(payload: InvoiceSIFPayload): Promise<string> {
-  const dateObj = typeof payload.fechaExpedicion === "string" ? new Date(payload.fechaExpedicion) : payload.fechaExpedicion;
+  const dateObj = typeof payload.fechaExpedicion === "string" ? new Date(payload.fechaExpedicion) : (payload.fechaExpedicion || new Date());
   
-  // Formato DD-MM-YYYY
   const day = String(dateObj.getDate()).padStart(2, "0");
   const month = String(dateObj.getMonth() + 1).padStart(2, "0");
   const year = dateObj.getFullYear();
   const fechaFormatted = `${day}-${month}-${year}`;
 
-  const emisorClean = payload.emisorNif.trim().toUpperCase();
-  const numClean = payload.numFactura.trim();
-  const cuotaStr = payload.cuotaTotal.toFixed(2);
-  const importeStr = payload.importeTotal.toFixed(2);
+  const emisorClean = (payload.emisorNif || "").trim().toUpperCase();
+  const numClean = (payload.numFactura || "").trim();
+  const cuotaStr = (payload.cuotaTotal || 0).toFixed(2);
+  const importeStr = (payload.importeTotal || 0).toFixed(2);
   const hashAntClean = (payload.hashAnterior || INITIAL_SIF_HASH).trim().toUpperCase();
   const isoTimestamp = payload.timestampGen || dateObj.toISOString();
 
-  // Cadena canónica oficial del registro informático de facturación
   const canonicalString = `IDEmisor=${emisorClean}&NumSerieFactura=${numClean}&FechaExpedicionFactura=${fechaFormatted}&TipoFactura=${payload.tipoFactura}&CuotaTotal=${cuotaStr}&ImporteTotal=${importeStr}&HuellaAnterior=${hashAntClean}&FechaHoraHusoGenRegistro=${isoTimestamp}`;
 
   if (typeof window !== "undefined" && window.crypto && window.crypto.subtle) {
@@ -46,7 +44,6 @@ export async function calculateInvoiceSHA256(payload: InvoiceSIFPayload): Promis
     return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
   }
 
-  // Fallback simple si se ejecuta fuera de entorno crypto seguro
   return simpleSHA256Fallback(canonicalString).toUpperCase();
 }
 
@@ -58,18 +55,18 @@ export function generateAEATQRUrl(payload: {
   numFactura: string;
   fechaExpedicion: Date | string;
   importeTotal: number;
-  hashActual: string;
+  hashActual?: string | null;
 }): string {
-  const dateObj = typeof payload.fechaExpedicion === "string" ? new Date(payload.fechaExpedicion) : payload.fechaExpedicion;
+  const dateObj = typeof payload.fechaExpedicion === "string" ? new Date(payload.fechaExpedicion) : (payload.fechaExpedicion || new Date());
   const day = String(dateObj.getDate()).padStart(2, "0");
   const month = String(dateObj.getMonth() + 1).padStart(2, "0");
   const year = dateObj.getFullYear();
   const fechaFormatted = `${day}-${month}-${year}`;
 
-  const nif = encodeURIComponent(payload.emisorNif.trim().toUpperCase());
-  const num = encodeURIComponent(payload.numFactura.trim());
-  const imp = payload.importeTotal.toFixed(2);
-  const hc = payload.hashActual.slice(0, 8);
+  const nif = encodeURIComponent((payload.emisorNif || "").trim().toUpperCase());
+  const num = encodeURIComponent((payload.numFactura || "").trim());
+  const imp = (payload.importeTotal || 0).toFixed(2);
+  const hc = (payload.hashActual || "00000000").slice(0, 8);
 
   return `https://www2.agenciatributaria.gob.es/vl/validaqr?nif=${nif}&num=${num}&fecha=${fechaFormatted}&importe=${imp}&hc=${hc}`;
 }
@@ -77,12 +74,12 @@ export function generateAEATQRUrl(payload: {
 /**
  * Formatea un hash SHA-256 para mostrar en la factura (ej: A1B2C3D4...E5F67890)
  */
-export function formatHashDisplay(hash: string): string {
-  if (!hash || hash.length < 16) return hash;
-  return `${hash.slice(0, 8)}...${hash.slice(-8)}`;
+export function formatHashDisplay(hash?: string | null): string {
+  if (!hash) return "—";
+  if (hash.length < 16) return hash;
+  return `${hash.slice(0, 8)}...${hash.slice(-6)}`;
 }
 
-// Fallback de algoritmo SHA256 ligero si WebCrypto no estuviera accesible
 function simpleSHA256Fallback(ascii: string): string {
   function rightRotate(value: number, amount: number) {
     return (value >>> amount) | (value << (32 - amount));

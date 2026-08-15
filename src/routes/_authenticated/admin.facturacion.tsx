@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { listInvoices, createRectifyingInvoice, Invoice } from "@/lib/invoices";
+import { formatHashDisplay } from "@/lib/verifactu";
 import { InvoicePDFDocument } from "@/components/invoices/InvoicePDFDocument";
 import { formatDate } from "@/lib/clinic-data";
 import { formatMoney } from "@/lib/budgets";
@@ -134,10 +135,13 @@ function AdminFacturacionPage() {
 
   const filteredInvoices = invoices.filter((inv) => {
     const query = searchTerm.toLowerCase();
+    const num = inv?.numero || "";
+    const name = inv?.receptor_nombre || "";
+    const nif = inv?.receptor_nif || "";
     return (
-      inv.numero.toLowerCase().includes(query) ||
-      inv.receptor_nombre.toLowerCase().includes(query) ||
-      (inv.receptor_nif && inv.receptor_nif.toLowerCase().includes(query))
+      num.toLowerCase().includes(query) ||
+      name.toLowerCase().includes(query) ||
+      nif.toLowerCase().includes(query)
     );
   });
 
@@ -262,11 +266,11 @@ function AdminFacturacionPage() {
                 {filteredInvoices.map((inv) => (
                   <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
                     <td className="py-3 px-4 font-mono font-semibold text-primary">
-                      {inv.numero}
+                      {inv.numero || "—"}
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">{formatDate(inv.fecha_expedicion)}</td>
                     <td className="py-3 px-4 font-medium">
-                      {inv.receptor_nombre}
+                      {inv.receptor_nombre || "—"}
                       {inv.receptor_nif && <span className="block text-xs text-muted-foreground font-mono">{inv.receptor_nif}</span>}
                     </td>
                     <td className="py-3 px-4">
@@ -283,8 +287,8 @@ function AdminFacturacionPage() {
                     <td className="py-3 px-4 text-right text-muted-foreground">{formatMoney(inv.subtotal)}</td>
                     <td className="py-3 px-4 text-right font-bold">{formatMoney(inv.total)}</td>
                     <td className="py-3 px-4 text-center font-mono text-[11px] text-muted-foreground">
-                      <span className="bg-muted px-2 py-1 rounded border border-border inline-block" title={inv.hash_actual}>
-                        {inv.hash_actual.slice(0, 8)}...{inv.hash_actual.slice(-6)}
+                      <span className="bg-muted px-2 py-1 rounded border border-border inline-block" title={inv.hash_actual || ""}>
+                        {formatHashDisplay(inv.hash_actual)}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right space-x-2">
