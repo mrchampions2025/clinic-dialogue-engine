@@ -122,7 +122,7 @@ function FacturacionPage() {
   useEffect(() => {
     if (budget) {
       loadFromBudget.mutate(budget);
-      navigate({ to: "/admin/facturacion", search: {}, replace: true });
+      navigate({ to: "/admin/facturacion", search: () => ({ budget: undefined }), replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [budget]);
