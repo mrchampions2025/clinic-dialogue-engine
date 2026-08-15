@@ -62,11 +62,15 @@ export interface Invoice {
 }
 
 export async function getClinicSettings(): Promise<ClinicSettings> {
-  const { data, error } = await db.from("clinic_settings").select("*").limit(1).maybeSingle();
-  if (error) {
-    console.error("Error al obtener datos fiscales de la clínica:", error);
+  try {
+    const { data, error } = await db.from("clinic_settings").select("*").limit(1).maybeSingle();
+    if (error) {
+      console.warn("Tabla 'clinic_settings' no existe aún:", error.message);
+    }
+    if (data) return data;
+  } catch (e) {
+    console.warn("Excepción al cargar clinic_settings:", e);
   }
-  if (data) return data;
   return {
     razon_social: "Clínica Dental Dentix",
     cif_nif: "B12345678",
@@ -93,28 +97,36 @@ export async function updateClinicSettings(settings: Partial<ClinicSettings>): P
 }
 
 export async function getLastInvoiceHash(): Promise<string> {
-  const { data, error } = await db.from("invoices").select("hash_actual").order("created_at", { ascending: false }).limit(1).maybeSingle();
-  if (error || !data) return INITIAL_SIF_HASH;
-  return data.hash_actual || INITIAL_SIF_HASH;
+  try {
+    const { data, error } = await db.from("invoices").select("hash_actual").order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (error || !data) return INITIAL_SIF_HASH;
+    return data.hash_actual || INITIAL_SIF_HASH;
+  } catch (e) {
+    return INITIAL_SIF_HASH;
+  }
 }
 
 export async function getNextInvoiceSequence(tipo: "ordinaria" | "rectificativa" = "ordinaria"): Promise<{ numero: string; secuencia: number; serie: string; ejercicio: number }> {
   const ejercicio = new Date().getFullYear();
   const serie = tipo === "rectificativa" ? "REC" : "FAC";
 
-  const { data, error } = await db
-    .from("invoices")
-    .select("secuencia")
-    .eq("serie", serie)
-    .eq("ejercicio", ejercicio)
-    .order("secuencia", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  try {
+    const { data, error } = await db
+      .from("invoices")
+      .select("secuencia")
+      .eq("serie", serie)
+      .eq("ejercicio", ejercicio)
+      .order("secuencia", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  const nextSeq = (data?.secuencia || 0) + 1;
-  const numero = `${serie}-${ejercicio}-${String(nextSeq).padStart(4, "0")}`;
+    const nextSeq = (data?.secuencia || 0) + 1;
+    const numero = `${serie}-${ejercicio}-${String(nextSeq).padStart(4, "0")}`;
 
-  return { numero, secuencia: nextSeq, serie, ejercicio };
+    return { numero, secuencia: nextSeq, serie, ejercicio };
+  } catch (e) {
+    return { numero: `${serie}-${ejercicio}-0001`, secuencia: 1, serie, ejercicio };
+  }
 }
 
 export async function createInvoiceFromBudget(
@@ -189,7 +201,12 @@ export async function createInvoiceFromBudget(
     .select("id")
     .single();
 
-  if (invErr) throw new Error(invErr.message);
+  if (invErr) {
+    if (invErr.code === "42P01" || invErr.message?.includes("does not exist")) {
+      throw new Error("La tabla 'invoices' no existe en Supabase aún. Ejecuta el archivo SQL de migración en el editor de Supabase.");
+    }
+    throw new Error(invErr.message);
+  }
 
   const itemsToInsert = (budget.budget_items || []).map((bi: any) => {
     const cant = Number(bi.cantidad) || 1;
@@ -305,33 +322,47 @@ export async function createRectifyingInvoice(
 }
 
 export async function listInvoices(patientId?: string): Promise<Invoice[]> {
-  let query = db
-    .from("invoices")
-    .select("*, invoice_items(*), patient:patients(*)")
-    .order("created_at", { ascending: false });
+  try {
+    let query = db
+      .from("invoices")
+      .select("*, invoice_items(*), patient:patients(*)")
+      .order("created_at", { ascending: false });
 
-  if (patientId) {
-    query = query.eq("patient_id", patientId);
-  }
+    if (patientId) {
+      query = query.eq("patient_id", patientId);
+    }
 
-  const { data, error } = await query;
-  if (error) {
-    console.error("Error al listar facturas:", error);
-    throw new Error(error.message);
+    const { data, error } = await query;
+    if (error) {
+      if (error.code === "42P01" || error.message?.includes("does not exist")) {
+        console.warn("Tabla 'invoices' no existe aún en Supabase.");
+        return [];
+      }
+      console.error("Error al listar facturas:", error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.error("Error en listInvoices:", err);
+    return [];
   }
-  return data || [];
 }
 
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
-  const { data, error } = await db
-    .from("invoices")
-    .select("*, invoice_items(*), patient:patients(*)")
-    .eq("id", id)
-    .single();
+  try {
+    const { data, error } = await db
+      .from("invoices")
+      .select("*, invoice_items(*), patient:patients(*)")
+      .eq("id", id)
+      .single();
 
-  if (error) {
-    console.error("Error al obtener factura:", error);
+    if (error) {
+      console.error("Error al obtener factura:", error);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.error("Error en getInvoiceById:", err);
     return null;
   }
-  return data;
 }
