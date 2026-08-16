@@ -139,6 +139,9 @@ export type Clinic = {
   logo_url: string | null;
   active: boolean;
   created_at: string;
+  plan?: string | null;
+  notes?: string | null;
+  modules?: { whatsappBot?: boolean; verifactu?: boolean; digitalSign?: boolean } | null;
 };
 
 export async function listClinics(): Promise<Clinic[]> {
@@ -146,6 +149,15 @@ export async function listClinics(): Promise<Clinic[]> {
   if (error) throw new Error(error.message);
   return data as Clinic[];
 }
+
+export async function updateClinicDetails(id: string, updates: Partial<Clinic>): Promise<void> {
+  const { error } = await supabase
+    .from("clinics")
+    .update(updates as any)
+    .eq("id", id);
+  if (error) console.warn("Error actualizando detalles de clínica:", error.message);
+}
+
 
 export async function createClinicManual(name: string, slug?: string): Promise<Clinic> {
   const cleanSlug = (slug || name)
