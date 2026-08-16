@@ -1,8 +1,8 @@
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { createFileRoute, useRouteContext, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { listUserAppointments, formatDate, formatTime, determineAppointmentEstado } from "@/lib/clinic-data";
-import { CalendarCheck, User, Plus, FileText, Euro, PenLine, Download } from "lucide-react";
+import { CalendarCheck, User, Plus, FileText, Euro, PenLine, Download, LogOut } from "lucide-react";
 import { BudgetDocument } from "@/components/budgets/BudgetDocument";
 import { BudgetSignDialog } from "@/components/budgets/BudgetSignDialog";
 import { BudgetInvoice } from "@/components/admin/BudgetInvoice";
@@ -33,7 +33,13 @@ export const Route = createFileRoute("/_authenticated/perfil")({
 function PerfilPage() {
   const { user } = useRouteContext({ from: "/_authenticated" }) as any;
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [openForm, setOpenForm] = useState(false);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth" });
+  };
 
   // Form states
   const [fecha, setFecha] = useState("");
@@ -118,45 +124,51 @@ function PerfilPage() {
               <p className="text-muted-foreground">{user.email}</p>
             </div>
           </div>
-          <Dialog open={openForm} onOpenChange={setOpenForm}>
-            <DialogTrigger asChild>
-              <Button size="lg" className="rounded-full shadow-lg hover:shadow-xl transition-all">
-                <Plus className="mr-2 size-5" /> Agendar Nueva Cita
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Solicitar Cita</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAgendar} className="space-y-4 py-4">
-                <div className="grid gap-2">
-                  <Label>Nombre Completo</Label>
-                  <Input required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Juan Pérez" />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Teléfono de Contacto</Label>
-                  <Input required type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="Ej. +34 600 000 000" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Fecha</Label>
-                    <Input required type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} min={new Date().toISOString().split("T")[0]} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Hora Preferida</Label>
-                    <Input required type="time" value={hora} onChange={(e) => setHora(e.target.value)} />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Motivo de la consulta</Label>
-                  <Textarea required value={tratamiento} onChange={(e) => setTratamiento(e.target.value)} placeholder="Limpieza, dolor de muelas, revisión..." />
-                </div>
-                <Button type="submit" className="w-full mt-4" disabled={agendarMutation.isPending}>
-                  {agendarMutation.isPending ? "Enviando..." : "Confirmar Solicitud"}
+          <div className="flex items-center gap-2">
+            <Dialog open={openForm} onOpenChange={setOpenForm}>
+              <DialogTrigger asChild>
+                <Button size="lg" className="rounded-full shadow-lg hover:shadow-xl transition-all">
+                  <Plus className="mr-2 size-5" /> Agendar Nueva Cita
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Solicitar Cita</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleAgendar} className="space-y-4 py-4">
+                  <div className="grid gap-2">
+                    <Label>Nombre Completo</Label>
+                    <Input required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Juan Pérez" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Teléfono de Contacto</Label>
+                    <Input required type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="Ej. +34 600 000 000" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label>Fecha</Label>
+                      <Input required type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} min={new Date().toISOString().split("T")[0]} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Hora (Aprox)</Label>
+                      <Input required type="time" value={hora} onChange={(e) => setHora(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Motivo de la Cita / Tratamiento</Label>
+                    <Textarea required value={tratamiento} onChange={(e) => setTratamiento(e.target.value)} placeholder="¿En qué podemos ayudarte?" />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={m.isPending}>
+                    {m.isPending ? "Enviando solicitud..." : "Confirmar Solicitud"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+            <Button variant="outline" size="icon" className="rounded-full h-11 w-11 shrink-0 ml-2 text-slate-500 hover:text-red-500" onClick={handleLogout} title="Cerrar sesión">
+              <LogOut className="size-5" />
+            </Button>
+          </div>
         </header>
 
         <Tabs defaultValue="citas" className="w-full">
