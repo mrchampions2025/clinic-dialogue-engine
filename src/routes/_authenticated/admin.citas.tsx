@@ -40,6 +40,7 @@ import {
   listAppointments,
   upsertAppointment,
   deleteAppointment,
+  listPatients,
   formatDate,
   formatTime,
   type Appointment,
@@ -86,6 +87,23 @@ function CitasPage() {
   const { data: citas = [], isLoading } = useQuery({
     queryKey: ["appointments"],
     queryFn: listAppointments,
+  });
+  const { data: pacientes = [] } = useQuery({
+    queryKey: ["patients"],
+    queryFn: listPatients,
+  });
+
+  const [patientQuery, setPatientQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const filteredPatients = pacientes.filter((p) => {
+    if (!patientQuery.trim()) return false;
+    const q = patientQuery.toLowerCase();
+    return (
+      p.nombre?.toLowerCase().includes(q) ||
+      p.dni?.toLowerCase().includes(q) ||
+      p.telefono?.toLowerCase().includes(q)
+    );
   });
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Appointment>>(empty);
@@ -304,14 +322,52 @@ function CitasPage() {
               save.mutate(form);
             }}
           >
-            <div className="sm:col-span-2">
-              <Label htmlFor="paciente">Paciente</Label>
+            <div className="sm:col-span-2 relative">
+              <Label htmlFor="paciente">Paciente (Buscador por Nombre, Apellidos o DNI)</Label>
               <Input
                 id="paciente"
                 required
+                placeholder="Empieza a escribir nombre, apellidos o DNI..."
                 value={form.paciente ?? ""}
-                onChange={(e) => setForm({ ...form, paciente: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setForm({ ...form, paciente: val });
+                  setPatientQuery(val);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
               />
+              {showDropdown && filteredPatients.length > 0 && (
+                <div className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-popover p-1 shadow-lg max-h-48 overflow-y-auto">
+                  {filteredPatients.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-xs hover:bg-accent rounded-lg flex justify-between items-center transition-colors"
+                      onClick={() => {
+                        setForm({
+                          ...form,
+                          paciente: p.nombre,
+                          telefono: p.telefono || form.telefono || "",
+                        });
+                        setPatientQuery(p.nombre);
+                        setShowDropdown(false);
+                        toast.info(`Datos cargados automáticamente para ${p.nombre}`);
+                      }}
+                    >
+                      <div>
+                        <span className="font-bold text-foreground block">{p.nombre}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          DNI: {p.dni || "Sin DNI"} · Tel: {p.telefono || "Sin Teléfono"}
+                        </span>
+                      </div>
+                      <span className="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded">
+                        Auto-rellenar ✓
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="telefono">Teléfono</Label>

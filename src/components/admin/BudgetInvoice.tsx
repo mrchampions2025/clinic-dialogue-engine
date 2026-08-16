@@ -190,13 +190,15 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
               <div className="mt-8 flex gap-6 items-end text-center">
                 {/* Firma del Paciente */}
                 <div className="flex-1 flex flex-col justify-end">
-                  <div className="font-semibold text-xs mb-2 text-slate-700">Firma del Paciente</div>
-                  <div className="border-b border-slate-400 w-full min-h-[120px] relative flex flex-col items-center justify-end pb-1">
+                  <div className="h-6 flex items-center justify-center font-semibold text-xs text-slate-700">
+                    Firma del Paciente
+                  </div>
+                  <div className="border-b border-slate-400 w-full h-[140px] relative flex flex-col items-center justify-end pb-0">
                     {budget.estado === 'Aceptado' && (
                       budget.firma_data && !budget.firma_data.startsWith("CERTIFICADO_DIGITAL") ? (
-                        <img src={budget.firma_data} alt="Firma Paciente" className="h-20 max-w-full object-contain mb-1" />
+                        <img src={budget.firma_data} alt="Firma Paciente" className="h-20 max-w-full object-contain -mb-1" />
                       ) : (
-                        <div className="font-['Brush_Script_MT',cursive] text-2xl text-slate-700 opacity-90 -rotate-2 whitespace-nowrap mb-2">
+                        <div className="font-['Brush_Script_MT',cursive] text-2xl text-slate-700 opacity-90 -rotate-2 whitespace-nowrap mb-1">
                           {budget.firma_nombre || patient?.nombre}
                         </div>
                       )
@@ -204,30 +206,30 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                   </div>
                 </div>
 
-                {/* Firma y Sello Oficial de la Clínica (Línea simple sin recuadro punteado) */}
+                {/* Firma y Sello Oficial de la Clínica (Alineado a la par y sello rozando la línea) */}
                 <div className="flex-1 flex flex-col justify-end">
-                  <div className="font-semibold text-xs mb-2 text-[#3245d6] flex items-center justify-center gap-1">
+                  <div className="h-6 flex items-center justify-center font-semibold text-xs text-[#3245d6] gap-1">
                     <ShieldCheck className="size-3.5 text-[#3245d6]" /> Firma y Sello Oficial
                   </div>
 
-                  <div className="border-b border-slate-400 w-full min-h-[120px] relative flex flex-col items-center justify-end pb-1">
-                    {/* Render Opción 1: Imagen de Firma o Sello (+100% de tamaño sobre la línea) */}
+                  <div className="border-b border-slate-400 w-full h-[140px] relative flex flex-col items-center justify-end pb-0">
+                    {/* Render Opción 1: Imagen de Sello/Firma (+100% de tamaño rozando la línea) */}
                     {(tipoFirma === "imagen") && clinic?.firma_sello_imagen ? (
-                      <div className="flex flex-col items-center justify-center w-full">
-                        <img
-                          src={clinic.firma_sello_imagen}
-                          alt="Sello Oficial Clínica"
-                          className="h-28 sm:h-36 max-w-full object-contain mb-1"
-                        />
+                      <div className="flex flex-col items-center justify-end w-full h-full relative">
                         {budget.firmado_at && (
-                          <p className="text-[8.5px] font-mono text-slate-500 font-medium">
+                          <p className="text-[8px] font-mono text-slate-400 font-medium absolute top-0">
                             FIRMADO EL: {new Date(budget.firmado_at).toLocaleString("es-ES")}
                           </p>
                         )}
+                        <img
+                          src={clinic.firma_sello_imagen}
+                          alt="Sello Oficial Clínica"
+                          className="h-32 sm:h-36 max-w-full object-contain -mb-1"
+                        />
                       </div>
                     ) : null}
 
-                    {/* Render Opción 2: Certificado Electrónico Digital X.509 de la AEAT / FNMT */}
+                    {/* Render Opción 2: Certificado Electrónico AEAT / FNMT */}
                     {(tipoFirma === "certificado" || !clinic?.firma_sello_imagen) && (
                       <div className="space-y-1 w-full text-center pb-1">
                         <p className="font-bold text-[#3245d6] text-[11px] tracking-tight">
