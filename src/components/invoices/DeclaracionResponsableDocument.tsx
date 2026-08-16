@@ -22,6 +22,12 @@ export function DeclaracionResponsableDocument({ clinic, onClose }: DeclaracionR
     window.print();
   };
 
+  const [zoom, setZoom] = useState<number>(75);
+
+  const handleZoomIn = () => setZoom((z) => Math.min(z + 15, 150));
+  const handleZoomOut = () => setZoom((z) => Math.max(z - 15, 40));
+  const handleResetZoom = () => setZoom(75);
+
   if (!mounted) return null;
 
   const fabricanteNombre = (clinic as any).fabricante_nombre || "Clinic Dialogue Engine S.L.";
@@ -35,23 +41,130 @@ export function DeclaracionResponsableDocument({ clinic, onClose }: DeclaracionR
   });
 
   const content = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 print:p-0 print:bg-white print:block print:relative print:z-auto">
-      {/* Botones de control */}
-      <div className="absolute top-4 right-4 flex gap-2 print:hidden z-10">
-        <Button onClick={handlePrint} variant="default" className="shadow-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium">
-          <Printer className="size-4 mr-2" /> Imprimir / Guardar Certificado en PDF
-        </Button>
-        <Button onClick={onClose} variant="secondary" size="icon" className="shadow-lg">
-          <X className="size-4" />
-        </Button>
-      </div>
+    <div id="pdf-document-portal" className="fixed inset-0 z-50 flex flex-col bg-slate-950/90 backdrop-blur-xl">
+      <style>{`
+        @media print {
+          body > *:not(#pdf-document-portal) {
+            display: none !important;
+          }
+          #pdf-document-portal {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            background: white !important;
+            overflow: visible !important;
+            backdrop-filter: none !important;
+          }
+          #pdf-document-toolbar {
+            display: none !important;
+          }
+          #pdf-document-viewport {
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+          }
+          #pdf-print-sheet {
+            transform: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+        }
+      `}</style>
 
-      {/* Documento A4 Certificado */}
-      <div
-        ref={componentRef}
-        className="print-only-container relative bg-white text-slate-900 shadow-2xl w-full max-w-[210mm] min-h-[297mm] p-10 overflow-hidden flex flex-col justify-between print:shadow-none print:w-full print:h-auto print:min-h-0 print:p-8 scale-[0.85] origin-top mt-6 print:mt-0 print:scale-100 border-t-8 border-emerald-600"
-        style={{ aspectRatio: "1 / 1.414" }}
-      >
+      {/* Visor de PDF: Barra de Herramientas Superior Estilo Adobe Reader / Drive */}
+      <header id="pdf-document-toolbar" className="flex items-center justify-between px-6 py-3 bg-slate-900/95 border-b border-slate-800 text-white shadow-2xl z-20 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="size-8 rounded-lg bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <Award className="size-4" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+              Declaración Responsable SIF
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-mono">
+                Art. 8 RD 1007/2023
+              </span>
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              {softwareNombre} ({softwareVersion})
+            </p>
+          </div>
+        </div>
+
+        {/* Controles de Zoom */}
+        <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon" 
+            className="size-7 text-slate-300 hover:text-white hover:bg-slate-700" 
+            onClick={handleZoomOut}
+            title="Alejar (-)"
+          >
+            <span className="text-sm font-bold">-</span>
+          </Button>
+          <span className="text-xs font-mono font-bold text-emerald-300 w-12 text-center">
+            {zoom}%
+          </span>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon" 
+            className="size-7 text-slate-300 hover:text-white hover:bg-slate-700" 
+            onClick={handleZoomIn}
+            title="Acercar (+)"
+          >
+            <span className="text-sm font-bold">+</span>
+          </Button>
+
+          <span className="h-4 w-px bg-slate-700 mx-1" />
+
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs text-slate-300 hover:text-white hover:bg-slate-700 px-2 h-7" 
+            onClick={handleResetZoom}
+            title="Encajar a pantalla (75%)"
+          >
+            Encajar (75%)
+          </Button>
+        </div>
+
+        {/* Botones de Acción */}
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={handlePrint} 
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg text-xs"
+          >
+            <Printer className="size-4 mr-1.5" /> Imprimir Declaración PDF
+          </Button>
+          <Button 
+            onClick={onClose} 
+            variant="ghost" 
+            size="icon" 
+            className="text-slate-400 hover:text-white hover:bg-slate-800"
+          >
+            <X className="size-5" />
+          </Button>
+        </div>
+      </header>
+
+      {/* Viewport del Documento A4 */}
+      <div id="pdf-document-viewport" className="flex-1 overflow-y-auto overflow-x-auto p-8 flex justify-center items-start">
+        <div 
+          id="pdf-print-sheet"
+          ref={componentRef}
+          className="bg-white text-slate-900 shadow-2xl w-full max-w-[210mm] min-h-[297mm] p-10 overflow-hidden flex flex-col justify-between transition-all duration-200 rounded-sm border border-slate-300"
+          style={{ 
+            transform: `scale(${zoom / 100})`, 
+            transformOrigin: 'top center',
+            marginBottom: `${(zoom - 100) * 3}px`
+          }}
+        >
         <div>
           {/* Cabecera del Certificado */}
           <div className="flex justify-between items-center border-b border-slate-200 pb-6 mb-6">
@@ -179,6 +292,7 @@ export function DeclaracionResponsableDocument({ clinic, onClose }: DeclaracionR
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

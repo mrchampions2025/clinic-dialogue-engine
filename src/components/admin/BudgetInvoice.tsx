@@ -4,7 +4,16 @@ import { formatDate } from "@/lib/clinic-data";
 import { getClinicSettings } from "@/lib/invoices";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Printer, X, ShieldCheck, Award } from "lucide-react";
+import { 
+  Printer, 
+  X, 
+  ShieldCheck, 
+  ZoomIn, 
+  ZoomOut, 
+  Maximize2, 
+  Download, 
+  FileText 
+} from "lucide-react";
 
 interface BudgetInvoiceProps {
   budget: any;
@@ -13,8 +22,8 @@ interface BudgetInvoiceProps {
 }
 
 export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) {
-  const componentRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [zoom, setZoom] = useState<number>(75);
 
   const { data: clinic } = useQuery({
     queryKey: ["clinicSettings"],
@@ -30,163 +39,265 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
     window.print();
   };
 
+  const handleZoomIn = () => setZoom((z) => Math.min(z + 15, 150));
+  const handleZoomOut = () => setZoom((z) => Math.max(z - 15, 40));
+  const handleResetZoom = () => setZoom(75);
+
   const taxRate = 0.07;
   const total = budget.total;
   const tipoFirma = clinic?.tipo_firma_oficial || "imagen";
 
   const content = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 print:p-0 print:bg-white print:block print:relative print:z-auto">
-      {/* Controles (ocultos al imprimir) */}
-      <div className="absolute top-4 right-4 flex gap-2 print:hidden z-10">
-        <Button onClick={handlePrint} variant="default" className="shadow-lg">
-          <Printer className="size-4 mr-2" /> Imprimir / PDF
-        </Button>
-        <Button onClick={onClose} variant="secondary" size="icon" className="shadow-lg">
-          <X className="size-4" />
-        </Button>
-      </div>
+    <div id="pdf-document-portal" className="fixed inset-0 z-50 flex flex-col bg-slate-950/90 backdrop-blur-xl">
+      <style>{`
+        @media print {
+          body > *:not(#pdf-document-portal) {
+            display: none !important;
+          }
+          #pdf-document-portal {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            background: white !important;
+            overflow: visible !important;
+            backdrop-filter: none !important;
+          }
+          #pdf-document-toolbar {
+            display: none !important;
+          }
+          #pdf-document-viewport {
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+          }
+          #pdf-print-sheet {
+            transform: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+        }
+      `}</style>
 
-      {/* Contenedor del documento (A4 aprox) */}
-      <div 
-        ref={componentRef}
-        className="print-only-container relative bg-white shadow-2xl w-full max-w-[210mm] min-h-[297mm] overflow-hidden flex flex-col print:shadow-none print:w-full print:h-auto print:min-h-0 scale-[0.85] origin-top mt-10 print:mt-0 print:scale-100 print:origin-top-left"
-        style={{ aspectRatio: '1 / 1.414' }}
-      >
-        {/* Header con corte poligonal */}
-        <div className="relative h-32 w-full flex overflow-hidden text-white print:h-32">
-          {/* Parte Azul */}
-          <div className="absolute top-0 left-0 h-full w-[65%] bg-[#3245d6]" style={{ clipPath: 'polygon(0 0, 100% 0, 90% 100%, 0% 100%)' }}>
-            <div className="h-full flex items-center px-10">
-              <h1 className="text-4xl font-extrabold tracking-widest">PRESUPUESTO</h1>
-            </div>
+      {/* Visor de PDF: Barra de Herramientas Superior Estilo Adobe Reader / Drive */}
+      <header id="pdf-document-toolbar" className="flex items-center justify-between px-6 py-3 bg-slate-900/95 border-b border-slate-800 text-white shadow-2xl z-20 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="size-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <FileText className="size-4" />
           </div>
-          
-          {/* Banda Azul Intermedia (Sombra/transición) */}
-          <div className="absolute top-0 left-[55%] h-full w-[20%] bg-[#1c2db0]" style={{ clipPath: 'polygon(40% 0, 100% 0, 60% 100%, 0% 100%)', zIndex: -1 }}></div>
+          <div>
+            <h2 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+              Presupuesto #{budget.numero || "PRE-2026"}
+              <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-full font-mono">
+                PDF Oficial
+              </span>
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              {patient?.nombre || budget.firma_nombre || "Paciente"} · {new Date().toLocaleDateString("es-ES")}
+            </p>
+          </div>
+        </div>
 
-          {/* Parte Gris Oscuro */}
-          <div className="absolute top-0 right-0 h-full w-[50%] bg-[#2a2b30] -z-20">
-            <div className="h-full flex items-center justify-end px-10 gap-3">
-              <div className="text-right">
-                <h2 className="text-xl font-bold uppercase tracking-wide leading-tight">Clínica Dental<br/>Dentix</h2>
+        {/* Controles de Zoom */}
+        <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon" 
+            className="size-7 text-slate-300 hover:text-white hover:bg-slate-700" 
+            onClick={handleZoomOut}
+            title="Alejar (-)"
+          >
+            <ZoomOut className="size-3.5" />
+          </Button>
+          <span className="text-xs font-mono font-bold text-blue-300 w-12 text-center">
+            {zoom}%
+          </span>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon" 
+            className="size-7 text-slate-300 hover:text-white hover:bg-slate-700" 
+            onClick={handleZoomIn}
+            title="Acercar (+)"
+          >
+            <ZoomIn className="size-3.5" />
+          </Button>
+
+          <span className="h-4 w-px bg-slate-700 mx-1" />
+
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs text-slate-300 hover:text-white hover:bg-slate-700 px-2 h-7" 
+            onClick={handleResetZoom}
+            title="Encajar a pantalla (75%)"
+          >
+            <Maximize2 className="size-3 mr-1 text-blue-400" /> Encajar (75%)
+          </Button>
+        </div>
+
+        {/* Botones de Acción: Imprimir y Descargar Exclusivo PDF */}
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={handlePrint} 
+            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg text-xs"
+          >
+            <Printer className="size-4 mr-1.5" /> Imprimir Documento PDF
+          </Button>
+          <Button 
+            onClick={handlePrint} 
+            variant="outline"
+            className="border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white text-xs"
+          >
+            <Download className="size-4 mr-1.5 text-blue-400" /> Descargar PDF
+          </Button>
+          <Button 
+            onClick={onClose} 
+            variant="ghost" 
+            size="icon" 
+            className="text-slate-400 hover:text-white hover:bg-slate-800"
+          >
+            <X className="size-5" />
+          </Button>
+        </div>
+      </header>
+
+      {/* Viewport del Documento A4 */}
+      <div id="pdf-document-viewport" className="flex-1 overflow-y-auto overflow-x-auto p-8 flex justify-center items-start">
+        <div 
+          id="pdf-print-sheet"
+          className="bg-white shadow-2xl w-full max-w-[210mm] min-h-[297mm] overflow-hidden flex flex-col transition-all duration-200 rounded-sm"
+          style={{ 
+            transform: `scale(${zoom / 100})`, 
+            transformOrigin: 'top center',
+            marginBottom: `${(zoom - 100) * 3}px`
+          }}
+        >
+          {/* Header con corte poligonal */}
+          <div className="relative h-32 w-full flex overflow-hidden text-white print:h-32">
+            {/* Parte Azul */}
+            <div className="absolute top-0 left-0 h-full w-[65%] bg-[#3245d6]" style={{ clipPath: 'polygon(0 0, 100% 0, 90% 100%, 0% 100%)' }}>
+              <div className="h-full flex items-center px-10">
+                <h1 className="text-4xl font-extrabold tracking-widest">PRESUPUESTO</h1>
               </div>
-              {/* Icono de Diente Simple */}
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
-                <path d="M12 2c-4.418 0-8 3.582-8 8 0 1.95.7 3.737 1.854 5.111l-.854 5.889h4.5l.5-3h4l.5 3h4.5l-.854-5.889c1.154-1.374 1.854-3.161 1.854-5.111 0-4.418-3.582-8-8-8zm0 16.5l-.5-3h-3l-.5 3h-2.1l.6-4.146c-1.353-1.429-2.1-3.32-2.1-5.354 0-3.86 3.14-7 7-7s7 3.14 7 7c0 2.034-.747 3.925-2.1 5.354l.6 4.146h-2.1z"/>
-                <path d="M12 4c-3.309 0-6 2.691-6 6 0 1.62.64 3.111 1.707 4.207l1.293 1.293.5-3.5h5l.5 3.5 1.293-1.293c1.067-1.096 1.707-2.587 1.707-4.207 0-3.309-2.691-6-6-6z"/>
-              </svg>
             </div>
-          </div>
-        </div>
+            
+            {/* Banda Azul Intermedia (Sombra/transición) */}
+            <div className="absolute top-0 left-[55%] h-full w-[20%] bg-[#1c2db0]" style={{ clipPath: 'polygon(40% 0, 100% 0, 60% 100%, 0% 100%)', zIndex: -1 }}></div>
 
-        {/* Info Paciente y Fecha */}
-        <div className="px-10 mt-10">
-          <div className="flex justify-between items-end border-b-2 border-slate-100 pb-2 mb-4">
-            <h3 className="text-[#3245d6] text-xl font-bold uppercase tracking-wider">Facturar a</h3>
-            <div className="text-sm">
-              <span className="font-bold mr-2">Fecha</span> 
-              <span className="text-slate-600">{formatDate(budget.fecha)}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-8 text-sm">
-            <div className="grid grid-cols-[100px_1fr] gap-2">
-              <span className="font-bold">Paciente</span>
-              <span className="text-slate-600">{patient.nombre}</span>
-              <span className="font-bold">Dirección</span>
-              <span className="text-slate-600">Dirección no registrada<br/>Ciudad, CP 00000</span>
-            </div>
-            <div className="grid grid-cols-[80px_1fr] gap-2">
-              <span className="font-bold">Teléfono</span>
-              <span className="text-slate-600">{patient.telefono || "—"}</span>
-              <span className="font-bold">Email</span>
-              <span className="text-slate-600">{patient.email || "—"}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabla de Tratamientos */}
-        <div className="px-10 mt-10 flex-grow">
-          <table className="w-full text-sm">
-            <thead className="bg-[#3245d6] text-white">
-              <tr>
-                <th className="py-3 px-4 text-left font-semibold w-16">No.</th>
-                <th className="py-3 px-4 text-left font-semibold">Descripción del Tratamiento</th>
-                <th className="py-3 px-4 text-center font-semibold w-24">Cant.</th>
-                <th className="py-3 px-4 text-right font-semibold w-32">Precio Und.</th>
-                <th className="py-3 px-4 text-right font-semibold w-32">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {budget.budget_items?.map((item: any, idx: number) => (
-                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                  <td className="py-3 px-4 border-b border-slate-100 text-slate-500">{String(idx + 1).padStart(2, '0')}</td>
-                  <td className="py-3 px-4 border-b border-slate-100 font-medium text-slate-700">{item.tratamiento}</td>
-                  <td className="py-3 px-4 border-b border-slate-100 text-center text-slate-600">{item.cantidad}</td>
-                  <td className="py-3 px-4 border-b border-slate-100 text-right text-slate-600">{Number(item.precio).toFixed(2)} €</td>
-                  <td className="py-3 px-4 border-b border-slate-100 text-right text-slate-700 font-semibold">{(item.cantidad * item.precio).toFixed(2)} €</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          
-          {/* Bloque espaciador azul claro como en la imagen */}
-          <div className="w-full h-8 bg-[#f5f6ff] mt-8"></div>
-        </div>
-
-        {/* Sección de Totales e Info Inferior */}
-        <div className="px-10 mt-auto mb-10">
-          <div className="flex justify-between items-end gap-10">
-            {/* Info Izquierda */}
-            <div className="text-sm flex-1">
-              <div className="grid grid-cols-[140px_1fr] gap-3 mb-10">
-                <span className="font-bold">Seguro Dental</span>
-                <span className="text-slate-600">No aplica</span>
-                <span className="font-bold">Proveedor</span>
-                <span className="text-slate-600">—</span>
-                <span className="font-bold">Plan de Pago</span>
-                <span className="text-slate-600">Contado / Financiación a consultar</span>
+            {/* Parte Gris Oscuro */}
+            <div className="absolute top-0 right-0 h-full w-[50%] bg-[#2a2b30] -z-20">
+              <div className="h-full flex items-center justify-end px-10 gap-3">
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold">Presupuesto Nº</div>
+                  <div className="text-lg font-bold text-white font-mono">{budget.numero || "PRE-2026-001"}</div>
+                </div>
               </div>
-              
-              <div className="text-slate-600 mb-4">
-                <p className="italic mb-2">¡Gracias por confiar en <span className="font-bold text-slate-800 not-italic">CLÍNICA DENTIX!</span></p>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="size-6 rounded-full bg-[#3245d6]/10 flex items-center justify-center text-[#3245d6]">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-3.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                    </svg>
+            </div>
+          </div>
+
+          {/* Datos Empresa & Datos Cliente */}
+          <div className="p-10 flex-1 flex flex-col justify-between">
+            <div>
+              {/* Info de la Empresa */}
+              <div className="flex justify-between items-start border-b border-slate-200 pb-6 mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-[#3245d6]">{clinic?.razon_social || "CLÍNICA DENTAL DENTIX"}</h2>
+                  <p className="text-xs text-slate-500 mt-1">CIF/NIF: {clinic?.cif_nif || "B12345678"}</p>
+                  <p className="text-xs text-slate-500">{clinic?.direccion || "Av. Principal 123"}, {clinic?.codigo_postal || "28000"} {clinic?.ciudad || "Madrid"}</p>
+                  <p className="text-xs text-slate-500">Tel: {clinic?.telefono || "+34 912 345 678"} | Email: {clinic?.email || "info@clinicadentix.es"}</p>
+                </div>
+                <div className="text-right text-xs text-slate-600 space-y-1">
+                  <div><span className="font-semibold text-slate-800">Fecha Emisión:</span> {formatDate(budget.fecha || new Date().toISOString())}</div>
+                  <div><span className="font-semibold text-slate-800">Válido Hasta:</span> {formatDate(budget.valido_hasta || new Date(Date.now() + 30*86400000).toISOString())}</div>
+                  <div><span className="font-semibold text-slate-800">Estado:</span> <span className="uppercase font-bold text-[#3245d6]">{budget.estado || 'Pendiente'}</span></div>
+                </div>
+              </div>
+
+              {/* Datos del Paciente / Cliente */}
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6 flex justify-between items-center">
+                <div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Paciente / Cliente</div>
+                  <div className="text-sm font-bold text-slate-800">{patient?.nombre || budget.firma_nombre || "Paciente General"}</div>
+                  <div className="text-xs text-slate-600 mt-0.5">DNI/NIE: {patient?.dni || budget.firma_dni || "—"} | Tel: {patient?.telefono || "—"}</div>
+                </div>
+                <div className="text-right text-xs text-slate-500">
+                  <div>Dirección: {patient?.direccion || "No registrada"}</div>
+                  <div>Email: {patient?.email || "—"}</div>
+                </div>
+              </div>
+
+              {/* Tabla de Tratamientos / Ítems */}
+              <table className="w-full text-left text-xs mb-6">
+                <thead>
+                  <tr className="bg-[#3245d6] text-white font-bold uppercase text-[10px]">
+                    <th className="py-2.5 px-3 rounded-l">No.</th>
+                    <th className="py-2.5 px-3">Descripción del Tratamiento</th>
+                    <th className="py-2.5 px-3 text-center">Cant.</th>
+                    <th className="py-2.5 px-3 text-right">Precio Und.</th>
+                    <th className="py-2.5 px-3 text-right rounded-r">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {(budget.budget_items && budget.budget_items.length > 0 ? budget.budget_items : [
+                    { tratamiento: "Limpieza Dental Completa", cantidad: 1, precio: 50 },
+                    { tratamiento: "Revisión Odontológica & Diagnóstico", cantidad: 1, precio: 0 }
+                  ]).map((item: any, idx: number) => {
+                    const cant = Number(item.cantidad) || 1;
+                    const prec = Number(item.precio) || 0;
+                    const itemTotal = cant * prec;
+                    return (
+                      <tr key={idx} className="hover:bg-slate-50/50">
+                        <td className="py-3 px-3 text-slate-400 font-mono">0{idx + 1}</td>
+                        <td className="py-3 px-3 font-medium text-slate-800">
+                          {item.tratamiento || item.descripcion}
+                          {item.descripcion && item.tratamiento && item.descripcion !== item.tratamiento && (
+                            <span className="block text-[10px] text-slate-500 font-normal">{item.descripcion}</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-center text-slate-600">{cant}</td>
+                        <td className="py-3 px-3 text-right text-slate-600">{prec.toFixed(2)} €</td>
+                        <td className="py-3 px-3 text-right font-bold text-slate-800">{itemTotal.toFixed(2)} €</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Totales y Firma */}
+            <div>
+              <div className="flex justify-between items-start pt-4 border-t border-slate-200">
+                <div className="text-xs text-slate-500 max-w-sm space-y-1">
+                  <p className="font-semibold text-slate-700">Forma de Pago & Condiciones:</p>
+                  <p>• Pago en clínica o financiación adaptada.</p>
+                  <p>• Validez del presupuesto: 30 días naturales.</p>
+                  {budget.notas && <p className="text-slate-600 italic mt-2">Nota: {budget.notas}</p>}
+                </div>
+
+                {/* Cuadro Resumen Totales */}
+                <div className="w-64 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden text-xs">
+                  <div className="flex justify-between px-4 py-2 border-b border-slate-200">
+                    <span className="text-slate-600">Subtotal</span>
+                    <span className="font-semibold text-slate-800">{Number(total).toFixed(2)} €</span>
                   </div>
-                  <span>Av. Principal 123, Madrid, 28000</span>
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="size-6 rounded-full bg-[#3245d6]/10 flex items-center justify-center text-[#3245d6]">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-3.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                    </svg>
+                  <div className="flex justify-between px-4 py-2 border-b border-white">
+                    <span className="text-slate-600">Impuestos</span>
+                    <span className="font-semibold text-slate-800">0.00 €</span>
                   </div>
-                  <span>info@clinicadentix.es</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Totales Derecha y Firma */}
-            <div className="w-72">
-              <div className="bg-[#f5f6ff] text-sm">
-                <div className="flex justify-between px-4 py-2 border-b border-white">
-                  <span className="text-slate-600">Subtotal</span>
-                  <span className="font-semibold text-slate-800">{Number(total).toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between px-4 py-2 border-b border-white">
-                  <span className="text-slate-600">Impuestos</span>
-                  <span className="font-semibold text-slate-800">0.00 €</span>
-                </div>
-                <div className="flex justify-between px-4 py-3 bg-[#3245d6] text-white">
-                  <span className="font-bold">TOTAL APROX.</span>
-                  <span className="font-bold">{Number(total).toFixed(2)} €</span>
+                  <div className="flex justify-between px-4 py-3 bg-[#3245d6] text-white">
+                    <span className="font-bold">TOTAL APROX.</span>
+                    <span className="font-bold">{Number(total).toFixed(2)} €</span>
+                  </div>
                 </div>
               </div>
 
+              {/* Firmas a la par (Línea simple sin recuadro azul punteado) */}
               <div className="mt-8 flex gap-6 items-end text-center">
                 {/* Firma del Paciente */}
                 <div className="flex-1 flex flex-col justify-end">
@@ -206,7 +317,7 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                   </div>
                 </div>
 
-                {/* Firma y Sello Oficial de la Clínica (Alineado a la par y sello rozando la línea) */}
+                {/* Firma y Sello Oficial de la Clínica (Línea simple rozando la línea) */}
                 <div className="flex-1 flex flex-col justify-end">
                   <div className="h-6 flex items-center justify-center font-semibold text-xs text-[#3245d6] gap-1">
                     <ShieldCheck className="size-3.5 text-[#3245d6]" /> Firma y Sello Oficial
@@ -256,10 +367,10 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
               </div>
             </div>
           </div>
+          
+          {/* Borde inferior grueso */}
+          <div className="h-6 w-full bg-[#3245d6]"></div>
         </div>
-        
-        {/* Borde inferior grueso */}
-        <div className="h-6 w-full bg-[#3245d6]"></div>
       </div>
     </div>
   );
