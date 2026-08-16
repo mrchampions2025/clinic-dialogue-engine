@@ -333,25 +333,53 @@ function AdminConfiguracionPage() {
                 </p>
 
                 {/* Subidor de Archivos de Certificado (.p12, .pfx, .cer, .crt) */}
-                <div className="border-2 border-dashed border-emerald-300 dark:border-emerald-800 rounded-xl p-5 bg-emerald-50/40 dark:bg-emerald-950/20 text-center">
-                  <div className="flex justify-center items-center gap-2 mb-2">
+                <div className="border-2 border-dashed border-emerald-300 dark:border-emerald-800 rounded-xl p-5 bg-emerald-50/40 dark:bg-emerald-950/20 text-center space-y-3">
+                  <div className="flex justify-center items-center gap-2">
                     <FileCode className="size-6 text-emerald-600" />
                     <span className="font-bold text-xs text-emerald-900 dark:text-emerald-100">
-                      {certFileName ? `Archivo cargado: ${certFileName}` : "Seleccionar Archivo de Certificado Electrónico (.p12 / .pfx / .cer)"}
+                      {certFileName || formData.cert_nombre_titular
+                        ? `Certificado Cargado: ${certFileName || formData.cert_nombre_titular}`
+                        : "Seleccionar Archivo de Certificado Electrónico (.p12 / .pfx / .cer)"}
                     </span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mb-3">
+                  <p className="text-[10px] text-muted-foreground">
                     El sistema extraerá e inscribirá automáticamente el Titular (CN), Entidad Emisora y la Huella Digital Criptográfica SHA-256.
                   </p>
-                  <input
-                    type="file"
-                    accept=".p12,.pfx,.cer,.crt,.pem"
-                    className="text-xs mx-auto block cursor-pointer bg-white dark:bg-slate-800 p-2 rounded border border-emerald-300 dark:border-emerald-700"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleCertFileUpload(file);
-                    }}
-                  />
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
+                    <input
+                      type="file"
+                      accept=".p12,.pfx,.cer,.crt,.pem"
+                      className="text-xs block cursor-pointer bg-white dark:bg-slate-800 p-2 rounded border border-emerald-300 dark:border-emerald-700"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleCertFileUpload(file);
+                      }}
+                    />
+
+                    {(certFileName || formData.cert_nombre_titular || formData.cert_huella_sha256) && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => {
+                          setCertFileName(null);
+                          setFormData((prev) => ({
+                            ...prev,
+                            cert_nombre_titular: null,
+                            cert_emisor: null,
+                            cert_num_serie: null,
+                            cert_valido_hasta: null,
+                            cert_huella_sha256: null,
+                          }));
+                          toast.success("Certificado Electrónico eliminado. Guarda los cambios para confirmar.");
+                        }}
+                      >
+                        <Trash2 className="size-3.5 mr-1.5" /> Eliminar Certificado Cargado
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Formulario de Parámetros Criptográficos del Certificado */}
