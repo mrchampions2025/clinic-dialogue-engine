@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getClinicSettings, updateClinicSettings, ClinicSettings } from "@/lib/invoices";
 import { DeclaracionResponsableDocument } from "@/components/invoices/DeclaracionResponsableDocument";
-import { Building2, ShieldCheck, Save, Award, FileCheck } from "lucide-react";
+import { Building2, ShieldCheck, Save, Award, FileCheck, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracion")({
   component: AdminConfiguracionPage,
