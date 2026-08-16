@@ -128,7 +128,7 @@ function PacientesPage() {
             className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 hover:bg-blue-500/20"
             onClick={() => setOpenLinkModal(true)}
           >
-            <Link2 className="size-4 mr-1.5" /> Enlace Registro Paciente (Opción A)
+            <Link2 className="size-4 mr-1.5" /> Enlace Registro Paciente
           </Button>
           <Button
             size="sm"
@@ -138,43 +138,18 @@ function PacientesPage() {
               setOpen(true);
             }}
           >
-            <UserPlus className="size-4 mr-1.5" /> Crear Cuenta / Alta Paciente (Opción B)
+            <UserPlus className="size-4 mr-1.5" /> Nuevo Paciente
           </Button>
         </div>
       }
     >
       {/* Banner Informativo de Métodos de Registro de Pacientes */}
-      <div className="mb-6 rounded-2xl border border-primary/20 bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-emerald-500/10 p-5 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-              <ShieldCheck className="size-4 text-emerald-500" />
-              Dos formas de registrar e invitar a tus pacientes
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              <strong>Opción A:</strong> Comparte tu enlace único de clínica para que se auto-registren. | <strong>Opción B:</strong> Crea la cuenta manualmente aquí y el sistema les enviará sus credenciales.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              size="sm"
-              variant="outline"
-              className="bg-background text-xs"
-              onClick={() => setOpenLinkModal(true)}
-            >
-              <Link2 className="size-3.5 mr-1 text-blue-500" /> Ver Enlace WhatsApp
-            </Button>
-            <Button
-              size="sm"
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium"
-              onClick={() => {
-                setForm(empty);
-                setOpen(true);
-              }}
-            >
-              <UserPlus className="size-3.5 mr-1" /> + Crear Cuenta Paciente
-            </Button>
-          </div>
+      <div className="mb-6 rounded-2xl border border-primary/20 bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-emerald-500/10 p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="size-5 text-emerald-500 shrink-0" />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground">Registro de Pacientes:</strong> Puedes crear la ficha de un paciente manualmente con el botón <em>"+ Nuevo Paciente"</em> o compartir tu <em>"Enlace Registro Paciente"</em> para que ellos creen su propia cuenta y accedan a sus citas y presupuestos.
+          </p>
         </div>
       </div>
 
