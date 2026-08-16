@@ -11,31 +11,31 @@ import {
   Building2, 
   CheckCircle2, 
   ArrowRight, 
-  Star, 
   ChevronDown, 
   Stethoscope, 
-  Lock, 
   Clock, 
   Zap,
   Check,
   TrendingUp,
-  UserCheck
+  Monitor,
+  HeartHandshake,
+  Workflow
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "DentalFlow AI · Software SaaS para Clínicas Dentales | IA & Veri*Factu" },
+      { title: "DentalFlow AI · Software de Gestión para Clínicas Dentales en la Nube" },
       {
         name: "description",
         content:
-          "Plataforma SaaS para clínicas dentales: Recepcionista IA por WhatsApp, facturación SIF Veri*Factu (RD 1007/2023), firma digital con certificado AEAT/FNMT y gestión de citas.",
+          "Software de gestión dental completo en la nube. Administre citas, historias clínicas, facturación Veri*Factu (RD 1007/2023), recepción IA por WhatsApp y firma digital.",
       },
-      { property: "og:title", content: "DentalFlow AI · SaaS de Gestión Dental" },
+      { property: "og:title", content: "DentalFlow AI · Software de Gestión Dental" },
       {
         property: "og:description",
-        content: "Automatiza tu clínica dental con IA, facturación SIF Veri*Factu y firma digital con certificado oficial.",
+        content: "Optimice su clínica dental: gestión de pacientes, facturación SIF Veri*Factu, recepción IA y firma digital en un solo lugar.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -64,16 +64,16 @@ function SaaSLandingPage() {
                 DentalFlow <span className="text-blue-500">AI</span>
               </span>
               <span className="text-[10px] text-slate-400 font-mono block -mt-1">
-                SaaS Dental Management
+                Software para Clínicas Dentales
               </span>
             </div>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <a href="#caracteristicas" className="hover:text-blue-400 transition-colors">Características</a>
-            <a href="#soluciones" className="hover:text-blue-400 transition-colors">Soluciones SIF</a>
-            <a href="#precios" className="hover:text-blue-400 transition-colors">Planes & Precios</a>
-            <a href="#testimonios" className="hover:text-blue-400 transition-colors">Testimonios</a>
+            <a href="#por-que-nosotros" className="hover:text-blue-400 transition-colors">¿Por qué elegirnos?</a>
+            <a href="#servicios" className="hover:text-blue-400 transition-colors">Módulos & Servicios</a>
+            <a href="#pasos" className="hover:text-blue-400 transition-colors">Cómo Funciona</a>
+            <a href="#precios" className="hover:text-blue-400 transition-colors">Planes & Tarifas</a>
             <a href="#faq" className="hover:text-blue-400 transition-colors">FAQ</a>
           </nav>
 
@@ -83,7 +83,7 @@ function SaaSLandingPage() {
             </Button>
             <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold shadow-lg shadow-blue-600/25">
               <Link to="/auth">
-                Crear cuenta <ArrowRight className="ml-1.5 size-4" />
+                Solicitar Registro <ArrowRight className="ml-1.5 size-4" />
               </Link>
             </Button>
           </div>
@@ -91,47 +91,80 @@ function SaaSLandingPage() {
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-32">
+      <section className="relative overflow-hidden pt-16 pb-20 lg:pt-20 lg:pb-28">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] bg-gradient-to-tr from-blue-600/20 to-indigo-600/20 rounded-full blur-[140px] pointer-events-none" />
 
         <div className="mx-auto max-w-7xl px-6 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-300 backdrop-blur-md mb-8 shadow-inner">
-            <Sparkles className="size-3.5 text-blue-400 animate-pulse" />
-            Software SaaS para Clínicas Dentales de Nueva Generación
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-300 backdrop-blur-md mb-6 shadow-inner">
+            <ShieldCheck className="size-4 text-emerald-400" />
+            Software en la nube 100% Preparado para Veri*Factu (RD 1007/2023)
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl mx-auto leading-[1.1]">
-            El Software SaaS Dental que <br className="hidden sm:inline" />
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl mx-auto leading-[1.15]">
+            Software para Clínicas Dentales <br className="hidden sm:inline" />
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-              Automatiza tu Clínica con IA
+              Gestión Integral en la Nube
             </span>
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Gestión completa en la nube: Recepcionista IA 24/7 por WhatsApp, facturación SIF Veri*Factu (RD 1007/2023), firma digital con certificado oficial AEAT/FNMT y agenda médica inteligente.
+          <p className="mt-6 text-base sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            Administre sus citas, tratamientos, facturación, pacientes e historias clínicas desde cualquier dispositivo, con acceso disponible las 24 horas del día, los 7 días de la semana, y con la seguridad plenamente garantizada.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="w-full sm:w-auto text-base h-13 px-8 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-90 text-white font-bold shadow-xl shadow-blue-600/30 rounded-xl">
               <Link to="/auth">
-                Probar Gratis 14 Días <ArrowRight className="ml-2 size-5" />
+                Probar Demo Gratuita <ArrowRight className="ml-2 size-5" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto text-base h-13 px-8 border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-800 hover:text-white rounded-xl backdrop-blur-md">
               <Link to="/panel">
-                Ver Demo en Vivo <Building2 className="ml-2 size-5 text-blue-400" />
+                Acceso al Panel SaaS <Building2 className="ml-2 size-5 text-blue-400" />
               </Link>
             </Button>
           </div>
 
-          <div className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-400">
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="size-4 text-emerald-400" /> Sin tarjeta de crédito</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="size-4 text-emerald-400" /> Configuración en 30 segundos</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="size-4 text-emerald-400" /> Cumplimiento Veri*Factu</span>
+          {/* 3 PILARES CLINIWIN-STYLE */}
+          <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-5xl mx-auto">
+            <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-start gap-4">
+              <div className="size-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                <Zap className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm">Gestión sin estrés</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Organice sus citas, tratamientos y pagos de manera sencilla y eficiente en un solo lugar.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-start gap-4">
+              <div className="size-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0">
+                <Monitor className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm">Tecnología de vanguardia</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Acceda a herramientas modernas con IA, siempre actualizadas para optimizar su labor diaria.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-start gap-4">
+              <div className="size-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                <HeartHandshake className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm">Soporte profesional</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Cuente con un acompañamiento experto y personalizado adaptado a las necesidades de su clínica.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* DASHBOARD PREVIEW MOCKUP */}
-          <div className="mt-16 relative mx-auto max-w-5xl rounded-3xl border border-slate-800 bg-slate-900/90 p-3 sm:p-4 shadow-2xl shadow-blue-950/50 backdrop-blur-xl">
+          <div className="mt-14 relative mx-auto max-w-5xl rounded-3xl border border-slate-800 bg-slate-900/90 p-3 sm:p-4 shadow-2xl shadow-blue-950/50 backdrop-blur-xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 px-3">
               <div className="flex items-center gap-2">
                 <div className="size-3 rounded-full bg-red-500/80" />
@@ -141,7 +174,7 @@ function SaaSLandingPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono flex items-center gap-1">
-                  <ShieldCheck className="size-3" /> Veri*Factu RD 1007/2023 OK
+                  <ShieldCheck className="size-3" /> Veri*Factu RD 1007/2023 Activo
                 </span>
               </div>
             </div>
@@ -149,23 +182,23 @@ function SaaSLandingPage() {
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
               <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800/80">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400 font-medium">Recepción IA WhatsApp</span>
+                  <span className="text-xs text-slate-400 font-medium">Agenda & Recepción IA</span>
                   <MessageCircle className="size-4 text-blue-400" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">124 Citas / mes</p>
+                <p className="text-2xl font-bold text-white mt-2">124 Citas este mes</p>
                 <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-                  <TrendingUp className="size-3" /> +38% auto-confirmadas (Máx 10/día)
+                  <TrendingUp className="size-3" /> Recordatorios por WhatsApp activos
                 </p>
               </div>
 
               <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800/80">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400 font-medium">Facturación SIF Sello SHA-256</span>
+                  <span className="text-xs text-slate-400 font-medium">Facturación SIF (Hash SHA-256)</span>
                   <Receipt className="size-4 text-purple-400" />
                 </div>
                 <p className="text-2xl font-bold text-white mt-2">48.250 €</p>
                 <p className="text-[11px] text-purple-300 mt-1 flex items-center gap-1">
-                  <ShieldCheck className="size-3" /> Encadenamiento QR activo
+                  <ShieldCheck className="size-3" /> Encadenamiento QR oficial
                 </p>
               </div>
 
@@ -174,9 +207,9 @@ function SaaSLandingPage() {
                   <span className="text-xs text-slate-400 font-medium">Firma Digital Certificada</span>
                   <Key className="size-4 text-emerald-400" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">Certificado AEAT</p>
+                <p className="text-2xl font-bold text-white mt-2">Certificado AEAT / FNMT</p>
                 <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-                  <CheckCircle2 className="size-3" /> X.509 Valido hasta 2029
+                  <CheckCircle2 className="size-3" /> Estampado de fecha y hora exacta
                 </p>
               </div>
             </div>
@@ -184,105 +217,222 @@ function SaaSLandingPage() {
         </div>
       </section>
 
-      {/* METRICS & LOGOS */}
-      <section className="border-y border-slate-800/80 bg-slate-900/40 py-10">
-        <div className="mx-auto max-w-7xl px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div>
-            <p className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">+250</p>
-            <p className="text-xs text-slate-400 mt-1">Clínicas dentales activas en España</p>
+      {/* SECTION: ¿POR QUÉ ELEGIR DENTALFLOW AI? (INSPIRADO EN CLINIWIN) */}
+      <section id="por-que-nosotros" className="py-20 border-t border-slate-800/80 bg-slate-900/30">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-xs font-semibold text-blue-400 tracking-widest uppercase">Gestione Todo Desde Un Solo Lugar</h2>
+            <p className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              ¿Por qué elegir DentalFlow AI como el software para su clínica dental?
+            </p>
           </div>
-          <div>
-            <p className="text-3xl sm:text-4xl font-extrabold text-blue-400 tracking-tight">100%</p>
-            <p className="text-xs text-slate-400 mt-1">Cumplimiento Reglamento SIF RD 1007/2023</p>
-          </div>
-          <div>
-            <p className="text-3xl sm:text-4xl font-extrabold text-indigo-400 tracking-tight">24/7</p>
-            <p className="text-xs text-slate-400 mt-1">Atención automatizada por WhatsApp IA</p>
-          </div>
-          <div>
-            <p className="text-3xl sm:text-4xl font-extrabold text-purple-400 tracking-tight">99.9%</p>
-            <p className="text-xs text-slate-400 mt-1">Disponibilidad en la nube de alta seguridad</p>
+
+          <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-slate-900/60 border border-slate-800 p-7 rounded-2xl hover:border-blue-500/40 transition-colors">
+              <div className="size-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4">
+                <Building2 className="size-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Todo en uno</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Gestione citas, caja, cobros, historias clínicas, recepción por WhatsApp y presupuestos, todo desde una única plataforma centralizada.
+              </p>
+            </div>
+
+            <div className="bg-slate-900/60 border border-slate-800 p-7 rounded-2xl hover:border-indigo-500/40 transition-colors">
+              <div className="size-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4">
+                <Monitor className="size-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Multiplataforma y siempre accesible</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Acceda desde cualquier dispositivo (ordenador, tablet o móvil), con copias de seguridad automáticas y disponibilidad permanente 24/7.
+              </p>
+            </div>
+
+            <div className="bg-slate-900/60 border border-slate-800 p-7 rounded-2xl hover:border-purple-500/40 transition-colors">
+              <div className="size-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4">
+                <MessageCircle className="size-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Comunicación efectiva</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Envíe recordatorios por WhatsApp, SMS o email; firme documentos de manera digital y realice envíos de informes con cifrado seguro.
+              </p>
+            </div>
+
+            <div className="bg-slate-900/60 border border-slate-800 p-7 rounded-2xl hover:border-emerald-500/40 transition-colors">
+              <div className="size-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4">
+                <Receipt className="size-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Datos económicos & Veri*Factu</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Obtenga estadísticas en tiempo real, controle deudas e ingresos y asegure el 100% de cumplimiento fiscal con el Reglamento SIF (RD 1007/2023).
+              </p>
+            </div>
+
+            <div className="bg-slate-900/60 border border-slate-800 p-7 rounded-2xl hover:border-amber-500/40 transition-colors">
+              <div className="size-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4">
+                <Key className="size-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Firma Digital Certificada</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Estampe digitalmente presupuestos con certificados oficiales AEAT / FNMT o sello gráfico de clínica ampliado al 100% con registro temporal.
+              </p>
+            </div>
+
+            <div className="bg-slate-900/60 border border-slate-800 p-7 rounded-2xl hover:border-blue-500/40 transition-colors">
+              <div className="size-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4">
+                <Zap className="size-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Actualizaciones constantes</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Avanzamos junto a nuestras clínicas, incorporando sugerencias y aplicando mejoras continuas sin costes de mantenimiento.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES SECTION */}
-      <section id="caracteristicas" className="py-24 relative">
+      {/* SECTION: EL SOFTWARE DE GESTIÓN DENTAL MÁS COMPLETO (INSPIRADO EN CLINIWIN SERVICES) */}
+      <section id="servicios" className="py-24 relative">
         <div className="mx-auto max-w-7xl px-6">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-xs font-semibold text-blue-400 tracking-widest uppercase">Módulos SaaS Integrados</h2>
+            <h2 className="text-xs font-semibold text-blue-400 tracking-widest uppercase">Módulos Integrados</h2>
             <p className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-white">
-              Todo lo que tu Clínica Dental necesita en un solo software
+              El software de gestión dental más completo
             </p>
-            <p className="mt-4 text-slate-400 text-base">
-              Diseñado específicamente para optimizar la gestión de consultas odontológicas, recepción y facturación fiscal.
+            <p className="mt-4 text-slate-400 text-sm leading-relaxed">
+              En DentalFlow AI reunimos todas las herramientas que su clínica dental necesita en un solo lugar. Desde la gestión de pacientes hasta el control de ingresos y la comunicación con sus clientes, todo ha sido diseñado para que trabaje de manera más ágil, con menor esfuerzo y con resultados superiores.
             </p>
           </div>
 
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
+            {/* Servicio 1 */}
             <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-3xl hover:border-blue-500/50 transition-all group">
               <div className="size-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <MessageCircle className="size-6" />
+                <Stethoscope className="size-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">IA de Recepción & Citas por WhatsApp</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Responde preguntas sobre tratamientos de ortodoncia, limpiezas e implantes. Permite configurar el <strong>límite de citas automáticas diarias</strong> (ej. 10/día) para no sobrecargar la agenda.
+              <h3 className="text-xl font-bold text-white mb-3">Gestión de pacientes e Historias Clínicas</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Organice su agenda y ficha clínica de manera integral. Registre historiales, tratamientos, consentimientos, presupuestos y documentos firmados, todo vinculado a la cita del paciente y disponible en cualquier momento.
               </p>
             </div>
 
-            {/* Feature 2 */}
+            {/* Servicio 2 */}
             <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-3xl hover:border-purple-500/50 transition-all group">
               <div className="size-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Receipt className="size-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Facturación SIF Veri*Factu (RD 1007/2023)</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Genera facturas oficiales con código QR cotejable con la Agencia Tributaria, firma de registros con hash SHA-256 e impresiones PDF para tus pacientes.
+              <h3 className="text-xl font-bold text-white mb-3">Administración y Facturación SIF (Veri*Factu)</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Mantenga un control total de su clínica. Gestione la caja diaria, deudas, cobros y facturas oficiales compatibles con el Reglamento SIF (RD 1007/2023), con huella SHA-256 y código QR oficial.
               </p>
             </div>
 
-            {/* Feature 3 */}
+            {/* Servicio 3 */}
             <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-3xl hover:border-emerald-500/50 transition-all group">
               <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Key className="size-6" />
+                <MessageCircle className="size-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Firma Digital con Certificado AEAT / FNMT</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Sube tu certificado electrónico oficial (.p12 / .pfx) de la Casa de la Moneda o utiliza un sello gráfico de clínica ampliado al 100% con estampado de fecha y hora exacta.
+              <h3 className="text-xl font-bold text-white mb-3">Comunicación & Recepción IA 24/7</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Permanezca siempre conectado con sus pacientes. Recepcionista IA por WhatsApp que resuelve dudas y agenda citas con control dinámico de límite diario para evitar sobrecargas en recepción.
               </p>
             </div>
 
-            {/* Feature 4 */}
+            {/* Servicio 4 */}
             <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-3xl hover:border-indigo-500/50 transition-all group">
               <div className="size-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <FileText className="size-6" />
+                <Key className="size-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Presupuestos Interactivos para Pacientes</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                El portal del paciente organiza automáticamente los tratamientos mostrando primero los <strong>Pendientes por fecha</strong> para agilizar la aceptación y firma.
+              <h3 className="text-xl font-bold text-white mb-3">Firma Digital & Certificados Electrónicos</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Valide presupuestos con firma electrónica avanzada. Cargue su certificado oficial AEAT/FNMT o utilice el sello oficial de su clínica ampliado para máximas garantías legales.
               </p>
             </div>
 
-            {/* Feature 5 */}
+            {/* Servicio 5 */}
             <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-3xl hover:border-amber-500/50 transition-all group">
               <div className="size-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <CalendarCheck className="size-6" />
+                <FileText className="size-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Agenda de Citas Visual & Dinámica</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Calendario estilizado e interactivo codificado por colores (Confirmada, Pendiente, Cancelada) para que recepción visualice el día de un vistazo.
+              <h3 className="text-xl font-bold text-white mb-3">Presupuestos Interactivos para Pacientes</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Portal del paciente adaptado que organiza automáticamente los tratamientos mostrando primero los <strong>Pendientes por fecha</strong> para agilizar la aceptación y el inicio del tratamiento.
               </p>
             </div>
 
-            {/* Feature 6 */}
+            {/* Servicio 6 */}
             <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-3xl hover:border-blue-500/50 transition-all group">
               <div className="size-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Building2 className="size-6" />
+                <CalendarCheck className="size-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Auto-Configuración SaaS Instantánea</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                En el primer acceso de cada cliente, el sistema auto-crea la configuración de empresa por defecto con datos fiscales listos para usar.
+              <h3 className="text-xl font-bold text-white mb-3">Agenda Médica Visual e Inteligente</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Calendario dinámico con clasificación clara de estados (Confirmadas en verde, Pendientes en naranja, Canceladas en rojo), permitiendo a recepción controlar el día de un solo vistazo.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION: 4 PASOS PARA OPTIMIZAR SU CLÍNICA (ESTILO CLINIWIN) */}
+      <section id="pasos" className="py-20 bg-slate-900/40 border-t border-slate-800/80">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-xs font-semibold text-blue-400 tracking-widest uppercase">Flujo de Trabajo Eficiente</h2>
+            <p className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              4 pasos para optimizar su clínica con DentalFlow AI
+            </p>
+            <p className="mt-4 text-slate-400 text-sm">
+              Desde la primera consulta hasta la facturación final, todo se organiza en un solo lugar para ahorrar tiempo y ofrecer una atención excelente.
+            </p>
+          </div>
+
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Paso 1 */}
+            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl relative">
+              <span className="text-3xl font-extrabold text-blue-500/40 font-mono absolute top-4 right-4">01</span>
+              <div className="size-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4">
+                <CalendarCheck className="size-5" />
+              </div>
+              <h3 className="font-bold text-white text-base mb-2">Agende su cita</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Reserve y confirme citas con recordatorios automáticos por WhatsApp, SMS o correo electrónico.
+              </p>
+            </div>
+
+            {/* Paso 2 */}
+            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl relative">
+              <span className="text-3xl font-extrabold text-blue-500/40 font-mono absolute top-4 right-4">02</span>
+              <div className="size-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4">
+                <Stethoscope className="size-5" />
+              </div>
+              <h3 className="font-bold text-white text-base mb-2">Reciba al paciente</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Acceda de inmediato a su ficha clínica completa, con tratamientos anteriores y presupuestos activos.
+              </p>
+            </div>
+
+            {/* Paso 3 */}
+            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl relative">
+              <span className="text-3xl font-extrabold text-blue-500/40 font-mono absolute top-4 right-4">03</span>
+              <div className="size-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4">
+                <FileText className="size-5" />
+              </div>
+              <h3 className="font-bold text-white text-base mb-2">Solucione sus necesidades</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Registre diagnósticos y genere presupuestos interactivos directamente desde el sistema.
+              </p>
+            </div>
+
+            {/* Paso 4 */}
+            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl relative">
+              <span className="text-3xl font-extrabold text-blue-500/40 font-mono absolute top-4 right-4">04</span>
+              <div className="size-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4">
+                <Receipt className="size-5" />
+              </div>
+              <h3 className="font-bold text-white text-base mb-2">Realice el tratamiento</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Actualice la ficha del paciente, aplique la firma digital y genere la facturación SIF al instante.
               </p>
             </div>
           </div>
@@ -290,15 +440,15 @@ function SaaSLandingPage() {
       </section>
 
       {/* PRICING / PLANES SAAS */}
-      <section id="precios" className="py-24 bg-slate-900/40 border-t border-slate-800/80">
+      <section id="precios" className="py-24 border-t border-slate-800/80">
         <div className="mx-auto max-w-7xl px-6">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-xs font-semibold text-blue-400 tracking-widest uppercase">Planes SaaS a Tu Medida</h2>
+            <h2 className="text-xs font-semibold text-blue-400 tracking-widest uppercase">Planes a Tu Medida</h2>
             <p className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-white">
-              Precios transparentes sin permanencia
+              Suscripciones transparentes sin permanencia
             </p>
-            <p className="mt-4 text-slate-400 text-base">
-              Elige el plan ideal para tu clínica dental y escala a medida que crecen tus pacientes.
+            <p className="mt-4 text-slate-400 text-sm">
+              Elige el plan ideal para tu clínica dental y escala a medida que crecen tus gabinetes y pacientes.
             </p>
           </div>
 
@@ -314,13 +464,13 @@ function SaaSLandingPage() {
                 </div>
                 <ul className="mt-8 space-y-3 text-xs text-slate-300">
                   <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Hasta 1 Gabinete de atención</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Recepcionista IA por WhatsApp</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Recepción IA por WhatsApp</li>
                   <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Facturación SIF Veri*Factu RD 1007</li>
                   <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Límite de 10 citas automáticas/día</li>
                 </ul>
               </div>
               <Button asChild variant="outline" className="mt-8 w-full border-slate-700 hover:bg-slate-800 text-white">
-                <Link to="/auth">Probar 14 Días Gratis</Link>
+                <Link to="/auth">Probar Demo Gratis</Link>
               </Button>
             </div>
 
@@ -338,8 +488,8 @@ function SaaSLandingPage() {
                 </div>
                 <ul className="mt-8 space-y-3 text-xs text-slate-200">
                   <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Hasta 5 Gabinetes dentales</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Recepcionista IA Ilimitada</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Firma Digital Certificada X.509 AEAT/FNMT</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Recepción IA Ilimitada</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Firma Digital Certificada AEAT/FNMT</li>
                   <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Sello Oficial de Clínica (+100% ampliado)</li>
                   <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Facturación Veri*Factu con QR & SHA-256</li>
                 </ul>
@@ -374,17 +524,17 @@ function SaaSLandingPage() {
       </section>
 
       {/* FAQ SECTION */}
-      <section id="faq" className="py-24">
+      <section id="faq" className="py-24 bg-slate-900/30">
         <div className="mx-auto max-w-4xl px-6">
           <div className="text-center">
             <h2 className="text-xs font-semibold text-blue-400 tracking-widest uppercase">Resuelve tus dudas</h2>
-            <p className="mt-3 text-3xl font-bold tracking-tight text-white">Preguntas Frecuentes sobre DentalFlow SaaS</p>
+            <p className="mt-3 text-3xl font-bold tracking-tight text-white">Preguntas Frecuentes sobre DentalFlow AI</p>
           </div>
 
           <div className="mt-12 space-y-4">
             {[
               {
-                q: "¿Cumple DentalFlow con el reglamento Veri*Factu (RD 1007/2023)?",
+                q: "¿Cumple DentalFlow AI con el reglamento Veri*Factu (RD 1007/2023)?",
                 a: "Sí. DentalFlow genera registros de facturación no modificables con huella criptográfica SHA-256 encadenada y código QR oficial de la Agencia Tributaria Española.",
               },
               {
@@ -424,10 +574,10 @@ function SaaSLandingPage() {
       <section className="py-16 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white relative overflow-hidden">
         <div className="mx-auto max-w-5xl px-6 text-center relative z-10 space-y-6">
           <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-            Comienza a transformar tu clínica dental hoy mismo
+            Comience a optimizar su clínica dental hoy mismo
           </h2>
-          <p className="text-blue-100 text-base max-w-2xl mx-auto">
-            Únete a más de 250 clínicas dentales que automatizan su recepción con IA y emiten facturas Veri*Factu 100% legales.
+          <p className="text-blue-100 text-sm max-w-2xl mx-auto">
+            Únase a más de 250 clínicas dentales que automatizan su recepción por WhatsApp, gestionan historias clínicas en la nube y emiten facturas Veri*Factu 100% legales.
           </p>
           <div>
             <Button asChild size="lg" className="h-14 px-10 text-base bg-white text-blue-900 hover:bg-blue-50 font-extrabold shadow-2xl rounded-xl">
