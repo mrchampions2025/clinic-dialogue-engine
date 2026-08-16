@@ -121,10 +121,11 @@ function SuperAdminDashboard() {
 
   // Copiar URL de acceso
   const handleCopySlugUrl = (slug: string) => {
-    const fullUrl = `${window.location.origin}/c/${slug}`;
+    const fullUrl = `${window.location.origin}/c/${slug}/registro`;
     navigator.clipboard.writeText(fullUrl);
-    toast.success(`Enlace de acceso copiado: /c/${slug}`);
+    toast.success(`Enlace de acceso copiado: /c/${slug}/registro`);
   };
+
 
   // Entrar a administrar clínica
   const handleImpersonate = (clinic: Clinic) => {
@@ -399,18 +400,30 @@ function SuperAdminDashboard() {
 
                     {/* URL / Slug */}
                     <TableCell>
-                      <button
-                        onClick={() => handleCopySlugUrl(c.slug)}
-                        className="flex items-center gap-1.5 hover:opacity-80 transition-opacity text-left group/slug"
-                        title="Click para copiar enlace"
-                      >
-                        <div className={`size-2 rounded-full ${c.active ? "bg-emerald-500" : "bg-red-500"}`}></div>
-                        <span className="text-slate-400 font-mono text-xs group-hover/slug:text-indigo-400 transition-colors">
-                          /c/{c.slug}
-                        </span>
-                        <Copy className="size-3 text-slate-600 opacity-0 group-hover/slug:opacity-100 transition-opacity" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/c/${c.slug}/registro`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 hover:opacity-80 transition-opacity text-left group/slug"
+                          title="Abrir página de la clínica en nueva pestaña"
+                        >
+                          <div className={`size-2 rounded-full ${c.active ? "bg-emerald-500" : "bg-red-500"}`}></div>
+                          <span className="text-slate-400 font-mono text-xs group-hover/slug:text-indigo-400 transition-colors">
+                            /c/{c.slug}/registro
+                          </span>
+                          <ExternalLink className="size-3 text-slate-500 group-hover/slug:text-indigo-400 transition-colors" />
+                        </a>
+                        <button
+                          onClick={() => handleCopySlugUrl(c.slug)}
+                          className="text-slate-600 hover:text-slate-300 transition-colors p-1"
+                          title="Copiar URL al portapapeles"
+                        >
+                          <Copy className="size-3" />
+                        </button>
+                      </div>
                     </TableCell>
+
 
                     {/* Acciones */}
                     <TableCell className="text-right">
