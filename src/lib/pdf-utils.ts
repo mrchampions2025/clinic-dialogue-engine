@@ -19,10 +19,21 @@ export async function downloadElementAsPdf(elementId: string, filename: string) 
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     };
 
-    await html2pdf().set(opt).from(element).save();
+    // Dependiendo de cómo Vite importe html2pdf.js, puede ser el default o el módulo entero
+    const generatePdf = (html2pdf as any).default || html2pdf;
+    await generatePdf().set(opt).from(element).save();
     toast.success("Documento PDF descargado correctamente 📄", { id: toastId });
   } catch (error) {
     console.error("Error al generar PDF:", error);
+    
+    // Limpiar cualquier contenedor de html2canvas que se haya quedado colgado y bloquee la UI
+    document.querySelectorAll('.html2canvas-container').forEach(e => e.remove());
+    document.querySelectorAll('iframe').forEach(iframe => {
+      if (iframe.style.position === 'absolute' || iframe.style.position === 'fixed') {
+        iframe.remove();
+      }
+    });
+
     toast.error("Error al descargar. Puedes pulsar Imprimir para guardar en PDF.", { id: toastId });
   }
 }
