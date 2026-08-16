@@ -6,15 +6,14 @@ GRANT SELECT ON public.clinics TO anon, authenticated;
 GRANT SELECT ON public.user_roles TO anon, authenticated;
 
 -- Policies for clinics
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON public.clinics;
 CREATE POLICY "Enable insert for authenticated users" 
 ON public.clinics FOR INSERT 
 WITH CHECK (auth.role() = 'authenticated');
 
 -- Policies for user_roles
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON public.user_roles;
 CREATE POLICY "Enable insert for authenticated users" 
 ON public.user_roles FOR INSERT 
 WITH CHECK (auth.role() = 'authenticated');
 
--- Policy for patients (anon needs to insert during patient registration)
--- Wait, if patient registers, they are authenticated during the signup process (the trigger or the client side code runs after signup).
--- Actually, the client code runs `supabase.auth.signUp`, which returns a session. So they are authenticated.
