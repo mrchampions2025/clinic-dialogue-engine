@@ -335,7 +335,7 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                         <img
                           src={clinic.firma_sello_imagen}
                           alt="Sello Oficial Clínica"
-                          className="h-32 sm:h-36 max-w-full object-contain -mb-1"
+                          className="h-[120px] max-w-full object-contain absolute bottom-0"
                         />
                       </div>
                     ) : null}
