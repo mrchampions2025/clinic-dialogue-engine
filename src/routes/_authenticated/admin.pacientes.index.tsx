@@ -63,10 +63,14 @@ function PacientesPage() {
 
   const save = useMutation({
     mutationFn: upsertPatient,
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       qc.invalidateQueries({ queryKey: ["patients"] });
       setOpen(false);
-      toast.success("Paciente guardado");
+      if (!variables.id && variables.email) {
+        toast.success(`Paciente guardado. Se han enviado credenciales temporales a ${variables.email} (Simulado)`, { duration: 5000 });
+      } else {
+        toast.success("Paciente guardado");
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });

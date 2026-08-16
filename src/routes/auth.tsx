@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getUserRole } from "@/lib/clinic-data";
+import { getUserRole, ensureClinicAndRole } from "@/lib/clinic-data";
 import { ensureDefaultClinicSettings } from "@/lib/invoices";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
@@ -33,14 +33,18 @@ function AuthPage() {
 
   const handleRedirect = async (userId: string, userEmail?: string) => {
     try {
+      if (userEmail) {
+        await ensureClinicAndRole(userId, userEmail);
+      }
       // Auto-crear configuración de empresa por defecto en el primer acceso
       await ensureDefaultClinicSettings(userEmail || email);
     } catch (e) {
-      console.warn("Auto-creación de clinic_settings en auth:", e);
+      console.warn("Error en el aprovisionamiento SaaS auth:", e);
     }
 
     const role = await getUserRole(userId);
-    if (role === "admin") navigate({ to: "/panel" });
+    // TODO: Add superadmin redirect here once built
+    if (role === "clinic_admin") navigate({ to: "/panel" });
     else navigate({ to: "/panel" });
   };
 

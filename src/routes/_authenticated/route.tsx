@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getUserRole } from "@/lib/clinic-data";
 
@@ -15,13 +15,14 @@ export const Route = createFileRoute("/_authenticated")({
       const { data: sessData } = await supabase.auth.getSession();
       if (sessData?.session?.user) {
         const role = await getUserRole(sessData.session.user.id);
-        return { user: sessData.session.user, role: role || "staff" };
+        return { user: sessData.session.user, role: role || "clinic_admin" };
       }
 
-      // Acceso staff/demo en caso de no haber sesión activa de Supabase
-      return { user: { id: "demo-staff-user", email: "admin@dentix.es" }, role: "staff" };
+      // If no session, redirect to auth
+      throw redirect({ to: "/auth" });
     } catch (e) {
-      return { user: { id: "demo-staff-user", email: "admin@dentix.es" }, role: "staff" };
+      if (e && typeof e === 'object' && 'isRedirect' in e) throw e;
+      throw redirect({ to: "/auth" });
     }
   },
   component: () => <Outlet />,

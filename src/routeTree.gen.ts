@@ -16,6 +16,7 @@ import { Route as VerificarFacturaRouteImport } from './routes/verificar-factura
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedSuperadminRouteImport } from './routes/_authenticated/superadmin'
 import { Route as ApiWhatsappRemindersRouteImport } from './routes/api/whatsapp-reminders'
 import { Route as ApiWhatsappWebhookRouteImport } from './routes/api/whatsapp-webhook'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -24,6 +25,8 @@ import { Route as AuthenticatedAdminConfiguracionRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_authenticated/admin.facturacion'
 import { Route as AuthenticatedAdminPresupuestosRouteImport } from './routes/_authenticated/admin.presupuestos'
 import { Route as AuthenticatedAdminTratamientosRouteImport } from './routes/_authenticated/admin.tratamientos'
+import { Route as AuthenticatedSuperadminIndexRouteImport } from './routes/_authenticated/superadmin.index'
+import { Route as CSlugRegistroRouteImport } from './routes/c.$slug.registro'
 import { Route as AuthenticatedAdminPacientesIndexRouteImport } from './routes/_authenticated/admin.pacientes.index'
 import { Route as AuthenticatedAdminPacientesIdRouteImport } from './routes/_authenticated/admin.pacientes.$id'
 
@@ -59,6 +62,11 @@ const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSuperadminRoute = AuthenticatedSuperadminRouteImport.update({
+  id: '/superadmin',
+  path: '/superadmin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiWhatsappRemindersRoute = ApiWhatsappRemindersRouteImport.update({
@@ -105,6 +113,17 @@ const AuthenticatedAdminTratamientosRoute =
     path: '/tratamientos',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedSuperadminIndexRoute =
+  AuthenticatedSuperadminIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSuperadminRoute,
+  } as any)
+const CSlugRegistroRoute = CSlugRegistroRouteImport.update({
+  id: '/c/$slug/registro',
+  path: '/c/$slug/registro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminPacientesIndexRoute =
   AuthenticatedAdminPacientesIndexRouteImport.update({
     id: '/pacientes/',
@@ -125,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/panel': typeof AuthenticatedPanelRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/superadmin': typeof AuthenticatedSuperadminRouteWithChildren
   '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/admin/citas': typeof AuthenticatedAdminCitasRoute
@@ -132,7 +152,9 @@ export interface FileRoutesByFullPath {
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/presupuestos': typeof AuthenticatedAdminPresupuestosRoute
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
+  '/c/$slug/registro': typeof CSlugRegistroRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/superadmin/': typeof AuthenticatedSuperadminIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
   '/admin/pacientes/': typeof AuthenticatedAdminPacientesIndexRoute
 }
@@ -149,7 +171,9 @@ export interface FileRoutesByTo {
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/presupuestos': typeof AuthenticatedAdminPresupuestosRoute
   '/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
+  '/c/$slug/registro': typeof CSlugRegistroRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/superadmin': typeof AuthenticatedSuperadminIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
   '/admin/pacientes': typeof AuthenticatedAdminPacientesIndexRoute
 }
@@ -162,6 +186,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/superadmin': typeof AuthenticatedSuperadminRouteWithChildren
   '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
   '/_authenticated/admin/citas': typeof AuthenticatedAdminCitasRoute
@@ -169,7 +194,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/_authenticated/admin/presupuestos': typeof AuthenticatedAdminPresupuestosRoute
   '/_authenticated/admin/tratamientos': typeof AuthenticatedAdminTratamientosRoute
+  '/c/$slug/registro': typeof CSlugRegistroRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/superadmin/': typeof AuthenticatedSuperadminIndexRoute
   '/_authenticated/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
   '/_authenticated/admin/pacientes/': typeof AuthenticatedAdminPacientesIndexRoute
 }
@@ -182,6 +209,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/panel'
     | '/perfil'
+    | '/superadmin'
     | '/api/whatsapp-reminders'
     | '/api/whatsapp-webhook'
     | '/admin/citas'
@@ -189,7 +217,9 @@ export interface FileRouteTypes {
     | '/admin/facturacion'
     | '/admin/presupuestos'
     | '/admin/tratamientos'
+    | '/c/$slug/registro'
     | '/admin/'
+    | '/superadmin/'
     | '/admin/pacientes/$id'
     | '/admin/pacientes/'
   fileRoutesByTo: FileRoutesByTo
@@ -206,7 +236,9 @@ export interface FileRouteTypes {
     | '/admin/facturacion'
     | '/admin/presupuestos'
     | '/admin/tratamientos'
+    | '/c/$slug/registro'
     | '/admin'
+    | '/superadmin'
     | '/admin/pacientes/$id'
     | '/admin/pacientes'
   id:
@@ -218,6 +250,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/panel'
     | '/_authenticated/perfil'
+    | '/_authenticated/superadmin'
     | '/api/whatsapp-reminders'
     | '/api/whatsapp-webhook'
     | '/_authenticated/admin/citas'
@@ -225,7 +258,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/facturacion'
     | '/_authenticated/admin/presupuestos'
     | '/_authenticated/admin/tratamientos'
+    | '/c/$slug/registro'
     | '/_authenticated/admin/'
+    | '/_authenticated/superadmin/'
     | '/_authenticated/admin/pacientes/$id'
     | '/_authenticated/admin/pacientes/'
   fileRoutesById: FileRoutesById
@@ -237,6 +272,7 @@ export interface RootRouteChildren {
   VerificarFacturaRoute: typeof VerificarFacturaRoute
   ApiWhatsappRemindersRoute: typeof ApiWhatsappRemindersRoute
   ApiWhatsappWebhookRoute: typeof ApiWhatsappWebhookRoute
+  CSlugRegistroRoute: typeof CSlugRegistroRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -288,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/superadmin': {
+      id: '/_authenticated/superadmin'
+      path: '/superadmin'
+      fullPath: '/superadmin'
+      preLoaderRoute: typeof AuthenticatedSuperadminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/whatsapp-reminders': {
@@ -346,6 +389,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTratamientosRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/superadmin/': {
+      id: '/_authenticated/superadmin/'
+      path: '/'
+      fullPath: '/superadmin/'
+      preLoaderRoute: typeof AuthenticatedSuperadminIndexRouteImport
+      parentRoute: typeof AuthenticatedSuperadminRoute
+    }
+    '/c/$slug/registro': {
+      id: '/c/$slug/registro'
+      path: '/c/$slug/registro'
+      fullPath: '/c/$slug/registro'
+      preLoaderRoute: typeof CSlugRegistroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/pacientes/': {
       id: '/_authenticated/admin/pacientes/'
       path: '/pacientes'
@@ -388,16 +445,32 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedSuperadminRouteChildren {
+  AuthenticatedSuperadminIndexRoute: typeof AuthenticatedSuperadminIndexRoute
+}
+
+const AuthenticatedSuperadminRouteChildren: AuthenticatedSuperadminRouteChildren =
+  {
+    AuthenticatedSuperadminIndexRoute: AuthenticatedSuperadminIndexRoute,
+  }
+
+const AuthenticatedSuperadminRouteWithChildren =
+  AuthenticatedSuperadminRoute._addFileChildren(
+    AuthenticatedSuperadminRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedSuperadminRoute: typeof AuthenticatedSuperadminRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+  AuthenticatedSuperadminRoute: AuthenticatedSuperadminRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -410,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerificarFacturaRoute: VerificarFacturaRoute,
   ApiWhatsappRemindersRoute: ApiWhatsappRemindersRoute,
   ApiWhatsappWebhookRoute: ApiWhatsappWebhookRoute,
+  CSlugRegistroRoute: CSlugRegistroRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

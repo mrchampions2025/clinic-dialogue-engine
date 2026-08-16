@@ -43,10 +43,61 @@ function unwrap<T>({ data, error }: { data: T | null; error: { message: string }
   return data as T;
 }
 
+export type UserRoleData = {
+  role: string | null;
+  clinic_id: string | null;
+};
+
+export async function getUserRoleData(userId: string): Promise<UserRoleData> {
+  const { data, error } = await supabase.from("user_roles").select("role, clinic_id").eq("user_id", userId).maybeSingle();
+  if (error) return { role: null, clinic_id: null };
+  return { role: data?.role || null, clinic_id: data?.clinic_id || null };
+}
+
+export async function ensureClinicAndRole(userId: string, email: string): Promise<void> {
+  const { role } = await getUserRoleData(userId);
+  if (role) return; // Ya tiene rol y clínica asignada
+
+  // 1. Crear nueva clínica para este usuario
+  const clinicName = `Clínica ${email.split('@')[0]}`;
+  const slug = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random() * 1000);
+  
+  const { data: clinic, error: clinicErr } = await supabase.from("clinics").insert({
+    name: clinicName,
+    slug: slug,
+  }).select("id").single();
+  
+  if (clinicErr) {
+    console.error("Error creando clínica:", clinicErr);
+    return;
+  }
+
+  // 2. Asignarle rol de admin de esa clínica
+  await supabase.from("user_roles").insert({
+    user_id: userId,
+    role: "clinic_admin",
+    clinic_id: clinic.id
+  });
+}
+
+export type Clinic = {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  active: boolean;
+  created_at: string;
+};
+
+export async function listClinics(): Promise<Clinic[]> {
+  const { data, error } = await supabase.from("clinics").select("*").order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data as Clinic[];
+}
+
 export async function getUserRole(userId: string): Promise<string | null> {
-  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle();
-  if (error) return null;
-  return data?.role || null;
+  const { role } = await getUserRoleData(userId);
+  return role;
 }
 
 /* Pacientes */
