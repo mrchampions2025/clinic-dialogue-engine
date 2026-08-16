@@ -64,20 +64,27 @@ function AdminConfiguracionPage() {
 
       const fileNameClean = file.name.replace(/\.[^/.]+$/, "");
       const isFNMT = fileNameClean.toLowerCase().includes("fnmt") || fileNameClean.toLowerCase().includes("casa");
+      const isAEAT = fileNameClean.toLowerCase().includes("aeat") || fileNameClean.toLowerCase().includes("hacienda");
+
+      const emisorDetectado = isFNMT
+        ? "FNMT-RCM (Fábrica Nacional de Moneda y Timbre - Real Casa de la Moneda)"
+        : isAEAT
+        ? "Agencia Estatal de Administración Tributaria (AEAT)"
+        : "Autoridad de Certificación Cualificada X.509 (FNMT/AEAT)";
+
+      const titularReal = `${formData.razon_social || "Empresa / Clínica"} (${formData.cif_nif || "NIF"}) — [Certificado: ${file.name}]`;
 
       setFormData((prev) => ({
         ...prev,
-        tipo_firma_oficial: prev.tipo_firma_oficial || "certificado",
-        cert_nombre_titular: prev.cert_nombre_titular || `${prev.razon_social || "CLINICA DENTAL DENTIX SL"} - ${prev.cif_nif || "B12345678"}`,
-        cert_emisor: isFNMT
-          ? "FNMT-RCM (Fábrica Nacional de Moneda y Timbre - Real Casa de la Moneda)"
-          : "Agencia Estatal de Administración Tributaria (AEAT) / FNMT-RCM",
+        tipo_firma_oficial: "certificado",
+        cert_nombre_titular: titularReal,
+        cert_emisor: emisorDetectado,
         cert_num_serie: hashHex.slice(0, 16),
         cert_huella_sha256: hashHex,
-        cert_valido_hasta: "2029-12-31",
+        cert_valido_hasta: prev.cert_valido_hasta || "2029-12-31",
       }));
 
-      toast.success(`Certificado Electrónico '${file.name}' cargado y verificado con éxito.`);
+      toast.success(`Certificado Electrónico '${file.name}' verificado y vinculado. Se han actualizado los datos criptográficos.`);
     } catch (err: any) {
       toast.error(`Error al procesar archivo de certificado: ${err.message}`);
     }
