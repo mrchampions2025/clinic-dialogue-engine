@@ -120,21 +120,28 @@ export function BudgetDocument({ budget }: { budget: Budget }) {
           <div className="mt-6 flex flex-col gap-4 rounded-xl border border-accent/40 bg-accent/10 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="flex items-center gap-1.5 text-sm font-semibold text-accent-foreground">
-                <ShieldCheck className="size-4" /> Presupuesto aceptado y firmado
+                <ShieldCheck className="size-4 text-emerald-600" /> Presupuesto aceptado y firmado
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {budget.firma_nombre}
                 {budget.firma_dni ? ` · ${budget.firma_dni}` : ""}
                 {budget.firmado_at
-                  ? ` · ${new Date(budget.firmado_at).toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short" })}`
+                  ? ` · ${new Date(budget.firmado_at).toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "medium" })}`
                   : ""}
               </p>
             </div>
-            <img
-              src={budget.firma_data}
-              alt={`Firma de ${budget.firma_nombre ?? "el paciente"}`}
-              className="h-20 w-48 rounded-lg bg-card object-contain p-1"
-            />
+            {budget.firma_data.startsWith("CERTIFICADO_DIGITAL") ? (
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800 px-3 py-2 text-[11px] font-mono text-emerald-900 dark:text-emerald-200 font-bold flex items-center gap-2">
+                <ShieldCheck className="size-4 text-emerald-600" />
+                <span>Firmado con Certificado AEAT / FNMT</span>
+              </div>
+            ) : (
+              <img
+                src={budget.firma_data}
+                alt={`Firma de ${budget.firma_nombre ?? "el paciente"}`}
+                className="h-24 w-52 rounded-lg bg-card object-contain p-1 border border-border shadow-sm"
+              />
+            )}
           </div>
         )}
       </div>

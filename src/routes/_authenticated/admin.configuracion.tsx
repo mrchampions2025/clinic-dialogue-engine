@@ -212,7 +212,7 @@ function AdminConfiguracionPage() {
                   <Award className="size-4 text-purple-600" /> Configuración de Firma y Sello Oficial de la Clínica
                 </Label>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Elige entre subir la imagen de tu sello oficial (+70% tamaño) o cargar tu Certificado Electrónico Digital de la AEAT / FNMT.
+                  Elige entre subir la imagen de tu sello oficial o cargar tu Certificado Electrónico Digital de la AEAT / FNMT.
                 </p>
               </div>
 
@@ -276,7 +276,7 @@ function AdminConfiguracionPage() {
                       <img
                         src={formData.firma_sello_imagen}
                         alt="Sello Oficial de la Clínica"
-                        className="h-48 max-w-full mx-auto object-contain p-2 bg-white rounded shadow-sm border border-slate-200"
+                        className="h-60 max-w-full mx-auto object-contain p-2 bg-white rounded shadow-sm border border-slate-200"
                       />
                       <Button
                         type="button"

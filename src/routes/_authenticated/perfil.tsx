@@ -68,9 +68,11 @@ function PerfilPage() {
 
   const [firmando, setFirmando] = useState<Budget | null>(null);
   const [selectedBudgetForPrint, setSelectedBudgetForPrint] = useState<any | null>(null);
+  const [filtroPpto, setFiltroPpto] = useState<"Todos" | "Pendiente" | "Aceptado" | "Rechazado">("Todos");
 
   const agendarMutation = useMutation({
     mutationFn: async () => {
+      const estadoAuto = await determineAppointmentEstado(fecha);
       const { error } = await supabase.from("appointments").insert({
         paciente: nombre || user.email,
         telefono: telefono || "",
@@ -78,13 +80,18 @@ function PerfilPage() {
         hora,
         tratamiento,
         canal: "Web (Portal)",
-        estado: "Pendiente",
+        estado: estadoAuto,
         patient_id: user.id,
       });
       if (error) throw new Error(error.message);
+      return estadoAuto;
     },
-    onSuccess: () => {
-      toast.success("Solicitud de cita enviada correctamente");
+    onSuccess: (estadoAuto) => {
+      if (estadoAuto === "Confirmada") {
+        toast.success("¡Cita confirmada automáticamente! Te esperamos en la clínica 😊");
+      } else {
+        toast.info("Solicitud de cita enviada (pendiente de confirmación por recepción)");
+      }
       setOpenForm(false);
       qc.invalidateQueries({ queryKey: ["mis-citas"] });
       // Limpiar formulario
@@ -228,6 +235,22 @@ function PerfilPage() {
 
           <TabsContent value="presupuestos" className="mt-0">
           <section className="space-y-6">
+            {/* Botones de Filtro por Estado */}
+            <div className="flex flex-wrap gap-2 pb-2">
+              {(["Todos", "Pendiente", "Aceptado", "Rechazado"] as const).map((st) => (
+                <Button
+                  key={st}
+                  type="button"
+                  size="sm"
+                  variant={filtroPpto === st ? "default" : "outline"}
+                  onClick={() => setFiltroPpto(st)}
+                  className="rounded-full text-xs"
+                >
+                  {st === "Todos" ? "Todos los Presupuestos" : st === "Pendiente" ? "Pendientes (1º)" : st === "Aceptado" ? "Aceptados" : "Rechazados"}
+                </Button>
+              ))}
+            </div>
+
             {loadingPresupuestos ? (
               <p className="py-8 text-center text-muted-foreground animate-pulse">Cargando tus presupuestos...</p>
             ) : presupuestos.length === 0 ? (
@@ -241,44 +264,47 @@ function PerfilPage() {
                 </p>
               </div>
             ) : (
-              [...presupuestos].sort((a, b) => {
-                const stateOrder: Record<string, number> = { "Pendiente": 0, "Aceptado": 1, "Rechazado": 2 };
-                const orderA = stateOrder[a.estado] ?? 99;
-                const orderB = stateOrder[b.estado] ?? 99;
-                if (orderA !== orderB) return orderA - orderB;
-                return new Date(b.fecha).getTime() - new Date(a.fecha).getTime();
-              }).map((b) => (
-                <div key={b.id} className="space-y-3">
-                  <BudgetDocument budget={b} />
-                  <div className="flex justify-end mt-2 mb-4">
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      onClick={() => setSelectedBudgetForPrint(b)}
-                    >
-                      <FileText className="size-4 mr-1.5" /> Ver PDF
-                    </Button>
-                  </div>
-                  {b.estado === "Pendiente" && !isExpired(b) && (
-                    <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        Revisa el plan de tratamiento. Para iniciarlo necesitamos tu aceptación firmada.
-                      </p>
-                      <Button onClick={() => setFirmando(b)} className="shrink-0">
-                        <PenLine className="mr-2 size-4" /> Aceptar y firmar
+              [...presupuestos]
+                .filter((b) => filtroPpto === "Todos" || b.estado === filtroPpto)
+                .sort((a, b) => {
+                  const stateOrder: Record<string, number> = { "Pendiente": 0, "Aceptado": 1, "Rechazado": 2 };
+                  const orderA = stateOrder[a.estado] ?? 99;
+                  const orderB = stateOrder[b.estado] ?? 99;
+                  if (orderA !== orderB) return orderA - orderB;
+                  return new Date(b.fecha).getTime() - new Date(a.fecha).getTime();
+                })
+                .map((b) => (
+                  <div key={b.id} className="space-y-3">
+                    <BudgetDocument budget={b} />
+                    <div className="flex justify-end mt-2 mb-4">
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        onClick={() => setSelectedBudgetForPrint(b)}
+                      >
+                        <FileText className="size-4 mr-1.5" /> Ver PDF
                       </Button>
                     </div>
-                  )}
-                  {isExpired(b) && (
-                    <p className="text-sm text-muted-foreground">
-                      Este presupuesto ha caducado. Contacta con la clínica para renovarlo.
-                    </p>
-                  )}
-                  {b.estado === "Rechazado" && (
-                    <p className="text-sm text-muted-foreground">Rechazaste este presupuesto.</p>
-                  )}
-                </div>
-              ))
+                    {b.estado === "Pendiente" && !isExpired(b) && (
+                      <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm text-muted-foreground">
+                          Revisa el plan de tratamiento. Para iniciarlo necesitamos tu aceptación firmada.
+                        </p>
+                        <Button onClick={() => setFirmando(b)} className="shrink-0">
+                          <PenLine className="mr-2 size-4" /> Aceptar y firmar
+                        </Button>
+                      </div>
+                    )}
+                    {isExpired(b) && (
+                      <p className="text-sm text-muted-foreground">
+                        Este presupuesto ha caducado. Contacta con la clínica para renovarlo.
+                      </p>
+                    )}
+                    {b.estado === "Rechazado" && (
+                      <p className="text-sm text-muted-foreground">Rechazaste este presupuesto.</p>
+                    )}
+                  </div>
+                ))
             )}
           </section>
 

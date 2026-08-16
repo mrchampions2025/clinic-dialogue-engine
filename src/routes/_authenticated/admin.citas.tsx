@@ -227,13 +227,20 @@ function CitasPage() {
         <div className="h-[650px] bg-card border border-border rounded-xl p-4 shadow-sm">
           <Calendar
             localizer={localizer}
+            defaultView="month"
+            views={["month", "week", "day", "agenda"]}
             events={citas.map((c) => {
-              const start = new Date(`${c.fecha}T${c.hora}:00`);
+              const timeClean = (c.hora || "09:00").slice(0, 5);
+              const dateClean = (c.fecha || new Date().toISOString().slice(0, 10)).slice(0, 10);
+              const start = new Date(`${dateClean}T${timeClean}:00`);
+              const validStart = isNaN(start.getTime()) ? new Date() : start;
+              const validEnd = new Date(validStart.getTime() + 60 * 60 * 1000);
+
               return {
                 id: c.id,
                 title: `${c.paciente} - ${c.tratamiento || "Cita"}`,
-                start,
-                end: new Date(start.getTime() + 60 * 60 * 1000), // 1 hour duration
+                start: validStart,
+                end: validEnd,
                 resource: c,
               };
             })}
@@ -254,16 +261,25 @@ function CitasPage() {
               noEventsInRange: "No hay citas en este periodo.",
             }}
             eventPropGetter={(event: any) => {
-              let className = "bg-orange-500 hover:bg-orange-600";
-              if (event.resource.estado === "Confirmada") className = "bg-emerald-500 hover:bg-emerald-600";
-              if (event.resource.estado === "Cancelada") className = "bg-slate-400 hover:bg-slate-500";
-              return { className: `${className} border-none text-white shadow-sm rounded overflow-hidden transition-colors` };
+              let className = "bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-medium";
+              if (event.resource.estado === "Confirmada") {
+                className = "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-medium";
+              }
+              if (event.resource.estado === "Cancelada") {
+                className = "bg-slate-400 hover:bg-slate-500 text-white shadow-sm line-through";
+              }
+              return { 
+                className: `${className} border-none rounded-lg p-1 transition-all text-xs cursor-pointer` 
+              };
             }}
             components={{
               event: ({ event }: any) => (
-                <div className="p-1 text-xs h-full leading-tight flex flex-col">
-                  <span className="font-bold truncate">{event.resource.paciente}</span>
-                  <span className="opacity-90 truncate">{event.resource.tratamiento || "Cita"}</span>
+                <div className="p-1 text-xs h-full leading-tight flex flex-col justify-between">
+                  <div className="font-bold truncate">{event.resource.paciente}</div>
+                  <div className="opacity-90 truncate text-[10px] flex items-center justify-between mt-0.5">
+                    <span>{event.resource.tratamiento || "Cita general"}</span>
+                    <span className="font-mono text-[9px] bg-black/20 px-1 rounded">{event.resource.hora?.slice(0, 5)}</span>
+                  </div>
                 </div>
               ),
             }}

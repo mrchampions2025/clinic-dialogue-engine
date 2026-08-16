@@ -87,27 +87,30 @@ export async function listUserAppointments(userId: string): Promise<Appointment[
     await supabase.from("appointments").select("*").eq("patient_id", userId).order("fecha").order("hora"),
   ) as Appointment[];
 }
-export async function upsertAppointment(a: Partial<Appointment>): Promise<void> {
-  let estadoCita = a.estado || "Pendiente";
+export async function determineAppointmentEstado(fecha: string): Promise<Estado> {
+  try {
+    const settings = await getClinicSettings();
+    const limit = settings.citas_automaticas_limite ?? 10;
+    const { count, error } = await supabase
+      .from("appointments")
+      .select("*", { count: "exact", head: true })
+      .eq("fecha", fecha)
+      .eq("estado", "Confirmada");
 
-  if (!a.id) {
-    try {
-      const settings = await getClinicSettings();
-      const limit = settings.citas_automaticas_limite ?? 10;
-      const { count } = await supabase
-        .from("appointments")
-        .select("*", { count: "exact", head: true })
-        .eq("fecha", a.fecha)
-        .eq("estado", "Confirmada");
-      
-      if ((count ?? 0) < limit) {
-        estadoCita = "Confirmada";
-      } else {
-        estadoCita = "Pendiente";
-      }
-    } catch (e) {
-      console.error("Error validando limite de citas", e);
+    if (!error && (count ?? 0) < limit) {
+      return "Confirmada";
     }
+  } catch (e) {
+    console.error("Error validando límite de citas automáticas:", e);
+  }
+  return "Pendiente";
+}
+
+export async function upsertAppointment(a: Partial<Appointment>): Promise<void> {
+  let estadoCita = a.estado;
+
+  if (!a.id && (!estadoCita || estadoCita === "Pendiente")) {
+    estadoCita = await determineAppointmentEstado(a.fecha!);
   }
 
   const payload = {
