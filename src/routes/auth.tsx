@@ -43,9 +43,13 @@ function AuthPage() {
     }
 
     const role = await getUserRole(userId);
-    // TODO: Add superadmin redirect here once built
-    if (role === "clinic_admin") navigate({ to: "/admin" });
-    else navigate({ to: "/admin" });
+    if (role === "superadmin") {
+      navigate({ to: "/superadmin" });
+    } else if (role === "patient") {
+      navigate({ to: "/perfil" });
+    } else {
+      navigate({ to: "/admin" });
+    }
   };
 
   useEffect(() => {
