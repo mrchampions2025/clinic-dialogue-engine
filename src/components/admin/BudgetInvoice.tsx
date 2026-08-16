@@ -57,7 +57,7 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
     <div id="pdf-document-portal" className="fixed inset-0 z-50 flex flex-col bg-slate-950/90 backdrop-blur-xl">
       <style>{`
         @media print {
-          body > *:not(#pdf-document-portal) {
+          #root {
             display: none !important;
           }
           #pdf-document-portal {
