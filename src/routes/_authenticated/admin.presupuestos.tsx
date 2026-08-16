@@ -43,6 +43,7 @@ import {
   Trash2,
   Edit,
   ArrowRight,
+  Download,
   TrendingUp,
 } from "lucide-react";
 
@@ -356,11 +357,12 @@ function AdminPresupuestosPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
+                    className="bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-medium"
                     onClick={() => setSelectedBudgetForPrint(b)}
                   >
-                    <FileText className="size-4 mr-1.5" /> Ver Vista Previa / PDF
+                    <Download className="size-4 mr-1.5" /> Descargar / Ver PDF
                   </Button>
 
                   {b.estado !== "Aceptado" && (

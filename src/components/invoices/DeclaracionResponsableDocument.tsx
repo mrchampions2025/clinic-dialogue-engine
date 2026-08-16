@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ClinicSettings } from "@/lib/invoices";
 import { Button } from "@/components/ui/button";
-import { Printer, X, ShieldCheck, FileCheck, Award, Building2 } from "lucide-react";
+import { Printer, X, ShieldCheck, FileCheck, Award, Building2, Download } from "lucide-react";
+import { downloadElementAsPdf } from "@/lib/pdf-utils";
 
 interface DeclaracionResponsableDocumentProps {
   clinic: ClinicSettings;
@@ -138,9 +139,16 @@ export function DeclaracionResponsableDocument({ clinic, onClose }: DeclaracionR
         <div className="flex items-center gap-3">
           <Button 
             onClick={handlePrint} 
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg text-xs"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg text-xs h-9 px-4"
           >
             <Printer className="size-4 mr-1.5" /> Imprimir Declaración PDF
+          </Button>
+          <Button 
+            onClick={handleDownload} 
+            type="button"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg text-xs h-9 px-4 border-0"
+          >
+            <Download className="size-4 mr-1.5 text-white" /> Descargar PDF
           </Button>
           <Button 
             onClick={onClose} 

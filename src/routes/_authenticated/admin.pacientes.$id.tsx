@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Odontograma, ToothState, ToothRecord } from "@/components/admin/Odontograma";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, Activity, Euro, Plus, Pencil, Send, Trash2, Receipt } from "lucide-react";
+import { ArrowLeft, FileText, Activity, Euro, Plus, Pencil, Send, Trash2, Receipt, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/clinic-data";
@@ -232,11 +232,12 @@ function PatientDetailPage() {
                   <BudgetDocument budget={b} />
                   <div className="flex flex-wrap justify-end gap-2">
                     <Button 
-                      variant="secondary" 
+                      variant="outline" 
                       size="sm" 
+                      className="bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-medium"
                       onClick={() => setSelectedBudgetForPrint(b)}
                     >
-                      <FileText className="size-4 mr-1.5" /> Ver Vista Previa
+                      <Download className="size-4 mr-1.5" /> Descargar / Ver PDF
                     </Button>
                     {b.estado === "Aceptado" && (
                       <Button

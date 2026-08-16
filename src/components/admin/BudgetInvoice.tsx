@@ -15,6 +15,8 @@ import {
   FileText 
 } from "lucide-react";
 
+import { downloadElementAsPdf } from "@/lib/pdf-utils";
+
 interface BudgetInvoiceProps {
   budget: any;
   patient: any;
@@ -23,6 +25,10 @@ interface BudgetInvoiceProps {
 
 export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) {
   const [mounted, setMounted] = useState(false);
+
+  const handleDownload = () => {
+    downloadElementAsPdf("pdf-print-sheet", `Presupuesto_${budget.id?.slice(0, 8) || "dental"}.pdf`);
+  };
   const [zoom, setZoom] = useState<number>(75);
 
   const { data: clinic } = useQuery({
@@ -145,16 +151,16 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
         <div className="flex items-center gap-3">
           <Button 
             onClick={handlePrint} 
-            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg text-xs"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg text-xs h-9 px-4"
           >
             <Printer className="size-4 mr-1.5" /> Imprimir Documento PDF
           </Button>
           <Button 
-            onClick={handlePrint} 
-            variant="outline"
-            className="border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white text-xs"
+            onClick={handleDownload} 
+            type="button"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg text-xs h-9 px-4 border-0"
           >
-            <Download className="size-4 mr-1.5 text-blue-400" /> Descargar PDF
+            <Download className="size-4 mr-1.5 text-white" /> Descargar PDF
           </Button>
           <Button 
             onClick={onClose} 

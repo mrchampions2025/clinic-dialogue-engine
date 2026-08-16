@@ -539,9 +539,10 @@ function AdminFacturacionPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            className="bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-medium"
                             onClick={() => setSelectedInvoice(inv)}
                           >
-                            <Eye className="size-3.5 mr-1" /> PDF
+                            <Download className="size-3.5 mr-1" /> Descargar / Ver PDF
                           </Button>
 
                           {inv.tipo === "ordinaria" && inv.estado === "emitida" && (

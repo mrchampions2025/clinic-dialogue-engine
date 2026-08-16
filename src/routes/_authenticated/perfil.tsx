@@ -2,7 +2,7 @@ import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { listUserAppointments, formatDate, formatTime, determineAppointmentEstado } from "@/lib/clinic-data";
-import { CalendarCheck, User, Plus, FileText, Euro, PenLine } from "lucide-react";
+import { CalendarCheck, User, Plus, FileText, Euro, PenLine, Download } from "lucide-react";
 import { BudgetDocument } from "@/components/budgets/BudgetDocument";
 import { BudgetSignDialog } from "@/components/budgets/BudgetSignDialog";
 import { BudgetInvoice } from "@/components/admin/BudgetInvoice";
@@ -278,11 +278,12 @@ function PerfilPage() {
                     <BudgetDocument budget={b} />
                     <div className="flex justify-end mt-2 mb-4">
                       <Button 
-                        variant="secondary" 
+                        variant="outline" 
                         size="sm" 
+                        className="bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-medium"
                         onClick={() => setSelectedBudgetForPrint(b)}
                       >
-                        <FileText className="size-4 mr-1.5" /> Ver PDF
+                        <Download className="size-4 mr-1.5" /> Descargar / Ver PDF
                       </Button>
                     </div>
                     {b.estado === "Pendiente" && !isExpired(b) && (

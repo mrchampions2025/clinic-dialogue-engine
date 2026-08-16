@@ -4,7 +4,8 @@ import { Invoice, getClinicSettings, ClinicSettings } from "@/lib/invoices";
 import { calculateInvoiceSHA256, generateAEATQRUrl, formatHashDisplay, getVerifactuLegend, getVerifactuBadgeText, INITIAL_SIF_HASH } from "@/lib/verifactu";
 import { formatDate } from "@/lib/clinic-data";
 import { Button } from "@/components/ui/button";
-import { Printer, X, ShieldCheck, FileCheck, Info, CheckCircle2 } from "lucide-react";
+import { Printer, X, ShieldCheck, FileCheck, Info, CheckCircle2, Download } from "lucide-react";
+import { downloadElementAsPdf } from "@/lib/pdf-utils";
 
 interface InvoicePDFDocumentProps {
   invoice: Invoice;
@@ -16,6 +17,10 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
   const [mounted, setMounted] = useState(false);
   const [clinic, setClinic] = useState<ClinicSettings | null>(null);
   const [computedHash, setComputedHash] = useState<string>(invoice.hash_actual || "");
+
+  const handleDownload = () => {
+    downloadElementAsPdf("pdf-print-sheet", `Factura_${invoice.numero_factura || "dental"}.pdf`);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -165,9 +170,16 @@ export function InvoicePDFDocument({ invoice, onClose }: InvoicePDFDocumentProps
         <div className="flex items-center gap-3">
           <Button 
             onClick={handlePrint} 
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg text-xs"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg text-xs h-9 px-4"
           >
             <Printer className="size-4 mr-1.5" /> Imprimir Factura PDF
+          </Button>
+          <Button 
+            onClick={handleDownload} 
+            type="button"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg text-xs h-9 px-4 border-0"
+          >
+            <Download className="size-4 mr-1.5 text-white" /> Descargar PDF
           </Button>
           <Button 
             onClick={onClose} 
