@@ -95,10 +95,50 @@ export async function listClinics(): Promise<Clinic[]> {
   return data as Clinic[];
 }
 
+export async function createClinicManual(name: string, slug?: string): Promise<Clinic> {
+  const cleanSlug = (slug || name)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-") + "-" + Math.floor(Math.random() * 1000);
+
+  const { data, error } = await supabase
+    .from("clinics")
+    .insert({
+      name,
+      slug: cleanSlug,
+      active: true,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Clinic;
+}
+
+export async function toggleClinicStatus(id: string, active: boolean): Promise<void> {
+  const { error } = await supabase
+    .from("clinics")
+    .update({ active })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteClinic(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("clinics")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+}
+
 export async function getUserRole(userId: string): Promise<string | null> {
   const { role } = await getUserRoleData(userId);
   return role;
 }
+
 
 /* Pacientes */
 export async function listPatients(): Promise<Patient[]> {
