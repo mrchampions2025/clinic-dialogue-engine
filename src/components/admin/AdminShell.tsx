@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const nav = [
+  { to: "/panel", label: "Inicio SaaS", icon: LayoutDashboard, exact: true },
   { to: "/admin", label: "Panel general", icon: LayoutDashboard, exact: true },
   { to: "/admin/citas", label: "Citas", icon: CalendarDays },
   { to: "/admin/pacientes", label: "Pacientes", icon: Users },
@@ -55,15 +56,15 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
 
 function Brand() {
   return (
-    <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-hero-gradient text-sm font-bold text-primary-foreground">
-        D
+    <Link to="/panel" className="flex items-center gap-3 border-b border-border px-5 py-4 hover:bg-muted/50 transition-colors">
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-sm">
+        DF
       </span>
       <div className="min-w-0 leading-tight">
-        <p className="truncate text-sm font-semibold">Dentix</p>
-        <p className="truncate text-xs text-muted-foreground">Panel de clínica</p>
+        <p className="truncate text-sm font-bold">DentalFlow AI</p>
+        <p className="truncate text-[11px] text-muted-foreground">Panel SaaS Clínica</p>
       </div>
-    </div>
+    </Link>
   );
 }
 

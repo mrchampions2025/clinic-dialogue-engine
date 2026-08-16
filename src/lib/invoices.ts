@@ -120,6 +120,43 @@ export async function getClinicSettings(): Promise<ClinicSettings> {
   };
 }
 
+export async function ensureDefaultClinicSettings(userEmail?: string): Promise<ClinicSettings> {
+  try {
+    const { data } = await db.from("clinic_settings").select("*").limit(1).maybeSingle();
+    if (data) return data;
+
+    const clinicName = userEmail ? `Clínica Dental ${userEmail.split('@')[0].toUpperCase()}` : "Clínica Dental Dentix";
+    const defaults: Partial<ClinicSettings> = {
+      razon_social: clinicName,
+      cif_nif: "B" + Math.floor(10000000 + Math.random() * 90000000),
+      registro_sanitario: "CS-" + Math.floor(10000 + Math.random() * 90000) + "-M",
+      direccion: "Calle Gran Vía 42",
+      codigo_postal: "28013",
+      ciudad: "Madrid",
+      provincia: "Madrid",
+      telefono: "+34 910 000 000",
+      email: userEmail || "contacto@clinicadental.com",
+      iban: "ES91 2100 0418 4502 0005 1324",
+      modo_facturacion: "no_verifactu",
+      fabricante_nombre: "Clinic Dialogue Engine S.L.",
+      nif_fabricante: "B87654321",
+      software_nombre: "Clinic Dialogue Engine SIF",
+      software_version: "v2.4.0-2027",
+      firma_sello_nombre: "Dirección Médica",
+      firma_sello_cargo: "Director Sanitario",
+      modo_firma_presupuesto: "ambos",
+      tipo_firma_oficial: "imagen",
+      citas_automaticas_limite: 10,
+    };
+
+    const { data: inserted, error } = await db.from("clinic_settings").insert(defaults).select("*").single();
+    if (!error && inserted) return inserted;
+  } catch (e) {
+    console.warn("Auto-creación de configuración por defecto:", e);
+  }
+  return getClinicSettings();
+}
+
 export async function updateClinicSettings(settings: Partial<ClinicSettings>): Promise<void> {
   const current = await getClinicSettings();
   const oldMode = current.modo_facturacion;

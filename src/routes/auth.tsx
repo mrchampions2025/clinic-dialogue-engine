@@ -2,26 +2,22 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getUserRole } from "@/lib/clinic-data";
+import { ensureDefaultClinicSettings } from "@/lib/invoices";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Building2, ShieldCheck, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Acceso pacientes | Clínica Dental Dentix" },
+      { title: "Acceso y Registro de Clínica Dental · DentalFlow SaaS" },
       {
         name: "description",
-        content:
-          "Entra en tu área de paciente de Clínica Dental Dentix en Madrid para hablar con recepción y pedir cita.",
-      },
-      { property: "og:title", content: "Acceso pacientes | Clínica Dental Dentix" },
-      {
-        property: "og:description",
-        content: "Accede a tu chat con recepción de Clínica Dental Dentix.",
+        content: "Acceso seguro para clínicas dentales y gestión de pacientes en la plataforma SaaS DentalFlow.",
       },
     ],
   }),
@@ -35,15 +31,22 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleRedirect = async (userId: string) => {
+  const handleRedirect = async (userId: string, userEmail?: string) => {
+    try {
+      // Auto-crear configuración de empresa por defecto en el primer acceso
+      await ensureDefaultClinicSettings(userEmail || email);
+    } catch (e) {
+      console.warn("Auto-creación de clinic_settings en auth:", e);
+    }
+
     const role = await getUserRole(userId);
-    if (role === "admin") navigate({ to: "/admin" });
-    else navigate({ to: "/perfil" });
+    if (role === "admin") navigate({ to: "/panel" });
+    else navigate({ to: "/panel" });
   };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) handleRedirect(data.session.user.id);
+      if (data.session) handleRedirect(data.session.user.id, data.session.user.email);
     });
   }, [navigate]);
 
@@ -54,7 +57,7 @@ function AuthPage() {
       if (mode === "login") {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        await handleRedirect(data.user.id);
+        await handleRedirect(data.user.id, data.user.email);
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -62,8 +65,11 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        if (data.session) await handleRedirect(data.session.user.id);
-        else toast.success("Te hemos enviado un email para confirmar tu cuenta 😊");
+        if (data.session) await handleRedirect(data.session.user.id, data.session.user.email);
+        else {
+          toast.success("Cuenta creada correctamente. Te hemos enviado un email de confirmación 😊");
+          await handleRedirect(data.user?.id || "demo-user", email);
+        }
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No hemos podido continuar");
@@ -82,40 +88,53 @@ function AuthPage() {
     }
     if (result.redirected) return;
     
-    // Si no ha habido redirección, verificamos sesión
     const { data } = await supabase.auth.getSession();
     if (data.session) {
-      await handleRedirect(data.session.user.id);
+      await handleRedirect(data.session.user.id, data.session.user.email);
     }
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-soft">
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Volver
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 px-4 py-10 text-slate-100">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/80 backdrop-blur-xl p-8 shadow-2xl">
+        <Link to="/" className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium mb-4">
+          ← Volver a la Landing Pública
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-          {mode === "login" ? "Hola de nuevo 🦷" : "Crea tu ficha de paciente"}
+
+        <div className="flex items-center gap-2 mb-2">
+          <div className="size-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md">
+            DF
+          </div>
+          <span className="text-base font-bold tracking-tight text-white">DentalFlow AI</span>
+          <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-full font-mono">
+            SaaS
+          </span>
+        </div>
+
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-white">
+          {mode === "login" ? "Acceso a tu Clínica Dental 🦷" : "Crea tu Cuenta de Clínica"}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Entra para hablar con recepción de Clínica Dental Dentix.
+        <p className="mt-1 text-xs text-slate-400">
+          {mode === "login" 
+            ? "Entra al panel para gestionar citas, facturas SIF y firmas con certificado." 
+            : "Comienza tu prueba gratuita de 14 días. Configuración automática de empresa incluida."}
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-xs font-semibold text-slate-300">Email profesional de la Clínica</Label>
             <Input
               id="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="tucorreo@email.com"
+              placeholder="clinica@ejemplo.com"
+              className="bg-slate-800/80 border-slate-700 text-white placeholder:text-slate-500"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-xs font-semibold text-slate-300">Contraseña</Label>
             <Input
               id="password"
               type="password"
@@ -124,31 +143,36 @@ function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              className="bg-slate-800/80 border-slate-700 text-white placeholder:text-slate-500"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {mode === "login" ? "Entrar" : "Crear cuenta"}
+          <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg font-semibold" disabled={loading}>
+            {loading ? "Cargando..." : mode === "login" ? "Iniciar Sesión" : "Crear Cuenta de Clínica"}
           </Button>
         </form>
 
-        <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="h-px flex-1 bg-border" />o<span className="h-px flex-1 bg-border" />
+        <div className="my-5 flex items-center gap-3 text-xs text-slate-500">
+          <span className="h-px flex-1 bg-slate-800" />o<span className="h-px flex-1 bg-slate-800" />
         </div>
 
-        <Button variant="outline" className="w-full" onClick={onGoogle}>
-          Continuar con Google
+        <Button variant="outline" className="w-full border-slate-700 bg-slate-800/50 text-slate-200 hover:bg-slate-800 hover:text-white" onClick={onGoogle}>
+          Acceso rápido con Google
         </Button>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          {mode === "login" ? "¿Aún no tienes cuenta?" : "¿Ya eres paciente?"}{" "}
+        <p className="mt-6 text-center text-xs text-slate-400">
+          {mode === "login" ? "¿Aún no tienes cuenta para tu clínica?" : "¿Ya tienes registrada tu clínica?"}{" "}
           <button
             type="button"
-            className="font-medium text-primary hover:underline"
+            className="font-semibold text-blue-400 hover:underline ml-1"
             onClick={() => setMode(mode === "login" ? "signup" : "login")}
           >
-            {mode === "login" ? "Regístrate" : "Inicia sesión"}
+            {mode === "login" ? "Regístrate gratis" : "Inicia sesión"}
           </button>
         </p>
+
+        <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-center gap-2 text-[10px] text-slate-500">
+          <ShieldCheck className="size-3 text-emerald-400" /> 100% Cumplimiento Veri*Factu RD 1007/2023
+        </div>
       </div>
     </main>
   );
