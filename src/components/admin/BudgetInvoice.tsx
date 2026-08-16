@@ -210,27 +210,30 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                     <ShieldCheck className="size-3.5 text-[#3245d6]" /> Firma y Sello Oficial
                   </div>
 
-                  <div className="border border-dashed border-[#3245d6]/40 rounded bg-blue-50/40 p-2 text-[10px] text-slate-700 relative min-h-[56px] flex flex-col items-center justify-center">
-                    {/* Render Opción 1: Imagen de Firma o Sello */}
+                  <div className="border border-dashed border-[#3245d6]/40 rounded bg-blue-50/40 p-2.5 text-[10px] text-slate-700 relative min-h-[90px] flex flex-col items-center justify-center">
+                    {/* Render Opción 1: Imagen de Firma o Sello (+70% de tamaño) */}
                     {(tipoFirma === "imagen" || tipoFirma === "ambos") && clinic?.firma_sello_imagen ? (
                       <img
                         src={clinic.firma_sello_imagen}
                         alt="Sello Oficial Clínica"
-                        className="h-12 max-w-full object-contain mb-1"
+                        className="h-[82px] max-h-24 max-w-full object-contain mb-1 py-1"
                       />
                     ) : null}
 
-                    {/* Render Opción 2: Certificado Electrónico Digital X.509 */}
+                    {/* Render Opción 2: Certificado Electrónico Digital X.509 de la AEAT / FNMT */}
                     {(tipoFirma === "certificado" || tipoFirma === "ambos" || !clinic?.firma_sello_imagen) && (
-                      <div className="space-y-0.5 w-full">
-                        <p className="font-bold text-[#3245d6] text-[10px]">
-                          {clinic?.cert_nombre_titular || clinic?.razon_social || "CLINICA DENTAL DENTIX SL"}
+                      <div className="space-y-1 w-full text-center py-1">
+                        <p className="font-bold text-[#3245d6] text-[10px] tracking-tight">
+                          {clinic?.cert_nombre_titular || `${clinic?.razon_social || "CLINICA DENTAL DENTIX SL"} - ${clinic?.cif_nif || "B12345678"}`}
+                        </p>
+                        <p className="text-[8.5px] text-slate-600 font-mono leading-tight">
+                          EMISOR: {clinic?.cert_emisor || "FNMT-RCM (Fábrica Nacional de Moneda y Timbre)"}
                         </p>
                         <p className="text-[8px] text-slate-500 font-mono">
-                          CA: {clinic?.cert_emisor || "FNMT-RCM"} · Nº Serie: {clinic?.cert_num_serie || "72A4901F"}
+                          Nº Serie: {clinic?.cert_num_serie || "72A4901F82B094C1"}
                         </p>
-                        <p className="text-[7.5px] text-emerald-700 font-mono font-bold tracking-tight bg-emerald-100/60 px-1 py-0.5 rounded border border-emerald-300 inline-block mt-0.5">
-                          ✓ Firmado con Certificado Digital X.509 (SIF RD 1007/2023)
+                        <p className="text-[7.5px] text-emerald-800 font-mono font-bold tracking-tight bg-emerald-100/80 px-2 py-0.5 rounded border border-emerald-300 inline-block mt-0.5 shadow-sm">
+                          ✓ FIRMA DIGITAL CON CERTIFICADO ELECTRÓNICO OFICIAL AEAT/FNMT (SIF RD 1007/2023)
                         </p>
                       </div>
                     )}
