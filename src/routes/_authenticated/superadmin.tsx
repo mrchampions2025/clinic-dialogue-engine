@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/superadmin")({
   beforeLoad: ({ context }) => {
     const role = (context as any)?.role;
     // Redirigir a /admin en lugar del viejo /panel para evitar el error 404
-    if (role && role !== "superadmin" && role !== "clinic_admin") {
+    if (role !== "superadmin") {
       throw redirect({ to: "/admin" });
     }
   },

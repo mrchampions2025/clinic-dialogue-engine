@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const nav = [
-  { to: "/panel", label: "Inicio SaaS", icon: LayoutDashboard, exact: true },
   { to: "/admin", label: "Panel general", icon: LayoutDashboard, exact: true },
   { to: "/admin/citas", label: "Citas", icon: CalendarDays },
   { to: "/admin/pacientes", label: "Pacientes", icon: Users },

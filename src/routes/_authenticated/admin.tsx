@@ -7,6 +7,9 @@ export const Route = createFileRoute("/_authenticated/admin")({
     if (role === "patient") {
       throw redirect({ to: "/perfil" });
     }
+    if (role === "superadmin") {
+      throw redirect({ to: "/superadmin" });
+    }
   },
   component: () => <Outlet />,
 });
