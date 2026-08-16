@@ -122,7 +122,22 @@ function AdminConfiguracionPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4 border-t border-border pt-4 mt-2">
+              <Label htmlFor="citas_automaticas_limite" className="font-semibold text-sm">Límite de Citas Automáticas Diarias</Label>
+              <p className="text-[11px] text-muted-foreground mt-0">
+                Número máximo de citas que se aceptan ("Confirmada") automáticamente por día. A partir de este límite, las citas entrarán en estado "Pendiente" para revisión manual.
+              </p>
+              <Input
+                id="citas_automaticas_limite"
+                type="number"
+                min="0"
+                value={formData.citas_automaticas_limite ?? 10}
+                onChange={(e) => setFormData({ ...formData, citas_automaticas_limite: parseInt(e.target.value) || 0 })}
+                className="w-24"
+              />
+            </div>
+            
+            <div className="space-y-2 pt-2 border-t border-border">
               <Label htmlFor="tono">Tono y personalidad</Label>
               <Textarea
                 id="tono"
@@ -207,7 +222,7 @@ function AdminConfiguracionPage() {
             </div>
 
             {/* Selector de Tipo de Firma Oficial */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 className={`p-3 rounded-lg border text-left text-xs transition-all ${
@@ -218,7 +233,7 @@ function AdminConfiguracionPage() {
                 onClick={() => setFormData({ ...formData, tipo_firma_oficial: "imagen" })}
               >
                 <p className="font-bold flex items-center gap-1">
-                  <Upload className="size-3.5 text-purple-600" /> Opción 1: Sello / Firma en Imagen (+70%)
+                  <Upload className="size-3.5 text-purple-600" /> Opción 1: Sello / Firma en Imagen (Tamaño Grande)
                 </p>
                 <p className="text-[10px] opacity-80 mt-1">Subir imagen o gráfico de sello/firma transparente (PNG/JPG/SVG).</p>
               </button>
@@ -237,46 +252,31 @@ function AdminConfiguracionPage() {
                 </p>
                 <p className="text-[10px] opacity-80 mt-1">Cargar certificado digital (.p12 / .pfx / .cer) de la Casa de la Moneda o AEAT.</p>
               </button>
-
-              <button
-                type="button"
-                className={`p-3 rounded-lg border text-left text-xs transition-all ${
-                  formData.tipo_firma_oficial === "ambos"
-                    ? "bg-white dark:bg-slate-800 border-indigo-500 text-indigo-900 dark:text-indigo-100 shadow-sm font-semibold"
-                    : "border-border text-muted-foreground hover:bg-muted"
-                }`}
-                onClick={() => setFormData({ ...formData, tipo_firma_oficial: "ambos" })}
-              >
-                <p className="font-bold flex items-center gap-1 text-indigo-600">
-                  <FileCheck className="size-3.5 text-indigo-600" /> Opción 3: Imagen + Certificado
-                </p>
-                <p className="text-[10px] opacity-80 mt-1">Muestra la imagen grande del sello junto con la validación digital.</p>
-              </button>
             </div>
 
-            {/* OPCIÓN 1: SUBIDA DE IMAGEN DE SELLO O FIRMA (AMPLIADA 70%) */}
-            {(formData.tipo_firma_oficial === "imagen" || formData.tipo_firma_oficial === "ambos") && (
+            {/* OPCIÓN 1: SUBIDA DE IMAGEN DE SELLO O FIRMA (TAMAÑO GRANDE) */}
+            {(formData.tipo_firma_oficial === "imagen") && (
               <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-purple-200 dark:border-purple-900 space-y-3">
                 <div className="flex justify-between items-center">
                   <Label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                    <Upload className="size-4 text-purple-600" /> Imagen del Sello o Firma (Tamaño Ampliado 70%)
+                    <Upload className="size-4 text-purple-600" /> Imagen del Sello o Firma (Tamaño Grande)
                   </Label>
                   <Badge variant="outline" className="text-[10px] text-purple-600 border-purple-300">
-                    +70% Tamaño en PDF
+                    Formato Grande en PDF
                   </Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Sube la imagen de tu sello oficial o firma escaneada. Se renderizará un 70% más grande en los presupuestos impresos y descargados.
+                  Sube la imagen de tu sello oficial o firma escaneada. Se renderizará en formato grande (100% mayor) en los presupuestos impresos y descargados.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
                   {formData.firma_sello_imagen ? (
                     <div className="relative group border border-slate-300 dark:border-slate-700 rounded-lg p-3 bg-slate-50 dark:bg-slate-800 w-full text-center">
-                      <p className="text-[11px] font-semibold text-purple-700 mb-2">Previsualización del Sello (Tamaño Grande +70%):</p>
+                      <p className="text-[11px] font-semibold text-purple-700 mb-2">Previsualización del Sello (Formato Grande):</p>
                       <img
                         src={formData.firma_sello_imagen}
                         alt="Sello Oficial de la Clínica"
-                        className="h-36 max-w-full mx-auto object-contain p-2 bg-white rounded shadow-sm border border-slate-200"
+                        className="h-48 max-w-full mx-auto object-contain p-2 bg-white rounded shadow-sm border border-slate-200"
                       />
                       <Button
                         type="button"
@@ -305,7 +305,7 @@ function AdminConfiguracionPage() {
                             const reader = new FileReader();
                             reader.onloadend = () => {
                               setFormData({ ...formData, firma_sello_imagen: reader.result as string });
-                              toast.success("Imagen del sello/firma cargada con tamaño ampliado al 70%");
+                              toast.success("Imagen del sello/firma cargada con tamaño grande");
                             };
                             reader.readAsDataURL(file);
                           }
@@ -318,7 +318,7 @@ function AdminConfiguracionPage() {
             )}
 
             {/* OPCIÓN 2: CARGAR CERTIFICADO ELECTRÓNICO REAL DE LA AEAT / FNMT (.p12 / .pfx / .cer / .crt) */}
-            {(formData.tipo_firma_oficial === "certificado" || formData.tipo_firma_oficial === "ambos") && (
+            {(formData.tipo_firma_oficial === "certificado") && (
               <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-emerald-200 dark:border-emerald-900 space-y-4">
                 <div className="flex justify-between items-center">
                   <Label className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">

@@ -25,13 +25,14 @@ export interface ClinicSettings {
   firma_sello_cargo?: string | null;
   firma_sello_data?: string | null;
   modo_firma_presupuesto?: "sello_defecto" | "firma_paciente" | "ambos";
-  tipo_firma_oficial?: "imagen" | "certificado" | "ambos";
+  tipo_firma_oficial?: "imagen" | "certificado";
   firma_sello_imagen?: string | null;
   cert_nombre_titular?: string | null;
   cert_emisor?: string | null;
   cert_num_serie?: string | null;
   cert_valido_hasta?: string | null;
   cert_huella_sha256?: string | null;
+  citas_automaticas_limite?: number;
 }
 
 export interface InvoiceItem {
@@ -115,6 +116,7 @@ export async function getClinicSettings(): Promise<ClinicSettings> {
     cert_num_serie: null,
     cert_valido_hasta: null,
     cert_huella_sha256: null,
+    citas_automaticas_limite: 10,
   };
 }
 

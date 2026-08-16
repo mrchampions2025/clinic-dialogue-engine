@@ -241,7 +241,13 @@ function PerfilPage() {
                 </p>
               </div>
             ) : (
-              presupuestos.map((b) => (
+              [...presupuestos].sort((a, b) => {
+                const stateOrder: Record<string, number> = { "Pendiente": 0, "Aceptado": 1, "Rechazado": 2 };
+                const orderA = stateOrder[a.estado] ?? 99;
+                const orderB = stateOrder[b.estado] ?? 99;
+                if (orderA !== orderB) return orderA - orderB;
+                return new Date(b.fecha).getTime() - new Date(a.fecha).getTime();
+              }).map((b) => (
                 <div key={b.id} className="space-y-3">
                   <BudgetDocument budget={b} />
                   <div className="flex justify-end mt-2 mb-4">

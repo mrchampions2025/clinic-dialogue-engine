@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getClinicSettings } from "./invoices";
 
 export type Estado = "Pendiente" | "Confirmada" | "Cancelada";
 
@@ -87,6 +88,28 @@ export async function listUserAppointments(userId: string): Promise<Appointment[
   ) as Appointment[];
 }
 export async function upsertAppointment(a: Partial<Appointment>): Promise<void> {
+  let estadoCita = a.estado || "Pendiente";
+
+  if (!a.id) {
+    try {
+      const settings = await getClinicSettings();
+      const limit = settings.citas_automaticas_limite ?? 10;
+      const { count } = await supabase
+        .from("appointments")
+        .select("*", { count: "exact", head: true })
+        .eq("fecha", a.fecha)
+        .eq("estado", "Confirmada");
+      
+      if ((count ?? 0) < limit) {
+        estadoCita = "Confirmada";
+      } else {
+        estadoCita = "Pendiente";
+      }
+    } catch (e) {
+      console.error("Error validando limite de citas", e);
+    }
+  }
+
   const payload = {
     paciente: a.paciente ?? "",
     telefono: a.telefono || null,
@@ -94,7 +117,7 @@ export async function upsertAppointment(a: Partial<Appointment>): Promise<void> 
     fecha: a.fecha!,
     hora: a.hora!,
     canal: a.canal || "WhatsApp IA",
-    estado: a.estado || "Pendiente",
+    estado: estadoCita,
     precio: a.precio || null,
     pagado: a.pagado || false,
   };

@@ -253,6 +253,20 @@ function CitasPage() {
               event: "Evento",
               noEventsInRange: "No hay citas en este periodo.",
             }}
+            eventPropGetter={(event: any) => {
+              let className = "bg-orange-500 hover:bg-orange-600";
+              if (event.resource.estado === "Confirmada") className = "bg-emerald-500 hover:bg-emerald-600";
+              if (event.resource.estado === "Cancelada") className = "bg-slate-400 hover:bg-slate-500";
+              return { className: `${className} border-none text-white shadow-sm rounded overflow-hidden transition-colors` };
+            }}
+            components={{
+              event: ({ event }: any) => (
+                <div className="p-1 text-xs h-full leading-tight flex flex-col">
+                  <span className="font-bold truncate">{event.resource.paciente}</span>
+                  <span className="opacity-90 truncate">{event.resource.tratamiento || "Cita"}</span>
+                </div>
+              ),
+            }}
             onSelectEvent={(event) => {
               setForm({ ...event.resource, hora: formatTime(event.resource.hora) });
               setOpen(true);

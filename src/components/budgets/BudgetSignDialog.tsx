@@ -7,7 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Budget, computeTotals, formatMoney, rejectBudget, signBudget } from "@/lib/budgets";
+import { getClinicSettings } from "@/lib/invoices";
+import { useQuery } from "@tanstack/react-query";
 import { SignaturePad } from "./SignaturePad";
+import { Key } from "lucide-react";
 
 export function BudgetSignDialog({
   budget,
@@ -27,6 +30,11 @@ export function BudgetSignDialog({
   const [dni, setDni] = useState("");
   const [firma, setFirma] = useState<string | null>(null);
   const [acepta, setAcepta] = useState(false);
+
+  const { data: clinic } = useQuery({
+    queryKey: ["clinicSettings"],
+    queryFn: getClinicSettings,
+  });
 
   const totals = computeTotals(budget.budget_items || [], budget.descuento);
 
@@ -50,7 +58,8 @@ export function BudgetSignDialog({
     onError: (e: any) => toast.error(e.message),
   });
 
-  const canSign = nombre.trim().length > 2 && dni.trim().length > 4 && !!firma && acepta;
+  const isCertificado = clinic?.tipo_firma_oficial === "certificado";
+  const canSign = nombre.trim().length > 2 && dni.trim().length > 4 && (isCertificado || !!firma) && acepta;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,8 +85,29 @@ export function BudgetSignDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label>Firma manuscrita</Label>
-            <SignaturePad onChange={setFirma} />
+            {isCertificado ? (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-3">
+                <Label className="text-emerald-800 flex items-center gap-1.5 font-bold">
+                  <Key className="size-4" /> Firma Digital con Certificado
+                </Label>
+                <p className="text-xs text-emerald-700">
+                  El documento será firmado digitalmente usando el certificado electrónico configurado por la clínica ({clinic.cert_nombre_titular || "Certificado AEAT/FNMT"}).
+                </p>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full bg-white border-emerald-300 text-emerald-800 hover:bg-emerald-100"
+                  onClick={() => setFirma("CERTIFICADO_DIGITAL_APLICADO")}
+                >
+                  {firma ? "Certificado Aplicado Correctamente ✓" : "Aplicar Certificado Electrónico ahora"}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Label>Firma manuscrita</Label>
+                <SignaturePad onChange={setFirma} />
+              </>
+            )}
           </div>
 
           <label className="flex items-start gap-3 rounded-xl border border-border p-3 text-sm">
