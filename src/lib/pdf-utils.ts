@@ -1,39 +1,91 @@
 import { toast } from "sonner";
-import html2pdf from "html2pdf.js";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 export async function downloadElementAsPdf(elementId: string, filename: string) {
-  const element = document.getElementById(elementId);
-  if (!element) {
+  const targetElement = document.getElementById(elementId);
+  if (!targetElement) {
     toast.error("No se ha encontrado el documento para exportar.");
     return;
   }
 
-  const toastId = toast.loading("Generando documento PDF para descarga...");
+  const toastId = toast.loading("Generando y descargando PDF oficial...");
+
+  // Contenedor temporal aislado fuera de pantalla para que html2canvas no sufra por CSS transform o zoom
+  let cloneContainer: HTMLDivElement | null = null;
 
   try {
-    const opt = {
-      margin: [4, 4, 4, 4],
-      filename: filename.endsWith(".pdf") ? filename : `${filename}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    };
+    // 1. Clonar el elemento de la factura / presupuesto
+    const clone = targetElement.cloneNode(true) as HTMLElement;
 
-    // Dependiendo de cómo Vite importe html2pdf.js, puede ser el default o el módulo entero
-    const generatePdf = (html2pdf as any).default || html2pdf;
-    await generatePdf().set(opt).from(element).save();
+    // Resetear transformaciones de zoom, márgenes y sombras que arruinan la captura en canvas
+    clone.style.transform = "none";
+    clone.style.transformOrigin = "initial";
+    clone.style.margin = "0";
+    clone.style.boxShadow = "none";
+    clone.style.width = "210mm";
+    clone.style.maxWidth = "210mm";
+    clone.style.minHeight = "297mm";
+    clone.style.position = "static";
+
+    // 2. Crear contenedor temporal fuera del flujo visual
+    cloneContainer = document.createElement("div");
+    cloneContainer.style.position = "absolute";
+    cloneContainer.style.left = "-9999px";
+    cloneContainer.style.top = "0px";
+    cloneContainer.style.width = "210mm";
+    cloneContainer.style.background = "#ffffff";
+    cloneContainer.style.zIndex = "-9999";
+    cloneContainer.appendChild(clone);
+
+    document.body.appendChild(cloneContainer);
+
+    // 3. Renderizar imagen canvas limpia con html2canvas
+    const canvas = await html2canvas(clone, {
+      scale: 2, // Alta definición HD
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    });
+
+    // 4. Crear documento PDF A4 con jsPDF
+    const imgData = canvas.toDataURL("image/jpeg", 0.98);
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+    // Si el contenido requiere varias páginas, agregarlas automáticamente
+    let heightLeft = pdfHeight - pdf.internal.pageSize.getHeight();
+    let position = -pdf.internal.pageSize.getHeight();
+
+    while (heightLeft > 0) {
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+      position -= pdf.internal.pageSize.getHeight();
+    }
+
+    const finalName = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
+    pdf.save(finalName);
+
     toast.success("Documento PDF descargado correctamente 📄", { id: toastId });
   } catch (error) {
     console.error("Error al generar PDF:", error);
-    
-    // Limpiar cualquier contenedor de html2canvas que se haya quedado colgado y bloquee la UI
-    document.querySelectorAll('.html2canvas-container').forEach(e => e.remove());
-    document.querySelectorAll('iframe').forEach(iframe => {
-      if (iframe.style.position === 'absolute' || iframe.style.position === 'fixed') {
-        iframe.remove();
-      }
-    });
-
-    toast.error("Error al descargar. Puedes pulsar Imprimir para guardar en PDF.", { id: toastId });
+    toast.error("Hubo un problema al generar la descarga. Se usará el visor de impresión.", { id: toastId });
+    // Fallback limpio a impresión nativa si la exportación estricta fallara
+    window.print();
+  } finally {
+    // SIEMPRE eliminar el contenedor de clonación sin importar si hubo éxito o error
+    if (cloneContainer && document.body.contains(cloneContainer)) {
+      document.body.removeChild(cloneContainer);
+    }
   }
 }
