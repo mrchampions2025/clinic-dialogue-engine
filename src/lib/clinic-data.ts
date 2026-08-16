@@ -46,13 +46,65 @@ function unwrap<T>({ data, error }: { data: T | null; error: { message: string }
 export type UserRoleData = {
   role: string | null;
   clinic_id: string | null;
+  clinic_active: boolean;
+  clinic_name: string | null;
+  clinic_slug: string | null;
 };
 
 export async function getUserRoleData(userId: string): Promise<UserRoleData> {
-  const { data, error } = await supabase.from("user_roles").select("role, clinic_id").eq("user_id", userId).maybeSingle();
-  if (error) return { role: null, clinic_id: null };
-  return { role: data?.role || null, clinic_id: data?.clinic_id || null };
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role, clinic_id, clinics(name, slug, active)")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { role: null, clinic_id: null, clinic_active: true, clinic_name: null, clinic_slug: null };
+  }
+
+  const clinicInfo = (data as any).clinics;
+  return {
+    role: data.role || null,
+    clinic_id: data.clinic_id || null,
+    clinic_active: clinicInfo?.active !== false,
+    clinic_name: clinicInfo?.name || null,
+    clinic_slug: clinicInfo?.slug || null,
+  };
 }
+
+export async function getClinicInternalBillingStats(clinicId: string) {
+  try {
+    const { data: invoices, error } = await supabase
+      .from("invoices")
+      .select("total, fecha, estado")
+      .eq("clinic_id", clinicId);
+
+    if (error || !invoices) return { totalMonth: 0, totalYear: 0, count: 0 };
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    let totalMonth = 0;
+    let totalYear = 0;
+
+    invoices.forEach((inv: any) => {
+      const invDate = new Date(inv.fecha);
+      const val = typeof inv.total === "number" ? inv.total : parseFloat(inv.total) || 0;
+      if (invDate.getFullYear() === currentYear) {
+        totalYear += val;
+        if (invDate.getMonth() === currentMonth) {
+          totalMonth += val;
+        }
+      }
+    });
+
+    return { totalMonth, totalYear, count: invoices.length };
+  } catch (e) {
+    return { totalMonth: 0, totalYear: 0, count: 0 };
+  }
+}
+
 
 export async function ensureClinicAndRole(userId: string, email: string): Promise<void> {
   const { role } = await getUserRoleData(userId);

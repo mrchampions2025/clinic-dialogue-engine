@@ -146,7 +146,34 @@ function PatientRegistrationPage() {
 
   const clinicName = clinic?.name || "Clínica Dental";
 
+  if (!isLoading && clinic && clinic.active === false) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 px-4 py-10 text-slate-100">
+        <div className="w-full max-w-md rounded-3xl border border-red-500/30 bg-slate-900/90 backdrop-blur-2xl p-8 shadow-2xl text-center space-y-4">
+          <div className="size-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto text-red-400">
+            <Building2 className="size-8" />
+          </div>
+          <h1 className="text-xl font-bold text-white">{clinicName}</h1>
+          <span className="inline-flex items-center rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400 ring-1 ring-inset ring-red-500/20">
+            Portal Suspendido
+          </span>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            El portal de registro de esta clínica se encuentra temporalmente inactivo o fuera de servicio.
+          </p>
+          <div className="pt-2">
+            <Link to="/auth">
+              <Button variant="outline" className="w-full border-slate-800 bg-slate-950 text-slate-300 hover:text-white">
+                Volver al Inicio
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
+
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 px-4 py-10 text-slate-100">
       <div className="w-full max-w-md rounded-3xl border border-blue-500/20 bg-slate-900/90 backdrop-blur-2xl p-8 shadow-2xl relative overflow-hidden">
         {/* Adorno superior en gradiente */}

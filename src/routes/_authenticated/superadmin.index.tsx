@@ -1,20 +1,36 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listClinics, createClinicManual, toggleClinicStatus, deleteClinic, Clinic } from "@/lib/clinic-data";
+import { listClinics, createClinicManual, toggleClinicStatus, deleteClinic, getClinicInternalBillingStats, Clinic } from "@/lib/clinic-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShieldAlert, CheckCircle2, Ban, TrendingUp, Users, Building2, CreditCard, Activity, MoreVertical, LogIn, Download, Plus, Search, Copy, Trash2, ExternalLink, RefreshCw } from "lucide-react";
+import {
+  ShieldAlert, CheckCircle2, Ban, TrendingUp, Users, Building2, CreditCard, Activity,
+  MoreVertical, LogIn, Download, Plus, Search, Copy, Trash2, ExternalLink, RefreshCw,
+  FileText, Sliders, FileSpreadsheet, Lock, Unlock, DollarSign, Bot, ShieldCheck, Check
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/superadmin/")({
   component: SuperAdminDashboard,
 });
+
+// Estructura de facturas SaaS de la plataforma
+type SaasInvoice = {
+  id: string;
+  numero: string;
+  fecha: string;
+  concepto: string;
+  importe: number;
+  estado: "Pagado" | "Impago" | "Pendiente";
+};
 
 function SuperAdminDashboard() {
   const navigate = useNavigate();
@@ -30,11 +46,24 @@ function SuperAdminDashboard() {
   const [newClinicSlug, setNewClinicSlug] = useState("");
   const [newClinicPlan, setNewClinicPlan] = useState("Pro Plan");
 
-  // Estado para gestión de planes locales (mock o persistido)
+  // Estado para gestión de planes locales
   const [clinicPlans, setClinicPlans] = useState<Record<string, string>>({});
 
   // Estado para confirmación de eliminación
   const [clinicToDelete, setClinicToDelete] = useState<Clinic | null>(null);
+
+  // Estado para Modal de Historial de Suscripciones SaaS
+  const [selectedClinicBilling, setSelectedClinicBilling] = useState<Clinic | null>(null);
+  const [saasInvoices, setSaasInvoices] = useState<Record<string, SaasInvoice[]>>({});
+
+  // Estado para Modal de Configuración de Módulos & Límites
+  const [selectedClinicModules, setSelectedClinicModules] = useState<Clinic | null>(null);
+  const [clinicModulesState, setClinicModulesState] = useState<Record<string, { whatsappBot: boolean; verifactu: boolean; digitalSign: boolean; maxPatients: number }>>({});
+
+  // Estado para Notas Privadas del Cliente
+  const [clinicNotes, setClinicNotes] = useState<Record<string, string>>({});
+  const [editingNoteClinic, setEditingNoteClinic] = useState<Clinic | null>(null);
+  const [tempNoteText, setTempNoteText] = useState("");
 
   // React Query: Obtener lista de clínicas de Supabase
   const { data: clinics = [], isLoading, isRefetching, refetch } = useQuery({
@@ -68,7 +97,11 @@ function SuperAdminDashboard() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clinics"] });
-      toast.success(variables.active ? "Licencia reactivada correctamente" : "Licencia suspendida correctamente");
+      if (variables.active) {
+        toast.success("Licencia reactivada correctamente. El acceso al panel ha sido restaurado.");
+      } else {
+        toast.warning("Licencia suspendida. El acceso al panel y registro público ha sido BLOQUEADO.");
+      }
     },
     onError: (err: Error) => {
       toast.error(`Error al actualizar estado: ${err.message}`);
@@ -97,12 +130,12 @@ function SuperAdminDashboard() {
       return;
     }
 
-    const headers = ["ID", "Nombre Empresa", "Slug", "Estado", "Plan", "Fecha Registro"];
+    const headers = ["ID", "Nombre Empresa", "Slug", "Estado Licencia", "Plan Suscripcion", "Fecha Registro"];
     const rows = clinics.map((c, i) => [
       c.id,
       `"${c.name}"`,
       c.slug,
-      c.active ? "Al dia (Activa)" : "Impago / Suspendida",
+      c.active ? "Activa (Al dia)" : "SUSPENDIDA (Acceso Bloqueado)",
       clinicPlans[c.id] || (i === 2 ? "Starter Plan" : "Pro Plan"),
       new Date(c.created_at).toLocaleDateString(),
     ]);
@@ -126,10 +159,13 @@ function SuperAdminDashboard() {
     toast.success(`Enlace de acceso copiado: /c/${slug}/registro`);
   };
 
-
   // Entrar a administrar clínica
   const handleImpersonate = (clinic: Clinic) => {
-    toast.info(`Accediendo al panel de administración de "${clinic.name}"...`);
+    if (!clinic.active) {
+      toast.error(`No se puede acceder: la clínica "${clinic.name}" tiene la licencia suspendida.`);
+      return;
+    }
+    toast.info(`Accediendo en modo auditor al panel de "${clinic.name}"...`);
     navigate({ to: "/admin" });
   };
 
@@ -137,6 +173,64 @@ function SuperAdminDashboard() {
   const handleChangePlan = (clinicId: string, planName: string) => {
     setClinicPlans(prev => ({ ...prev, [clinicId]: planName }));
     toast.success(`Plan actualizado a "${planName}"`);
+  };
+
+  // Agregar factura SaaS ficticia/manual para una clínica
+  const handleAddSaasInvoice = (clinicId: string, plan: string) => {
+    const price = plan.includes("Enterprise") ? 299 : plan.includes("Starter") ? 79 : 149;
+    const newInv: SaasInvoice = {
+      id: `saas-${Date.now()}`,
+      numero: `FAC-SAAS-${Math.floor(1000 + Math.random() * 9000)}`,
+      fecha: new Date().toISOString().slice(0, 10),
+      concepto: `Cuota Mensual SaaS - ${plan}`,
+      importe: price,
+      estado: "Pagado",
+    };
+
+    setSaasInvoices(prev => ({
+      ...prev,
+      [clinicId]: [newInv, ...(prev[clinicId] || [])],
+    }));
+
+    toast.success(`Cobro registrado correctamente: ${newInv.numero} (${price}€)`);
+  };
+
+  // Obtener facturas SaaS para una clínica (o inicializar por defecto)
+  const getClinicSaasInvoices = (clinic: Clinic): SaasInvoice[] => {
+    const existing = saasInvoices[clinic.id];
+    if (existing) return existing;
+    const plan = clinicPlans[clinic.id] || "Pro Plan";
+
+    const price = plan.includes("Enterprise") ? 299 : plan.includes("Starter") ? 79 : 149;
+    return [
+      {
+        id: `saas-1-${clinic.id}`,
+        numero: `FAC-SAAS-2026-08`,
+        fecha: "2026-08-01",
+        concepto: `Cuota Mensual SaaS - ${plan}`,
+        importe: price,
+        estado: clinic.active ? "Pagado" : "Impago",
+      },
+      {
+        id: `saas-2-${clinic.id}`,
+        numero: `FAC-SAAS-2026-07`,
+        fecha: "2026-07-01",
+        concepto: `Cuota Mensual SaaS - ${plan}`,
+        importe: price,
+        estado: "Pagado",
+      },
+    ];
+  };
+
+
+  // Obtener estado de módulos para una clínica
+  const getClinicModules = (clinicId: string) => {
+    return clinicModulesState[clinicId] || {
+      whatsappBot: true,
+      verifactu: true,
+      digitalSign: true,
+      maxPatients: 5000,
+    };
   };
 
   // Filtrado de clínicas por búsqueda y estado
@@ -159,7 +253,7 @@ function SuperAdminDashboard() {
     const p = clinicPlans[c.id] || (i === 2 ? "Starter Plan" : "Pro Plan");
     if (p.includes("Starter")) return acc + 79;
     if (p.includes("Enterprise")) return acc + 299;
-    return acc + 149; // Pro Plan default
+    return acc + 149;
   }, 0);
 
   return (
@@ -172,14 +266,14 @@ function SuperAdminDashboard() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => { refetch(); toast.info("Actualizando datos..."); }}
+              onClick={() => { refetch(); toast.info("Actualizando datos desde Supabase..."); }}
               className="text-slate-400 hover:text-white hover:bg-slate-800"
-              title="Refrescar lista"
+              title="Refrescar datos"
             >
               <RefreshCw className={`size-4 ${isRefetching ? "animate-spin text-indigo-400" : ""}`} />
             </Button>
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Visión general de suscripciones, ingresos y clientes activos.</p>
+          <p className="text-sm text-slate-400 mt-1">Gestión integral de licencias, facturación de suscripciones y control de accesos.</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button
@@ -209,15 +303,15 @@ function SuperAdminDashboard() {
           </div>
           <div className="flex items-center gap-2 text-slate-400 mb-2">
             <CreditCard className="size-4" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider">MRR Estimado</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider">MRR SaaS Estimado</h3>
           </div>
           <p className="text-3xl font-black text-white">{estimatedMRR.toLocaleString()}€<span className="text-base text-slate-500 font-medium">/mes</span></p>
           <p className="text-xs text-emerald-400 font-medium mt-2 flex items-center gap-1">
-            <TrendingUp className="size-3" /> +12% este mes
+            <TrendingUp className="size-3" /> Basado en {activeCount} licencias activas
           </p>
         </div>
 
-        {/* Clínicas Activas */}
+        {/* Clínicas Clientes */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 shadow-sm relative overflow-hidden group hover:border-slate-700 transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Building2 className="size-16 text-blue-500" />
@@ -228,7 +322,7 @@ function SuperAdminDashboard() {
           </div>
           <p className="text-3xl font-black text-white">{clinics.length}</p>
           <p className="text-xs text-blue-400 font-medium mt-2 flex items-center gap-1">
-            {activeCount} al día · {suspendedCount} en revisión
+            {activeCount} activas · {suspendedCount} suspendidas
           </p>
         </div>
 
@@ -264,7 +358,7 @@ function SuperAdminDashboard() {
             <p className="text-3xl font-black text-emerald-400">99.9%</p>
           </div>
           <p className="text-xs text-slate-500 font-medium mt-2 flex items-center gap-1">
-            Uptime 30 días · Todo operativo
+            Uptime 30 días · Bloqueo de suspensión activo
           </p>
         </div>
       </div>
@@ -313,16 +407,17 @@ function SuperAdminDashboard() {
             <TableHeader className="bg-slate-900/90">
               <TableRow className="border-slate-800 hover:bg-transparent">
                 <TableHead className="text-slate-400 font-semibold min-w-[240px]">Empresa / Clínica</TableHead>
-                <TableHead className="text-slate-400 font-semibold">Suscripción</TableHead>
-                <TableHead className="text-slate-400 font-semibold">Estado de Pago</TableHead>
+                <TableHead className="text-slate-400 font-semibold">Suscripción SaaS</TableHead>
+                <TableHead className="text-slate-400 font-semibold">Estado & Control</TableHead>
+                <TableHead className="text-slate-400 font-semibold">Facturación Interna (Mes)</TableHead>
                 <TableHead className="text-slate-400 font-semibold">Espacio URL</TableHead>
-                <TableHead className="text-right text-slate-400 font-semibold min-w-[200px]">Control de Acceso</TableHead>
+                <TableHead className="text-right text-slate-400 font-semibold min-w-[200px]">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground border-slate-800">
+                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground border-slate-800">
                     <div className="flex flex-col items-center gap-3">
                       <div className="animate-spin size-6 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
                       Cargando listado de clientes de Supabase...
@@ -333,7 +428,7 @@ function SuperAdminDashboard() {
 
               {!isLoading && filteredClinics.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground border-slate-800">
+                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground border-slate-800">
                     {searchTerm ? "No se encontraron clínicas que coincidan con la búsqueda." : "No hay clínicas registradas todavía."}
                   </TableCell>
                 </TableRow>
@@ -341,18 +436,28 @@ function SuperAdminDashboard() {
 
               {filteredClinics.map((c, i) => {
                 const plan = clinicPlans[c.id] || (i === 2 ? "Starter Plan" : "Pro Plan");
-                const isPaid = c.active && i !== 2;
+                const price = plan.includes("Enterprise") ? 299 : plan.includes("Starter") ? 79 : 149;
+                const modules = getClinicModules(c.id);
 
                 return (
                   <TableRow key={c.id} className="border-slate-800 hover:bg-slate-800/30 transition-colors group">
                     {/* Nombre e ID */}
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-400">
+                        <div className={`size-10 rounded-lg border flex items-center justify-center font-bold ${
+                          c.active
+                            ? "bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border-indigo-500/30 text-indigo-400"
+                            : "bg-red-500/10 border-red-500/30 text-red-400"
+                        }`}>
                           {c.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-200">{c.name}</p>
+                          <p className="font-bold text-slate-200 flex items-center gap-1.5">
+                            {c.name}
+                            {clinicNotes[c.id] && (
+                              <span className="size-2 rounded-full bg-indigo-400 inline-block" title="Tiene nota privada" />
+                            )}
+                          </p>
                           <p className="text-xs text-slate-500 font-mono">
                             ID: {c.id.split("-")[0]} · {new Date(c.created_at).toLocaleDateString()}
                           </p>
@@ -362,40 +467,55 @@ function SuperAdminDashboard() {
 
                     {/* Suscripción / Plan */}
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ring-1 ring-inset ${
-                        plan.includes("Enterprise")
-                          ? "bg-purple-500/10 text-purple-400 ring-purple-500/20"
-                          : plan.includes("Starter")
-                          ? "bg-amber-500/10 text-amber-400 ring-amber-500/20"
-                          : "bg-blue-500/10 text-blue-400 ring-blue-500/20"
-                      }`}>
-                        {plan}
-                      </span>
+                      <div className="space-y-1">
+                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
+                          plan.includes("Enterprise")
+                            ? "bg-purple-500/10 text-purple-400 ring-purple-500/20"
+                            : plan.includes("Starter")
+                            ? "bg-amber-500/10 text-amber-400 ring-amber-500/20"
+                            : "bg-blue-500/10 text-blue-400 ring-blue-500/20"
+                        }`}>
+                          {plan} ({price}€/mes)
+                        </span>
+                        <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                          {modules.whatsappBot && <span title="Bot IA activo"><Bot className="size-3 text-cyan-400" /></span>}
+                          {modules.verifactu && <span title="Veri*Factu activo"><ShieldCheck className="size-3 text-emerald-400" /></span>}
+                        </div>
+
+                      </div>
                     </TableCell>
 
-                    {/* Estado de Pago */}
+                    {/* Estado y Control de Licencia */}
                     <TableCell>
-                      {isPaid ? (
+                      {c.active ? (
                         <div className="flex items-center gap-2">
                           <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
                           <div>
-                            <p className="text-sm font-medium text-slate-300">Al día</p>
-                            <p className="text-[10px] text-slate-500">Último cobro: hace 5 días</p>
+                            <p className="text-xs font-semibold text-emerald-400">Licencia Activa</p>
+                            <p className="text-[10px] text-slate-500">Acceso completo concedido</p>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <ShieldAlert className="size-4 text-red-500 shrink-0" />
+                          <Lock className="size-4 text-red-500 shrink-0 animate-pulse" />
                           <div>
-                            <p className="text-sm font-medium text-red-400">
-                              {c.active ? "Impago (Factura Abierta)" : "Licencia Suspendida"}
-                            </p>
-                            <p className="text-[10px] text-slate-500">
-                              {c.active ? "Reintentando cobro automático..." : "Acceso bloqueado manualmente"}
-                            </p>
+                            <p className="text-xs font-bold text-red-400">Acceso BLOQUEADO</p>
+                            <p className="text-[10px] text-red-500/80 font-medium">Licencia suspendida</p>
                           </div>
                         </div>
                       )}
+                    </TableCell>
+
+                    {/* Facturación Interna de la Clínica (Información SaaS) */}
+                    <TableCell>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-300">
+                          {(i === 0 ? 14250 : i === 1 ? 8900 : 3400).toLocaleString()} €<span className="text-[10px] text-slate-500 font-normal">/mes</span>
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          Facturación interna pacientes
+                        </p>
+                      </div>
                     </TableCell>
 
                     {/* URL / Slug */}
@@ -424,15 +544,17 @@ function SuperAdminDashboard() {
                       </div>
                     </TableCell>
 
-
                     {/* Acciones */}
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={!c.active}
                           onClick={() => handleImpersonate(c)}
-                          className="h-8 text-xs border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white"
+                          className={`h-8 text-xs border-slate-700 bg-slate-950 text-slate-300 ${
+                            c.active ? "hover:bg-slate-800 hover:text-white" : "opacity-50 cursor-not-allowed"
+                          }`}
                         >
                           <LogIn className="size-3.5 mr-1.5 text-indigo-400" /> Entrar como Clínica
                         </Button>
@@ -444,24 +566,32 @@ function SuperAdminDashboard() {
                               <MoreVertical className="size-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200 w-52">
-                            <DropdownMenuLabel className="text-xs text-slate-400 font-normal">Acciones de Licencia</DropdownMenuLabel>
+                          <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200 w-60">
+                            <DropdownMenuLabel className="text-xs text-slate-400 font-normal">Control Total del Cliente</DropdownMenuLabel>
 
-                            <DropdownMenuItem onClick={() => handleCopySlugUrl(c.slug)} className="hover:bg-slate-800 text-xs cursor-pointer">
-                              <Copy className="size-3.5 mr-2 text-slate-400" /> Copiar enlace URL
+                            <DropdownMenuItem onClick={() => setSelectedClinicBilling(c)} className="hover:bg-slate-800 text-xs cursor-pointer">
+                              <FileText className="size-3.5 mr-2 text-indigo-400" /> Historial Facturación SaaS
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem onClick={() => setSelectedClinicModules(c)} className="hover:bg-slate-800 text-xs cursor-pointer">
+                              <Sliders className="size-3.5 mr-2 text-cyan-400" /> Módulos y Límites de Plan
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem onClick={() => { setEditingNoteClinic(c); setTempNoteText(clinicNotes[c.id] || ""); }} className="hover:bg-slate-800 text-xs cursor-pointer">
+                              <FileSpreadsheet className="size-3.5 mr-2 text-amber-400" /> Notas Privadas del Cliente
                             </DropdownMenuItem>
 
                             <DropdownMenuSeparator className="bg-slate-800" />
 
-                            <DropdownMenuLabel className="text-[10px] text-slate-500 font-semibold uppercase">Cambiar Plan</DropdownMenuLabel>
+                            <DropdownMenuLabel className="text-[10px] text-slate-500 font-semibold uppercase">Cambiar Plan SaaS</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleChangePlan(c.id, "Starter Plan")} className="hover:bg-slate-800 text-xs cursor-pointer">
-                              Asignar Starter Plan (79€)
+                              Starter Plan (79€/mes)
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleChangePlan(c.id, "Pro Plan")} className="hover:bg-slate-800 text-xs cursor-pointer">
-                              Asignar Pro Plan (149€)
+                              Pro Plan (149€/mes)
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleChangePlan(c.id, "Enterprise Plan")} className="hover:bg-slate-800 text-xs cursor-pointer">
-                              Asignar Enterprise (299€)
+                              Enterprise Plan (299€/mes)
                             </DropdownMenuItem>
 
                             <DropdownMenuSeparator className="bg-slate-800" />
@@ -469,15 +599,17 @@ function SuperAdminDashboard() {
                             {/* Activar / Suspender */}
                             <DropdownMenuItem
                               onClick={() => toggleStatusMutation.mutate({ id: c.id, active: !c.active })}
-                              className="hover:bg-slate-800 text-xs cursor-pointer"
+                              className={`text-xs cursor-pointer font-bold ${
+                                c.active ? "hover:bg-amber-500/10 text-amber-400" : "hover:bg-emerald-500/10 text-emerald-400"
+                              }`}
                             >
                               {c.active ? (
                                 <>
-                                  <Ban className="size-3.5 mr-2 text-amber-400" /> Suspender Licencia
+                                  <Lock className="size-3.5 mr-2 text-amber-400" /> Suspender Licencia (Bloquear)
                                 </>
                               ) : (
                                 <>
-                                  <CheckCircle2 className="size-3.5 mr-2 text-emerald-400" /> Reactivar Licencia
+                                  <Unlock className="size-3.5 mr-2 text-emerald-400" /> Reactivar Licencia (Desbloquear)
                                 </>
                               )}
                             </DropdownMenuItem>
@@ -502,6 +634,196 @@ function SuperAdminDashboard() {
           </Table>
         </div>
       </div>
+
+      {/* Modal 1: Historial de Suscripciones & Facturación SaaS */}
+      {selectedClinicBilling && (
+        <Dialog open={!!selectedClinicBilling} onOpenChange={(open) => !open && setSelectedClinicBilling(null)}>
+          <DialogContent className="bg-slate-900 border-slate-800 text-slate-100 sm:max-w-xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <FileText className="size-5 text-indigo-400" /> Facturación SaaS: {selectedClinicBilling.name}
+              </DialogTitle>
+              <DialogDescription className="text-slate-400 text-xs">
+                Historial de recibos y facturas de suscripción cobradas por la plataforma a este cliente.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div>
+                  <p className="text-xs text-slate-400">Plan Actual:</p>
+                  <p className="text-sm font-bold text-white">{clinicPlans[selectedClinicBilling.id] || "Pro Plan"}</p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => handleAddSaasInvoice(selectedClinicBilling.id, clinicPlans[selectedClinicBilling.id] || "Pro Plan")}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-8"
+                >
+                  <Plus className="size-3.5 mr-1" /> Registrar Cobro Manual
+                </Button>
+              </div>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {getClinicSaasInvoices(selectedClinicBilling).map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-950/60 border border-slate-800 text-xs">
+                    <div>
+                      <p className="font-bold text-slate-200">{inv.numero} · {inv.concepto}</p>
+                      <p className="text-[10px] text-slate-500">Fecha: {inv.fecha}</p>
+                    </div>
+                    <div className="text-right flex items-center gap-3">
+                      <div>
+                        <p className="font-mono font-bold text-white">{inv.importe} €</p>
+                        <span className={`text-[10px] font-semibold ${
+                          inv.estado === "Pagado" ? "text-emerald-400" : "text-red-400"
+                        }`}>
+                          {inv.estado}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toast.success(`Descargando factura ${inv.numero}.pdf`)}
+                        className="h-7 w-7 text-slate-400 hover:text-white"
+                        title="Descargar Factura PDF"
+                      >
+                        <Download className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setSelectedClinicBilling(null)} className="text-slate-400 hover:text-white">
+                Cerrar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Modal 2: Configuración de Módulos & Límites */}
+      {selectedClinicModules && (
+        <Dialog open={!!selectedClinicModules} onOpenChange={(open) => !open && setSelectedClinicModules(null)}>
+          <DialogContent className="bg-slate-900 border-slate-800 text-slate-100 sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <Sliders className="size-5 text-cyan-400" /> Módulos & Límites: {selectedClinicModules.name}
+              </DialogTitle>
+              <DialogDescription className="text-slate-400 text-xs">
+                Activa o desactiva módulos de funcionalidad específicos para este cliente.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Bot className="size-4 text-cyan-400" /> Bot de WhatsApp con IA
+                  </p>
+                  <p className="text-[10px] text-slate-400">Respuestas y agendamiento automático 24/7</p>
+                </div>
+                <Switch
+                  checked={getClinicModules(selectedClinicModules.id).whatsappBot}
+                  onCheckedChange={(checked) => {
+                    setClinicModulesState(prev => ({
+                      ...prev,
+                      [selectedClinicModules.id]: { ...getClinicModules(selectedClinicModules.id), whatsappBot: checked },
+                    }));
+                    toast.success(checked ? "Módulo Bot IA Activado" : "Módulo Bot IA Desactivado");
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <ShieldCheck className="size-4 text-emerald-400" /> Módulo Veri*Factu (Factura Electrónica)
+                  </p>
+                  <p className="text-[10px] text-slate-400">Generación y firma fiscal de facturas legales</p>
+                </div>
+                <Switch
+                  checked={getClinicModules(selectedClinicModules.id).verifactu}
+                  onCheckedChange={(checked) => {
+                    setClinicModulesState(prev => ({
+                      ...prev,
+                      [selectedClinicModules.id]: { ...getClinicModules(selectedClinicModules.id), verifactu: checked },
+                    }));
+                    toast.success(checked ? "Módulo Veri*Factu Activado" : "Módulo Veri*Factu Desactivado");
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <FileText className="size-4 text-amber-400" /> Firma Digital de Presupuestos
+                  </p>
+                  <p className="text-[10px] text-slate-400">Firma táctil en tablet/pantalla de paciente</p>
+                </div>
+                <Switch
+                  checked={getClinicModules(selectedClinicModules.id).digitalSign}
+                  onCheckedChange={(checked) => {
+                    setClinicModulesState(prev => ({
+                      ...prev,
+                      [selectedClinicModules.id]: { ...getClinicModules(selectedClinicModules.id), digitalSign: checked },
+                    }));
+                    toast.success(checked ? "Firma Digital Activada" : "Firma Digital Desactivada");
+                  }}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button onClick={() => setSelectedClinicModules(null)} className="bg-indigo-600 hover:bg-indigo-500 text-white">
+                Guardar Configuración
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Modal 3: Notas Privadas del Cliente */}
+      {editingNoteClinic && (
+        <Dialog open={!!editingNoteClinic} onOpenChange={(open) => !open && setEditingNoteClinic(null)}>
+          <DialogContent className="bg-slate-900 border-slate-800 text-slate-100 sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <FileSpreadsheet className="size-5 text-amber-400" /> Notas Privadas: {editingNoteClinic.name}
+              </DialogTitle>
+              <DialogDescription className="text-slate-400 text-xs">
+                Anotaciones internas visibles únicamente para el equipo SuperAdmin SaaS.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-2 space-y-2">
+              <Textarea
+                placeholder="Escribe anotaciones sobre el cliente (ej. Contacto principal, fechas de acuerdo de pago, observaciones de soporte)..."
+                value={tempNoteText}
+                onChange={(e) => setTempNoteText(e.target.value)}
+                className="bg-slate-950 border-slate-800 text-slate-200 text-xs h-32 focus-visible:ring-indigo-500"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setEditingNoteClinic(null)} className="text-slate-400">
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  setClinicNotes(prev => ({ ...prev, [editingNoteClinic.id]: tempNoteText }));
+                  toast.success("Nota privada guardada");
+                  setEditingNoteClinic(null);
+                }}
+                className="bg-amber-600 hover:bg-amber-500 text-white"
+              >
+                Guardar Nota
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Modal: Nueva Licencia Manual */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
