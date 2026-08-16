@@ -242,70 +242,90 @@ function CitasPage() {
       </TabsContent>
 
       <TabsContent value="calendar">
-        <div className="h-[650px] bg-card border border-border rounded-xl p-4 shadow-sm">
-          <Calendar
-            localizer={localizer}
-            defaultView="month"
-            views={["month", "week", "day", "agenda"]}
-            events={citas.map((c) => {
-              const timeClean = (c.hora || "09:00").slice(0, 5);
-              const dateClean = (c.fecha || new Date().toISOString().slice(0, 10)).slice(0, 10);
-              const start = new Date(`${dateClean}T${timeClean}:00`);
-              const validStart = isNaN(start.getTime()) ? new Date() : start;
-              const validEnd = new Date(validStart.getTime() + 60 * 60 * 1000);
+        <div className="space-y-3">
+          {/* Leyenda Visual de Colores de Citas */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-card border border-border rounded-xl p-3 px-4 shadow-sm text-xs">
+            <span className="font-bold text-muted-foreground flex items-center gap-1.5">
+              Leyenda de Clasificación:
+            </span>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
+                <span className="size-3 rounded-full bg-emerald-600 shadow-sm inline-block" /> Confirmadas (Verde)
+              </span>
+              <span className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400">
+                <span className="size-3 rounded-full bg-amber-500 shadow-sm inline-block" /> Pendientes (Naranja)
+              </span>
+              <span className="flex items-center gap-1.5 font-semibold text-red-700 dark:text-red-400">
+                <span className="size-3 rounded-full bg-red-600 shadow-sm inline-block" /> Canceladas (Rojo)
+              </span>
+            </div>
+          </div>
 
-              return {
-                id: c.id,
-                title: `${c.paciente} - ${c.tratamiento || "Cita"}`,
-                start: validStart,
-                end: validEnd,
-                resource: c,
-              };
-            })}
-            startAccessor="start"
-            endAccessor="end"
-            culture="es"
-            messages={{
-              next: "Sig",
-              previous: "Ant",
-              today: "Hoy",
-              month: "Mes",
-              week: "Semana",
-              day: "Día",
-              agenda: "Agenda",
-              date: "Fecha",
-              time: "Hora",
-              event: "Evento",
-              noEventsInRange: "No hay citas en este periodo.",
-            }}
-            eventPropGetter={(event: any) => {
-              let className = "bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-medium";
-              if (event.resource.estado === "Confirmada") {
-                className = "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-medium";
-              }
-              if (event.resource.estado === "Cancelada") {
-                className = "bg-slate-400 hover:bg-slate-500 text-white shadow-sm line-through";
-              }
-              return { 
-                className: `${className} border-none rounded-lg p-1 transition-all text-xs cursor-pointer` 
-              };
-            }}
-            components={{
-              event: ({ event }: any) => (
-                <div className="p-1 text-xs h-full leading-tight flex flex-col justify-between">
-                  <div className="font-bold truncate">{event.resource.paciente}</div>
-                  <div className="opacity-90 truncate text-[10px] flex items-center justify-between mt-0.5">
-                    <span>{event.resource.tratamiento || "Cita general"}</span>
-                    <span className="font-mono text-[9px] bg-black/20 px-1 rounded">{event.resource.hora?.slice(0, 5)}</span>
+          <div className="h-[650px] bg-card border border-border rounded-xl p-4 shadow-sm">
+            <Calendar
+              localizer={localizer}
+              defaultView="month"
+              views={["month", "week", "day", "agenda"]}
+              events={citas.map((c) => {
+                const timeClean = (c.hora || "09:00").slice(0, 5);
+                const dateClean = (c.fecha || new Date().toISOString().slice(0, 10)).slice(0, 10);
+                const start = new Date(`${dateClean}T${timeClean}:00`);
+                const validStart = isNaN(start.getTime()) ? new Date() : start;
+                const validEnd = new Date(validStart.getTime() + 60 * 60 * 1000);
+
+                return {
+                  id: c.id,
+                  title: `${c.paciente} - ${c.tratamiento || "Cita"}`,
+                  start: validStart,
+                  end: validEnd,
+                  resource: c,
+                };
+              })}
+              startAccessor="start"
+              endAccessor="end"
+              culture="es"
+              messages={{
+                next: "Sig",
+                previous: "Ant",
+                today: "Hoy",
+                month: "Mes",
+                week: "Semana",
+                day: "Día",
+                agenda: "Agenda",
+                date: "Fecha",
+                time: "Hora",
+                event: "Evento",
+                noEventsInRange: "No hay citas en este periodo.",
+              }}
+              eventPropGetter={(event: any) => {
+                let className = "bg-amber-500 hover:bg-amber-600 border-l-4 border-amber-700 text-white font-bold shadow-sm";
+                if (event.resource.estado === "Confirmada") {
+                  className = "bg-emerald-600 hover:bg-emerald-700 border-l-4 border-emerald-900 text-white font-bold shadow-sm";
+                }
+                if (event.resource.estado === "Cancelada") {
+                  className = "bg-red-600 hover:bg-red-700 border-l-4 border-red-950 text-white font-bold line-through shadow-sm opacity-90";
+                }
+                return { 
+                  className: `${className} rounded-lg p-1 transition-all text-xs cursor-pointer` 
+                };
+              }}
+              components={{
+                event: ({ event }: any) => (
+                  <div className="p-1 text-xs h-full leading-tight flex flex-col justify-between">
+                    <div className="font-bold truncate">{event.resource.paciente}</div>
+                    <div className="opacity-90 truncate text-[10px] flex items-center justify-between mt-0.5">
+                      <span>{event.resource.tratamiento || "Cita general"}</span>
+                      <span className="font-mono text-[9px] bg-black/25 px-1 rounded font-bold">{event.resource.hora?.slice(0, 5)}</span>
+                    </div>
                   </div>
-                </div>
-              ),
-            }}
-            onSelectEvent={(event) => {
-              setForm({ ...event.resource, hora: formatTime(event.resource.hora) });
-              setOpen(true);
-            }}
-          />
+                ),
+              }}
+              onSelectEvent={(event) => {
+                setForm({ ...event.resource, hora: formatTime(event.resource.hora) });
+                setOpen(true);
+              }}
+            />
+          </div>
         </div>
       </TabsContent>
       </Tabs>
