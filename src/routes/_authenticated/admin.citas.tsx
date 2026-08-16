@@ -298,15 +298,29 @@ function CitasPage() {
                 noEventsInRange: "No hay citas en este periodo.",
               }}
               eventPropGetter={(event: any) => {
-                let className = "bg-amber-500 hover:bg-amber-600 border-l-4 border-amber-700 text-white font-bold shadow-sm";
+                let backgroundColor = "#f59e0b"; // amber-500
+                let borderLeftColor = "#b45309"; // amber-700
+                let extraClasses = "";
+                
                 if (event.resource.estado === "Confirmada") {
-                  className = "bg-emerald-600 hover:bg-emerald-700 border-l-4 border-emerald-900 text-white font-bold shadow-sm";
+                  backgroundColor = "#059669"; // emerald-600
+                  borderLeftColor = "#064e3b"; // emerald-900
+                } else if (event.resource.estado === "Cancelada") {
+                  backgroundColor = "#dc2626"; // red-600
+                  borderLeftColor = "#450a0a"; // red-950
+                  extraClasses = "line-through opacity-90";
                 }
-                if (event.resource.estado === "Cancelada") {
-                  className = "bg-red-600 hover:bg-red-700 border-l-4 border-red-950 text-white font-bold line-through shadow-sm opacity-90";
-                }
+                
                 return { 
-                  className: `${className} rounded-lg p-1 transition-all text-xs cursor-pointer` 
+                  style: {
+                    backgroundColor,
+                    borderLeft: `4px solid ${borderLeftColor}`,
+                    borderTop: 'none',
+                    borderRight: 'none',
+                    borderBottom: 'none',
+                    color: 'white',
+                  },
+                  className: `font-bold shadow-sm !rounded-lg p-1 transition-all text-xs cursor-pointer ${extraClasses}` 
                 };
               }}
               components={{
