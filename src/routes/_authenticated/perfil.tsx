@@ -1,7 +1,7 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { listUserAppointments, formatDate, formatTime } from "@/lib/clinic-data";
+import { listUserAppointments, formatDate, formatTime, determineAppointmentEstado } from "@/lib/clinic-data";
 import { CalendarCheck, User, Plus, FileText, Euro, PenLine } from "lucide-react";
 import { BudgetDocument } from "@/components/budgets/BudgetDocument";
 import { BudgetSignDialog } from "@/components/budgets/BudgetSignDialog";
