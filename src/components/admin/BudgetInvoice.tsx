@@ -187,16 +187,16 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                 </div>
               </div>
 
-              <div className="mt-8 flex gap-3 text-center">
+              <div className="mt-8 flex gap-6 items-end text-center">
                 {/* Firma del Paciente */}
-                <div className="flex-1">
+                <div className="flex-1 flex flex-col justify-end">
                   <div className="font-semibold text-xs mb-2 text-slate-700">Firma del Paciente</div>
-                  <div className="border-b border-slate-400 w-full h-14 relative flex items-center justify-center">
+                  <div className="border-b border-slate-400 w-full min-h-[120px] relative flex flex-col items-center justify-end pb-1">
                     {budget.estado === 'Aceptado' && (
-                      budget.firma_data ? (
-                        <img src={budget.firma_data} alt="Firma Paciente" className="h-12 object-contain" />
+                      budget.firma_data && !budget.firma_data.startsWith("CERTIFICADO_DIGITAL") ? (
+                        <img src={budget.firma_data} alt="Firma Paciente" className="h-20 max-w-full object-contain mb-1" />
                       ) : (
-                        <div className="font-['Brush_Script_MT',cursive] text-xl text-slate-700 opacity-90 -rotate-2 whitespace-nowrap">
+                        <div className="font-['Brush_Script_MT',cursive] text-2xl text-slate-700 opacity-90 -rotate-2 whitespace-nowrap mb-2">
                           {budget.firma_nombre || patient?.nombre}
                         </div>
                       )
@@ -204,24 +204,24 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
                   </div>
                 </div>
 
-                {/* Firma y Sello Oficial de la Clínica (Imagen y/o Certificado Electrónico) */}
-                <div className="flex-1">
+                {/* Firma y Sello Oficial de la Clínica (Línea simple sin recuadro punteado) */}
+                <div className="flex-1 flex flex-col justify-end">
                   <div className="font-semibold text-xs mb-2 text-[#3245d6] flex items-center justify-center gap-1">
                     <ShieldCheck className="size-3.5 text-[#3245d6]" /> Firma y Sello Oficial
                   </div>
 
-                  <div className="border border-dashed border-[#3245d6]/40 rounded bg-blue-50/40 p-3 text-[10px] text-slate-700 relative min-h-[240px] flex flex-col items-center justify-center">
-                    {/* Render Opción 1: Imagen de Firma o Sello (Gigante) */}
+                  <div className="border-b border-slate-400 w-full min-h-[120px] relative flex flex-col items-center justify-end pb-1">
+                    {/* Render Opción 1: Imagen de Firma o Sello (+100% de tamaño sobre la línea) */}
                     {(tipoFirma === "imagen") && clinic?.firma_sello_imagen ? (
                       <div className="flex flex-col items-center justify-center w-full">
                         <img
                           src={clinic.firma_sello_imagen}
                           alt="Sello Oficial Clínica"
-                          className="h-[220px] max-h-56 max-w-full object-contain py-1"
+                          className="h-28 sm:h-36 max-w-full object-contain mb-1"
                         />
                         {budget.firmado_at && (
-                          <p className="text-[8px] font-mono text-slate-600 font-semibold mt-1">
-                            FIRMADO DIGITALMENTE EL: {new Date(budget.firmado_at).toLocaleString("es-ES")}
+                          <p className="text-[8.5px] font-mono text-slate-500 font-medium">
+                            FIRMADO EL: {new Date(budget.firmado_at).toLocaleString("es-ES")}
                           </p>
                         )}
                       </div>
@@ -229,24 +229,24 @@ export function BudgetInvoice({ budget, patient, onClose }: BudgetInvoiceProps) 
 
                     {/* Render Opción 2: Certificado Electrónico Digital X.509 de la AEAT / FNMT */}
                     {(tipoFirma === "certificado" || !clinic?.firma_sello_imagen) && (
-                      <div className="space-y-1.5 w-full text-center py-2">
+                      <div className="space-y-1 w-full text-center pb-1">
                         <p className="font-bold text-[#3245d6] text-[11px] tracking-tight">
                           {clinic?.cert_nombre_titular || `${clinic?.razon_social || "CLINICA DENTAL DENTIX SL"} - ${clinic?.cif_nif || "B12345678"}`}
                         </p>
                         <p className="text-[9px] text-slate-600 font-mono leading-tight">
-                          EMISOR AUTORIZADO: {clinic?.cert_emisor || "FNMT-RCM (Fábrica Nacional de Moneda y Timbre / AEAT)"}
+                          EMISOR AUTORIZADO: {clinic?.cert_emisor || "FNMT-RCM (Fábrica Nacional de Moneda y Timbre)"}
                         </p>
                         <p className="text-[8.5px] text-slate-500 font-mono">
                           Nº Serie: {clinic?.cert_num_serie || "72A4901F82B094C1"} | SHA-256: {clinic?.cert_huella_sha256?.slice(0, 16) || "3A7B9F1C82D405E6"}...
                         </p>
-                        <div className="pt-1">
-                          <p className="text-[8px] text-emerald-900 font-mono font-bold tracking-tight bg-emerald-100 px-2.5 py-1 rounded border border-emerald-300 inline-block shadow-sm">
-                            ✓ FIRMA DIGITAL CON CERTIFICADO ELECTRÓNICO OFICIAL AEAT/FNMT (SIF RD 1007/2023)
-                          </p>
-                        </div>
-                        <p className="text-[9px] font-bold text-slate-800 font-mono mt-1 bg-blue-100/70 inline-block px-2 py-0.5 rounded border border-blue-200">
-                          FECHA Y HORA DE FIRMA: {budget.firmado_at ? new Date(budget.firmado_at).toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "medium" }) : new Date().toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "medium" })}
+                        <p className="text-[8px] text-emerald-800 font-mono font-bold tracking-tight bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300 inline-block mt-0.5">
+                          ✓ FIRMA DIGITAL CON CERTIFICADO ELECTRÓNICO OFICIAL AEAT/FNMT (SIF RD 1007/2023)
                         </p>
+                        {budget.firmado_at && (
+                          <p className="text-[8.5px] font-bold text-slate-700 font-mono mt-0.5">
+                            FIRMADO EL: {new Date(budget.firmado_at).toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "medium" })}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
