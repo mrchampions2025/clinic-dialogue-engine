@@ -82,7 +82,7 @@ function SaaSLandingPage() {
               <Link to="/auth">Iniciar sesión</Link>
             </Button>
             <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold shadow-lg shadow-blue-600/25">
-              <Link to="/auth">
+              <Link to="/auth" hash="register">
                 Solicitar Registro <ArrowRight className="ml-1.5 size-4" />
               </Link>
             </Button>
@@ -113,12 +113,12 @@ function SaaSLandingPage() {
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="w-full sm:w-auto text-base h-13 px-8 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-90 text-white font-bold shadow-xl shadow-blue-600/30 rounded-xl">
-              <Link to="/auth">
+              <Link to="/auth" hash="register">
                 Probar Demo Gratuita <ArrowRight className="ml-2 size-5" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto text-base h-13 px-8 border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-800 hover:text-white rounded-xl backdrop-blur-md">
-              <Link to="/panel">
+              <Link to="/admin">
                 Acceso al Panel SaaS <Building2 className="ml-2 size-5 text-blue-400" />
               </Link>
             </Button>
@@ -470,7 +470,7 @@ function SaaSLandingPage() {
                 </ul>
               </div>
               <Button asChild variant="outline" className="mt-8 w-full border-slate-700 hover:bg-slate-800 text-white">
-                <Link to="/auth">Probar Demo Gratis</Link>
+                <Link to="/auth" hash="register">Probar Demo Gratis</Link>
               </Button>
             </div>
 
@@ -495,7 +495,7 @@ function SaaSLandingPage() {
                 </ul>
               </div>
               <Button asChild className="mt-8 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-lg">
-                <Link to="/auth">Empezar Ahora</Link>
+                <Link to="/auth" hash="register">Empezar Ahora</Link>
               </Button>
             </div>
 
@@ -581,7 +581,7 @@ function SaaSLandingPage() {
           </p>
           <div>
             <Button asChild size="lg" className="h-14 px-10 text-base bg-white text-blue-900 hover:bg-blue-50 font-extrabold shadow-2xl rounded-xl">
-              <Link to="/auth">
+              <Link to="/auth" hash="register">
                 Crear Mi Cuenta Gratis <ArrowRight className="ml-2 size-5" />
               </Link>
             </Button>

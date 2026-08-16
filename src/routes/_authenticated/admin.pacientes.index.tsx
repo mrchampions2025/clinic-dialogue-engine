@@ -63,13 +63,31 @@ function PacientesPage() {
   const [copied, setCopied] = useState(false);
   const [form, setForm] = useState<Partial<Patient>>(empty);
 
-  const registrationUrl = `${window.location.origin}/c/dentix-madrid/registro`;
+  const { data: userRole } = useQuery({
+    queryKey: ["userRoleData"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from("user_roles").select("clinic_id").eq("user_id", user.id).maybeSingle();
+      if (!data?.clinic_id) return null;
+      const { data: clinic } = await supabase.from("clinics").select("slug").eq("id", data.clinic_id).maybeSingle();
+      return clinic?.slug;
+    }
+  });
+
+  const registrationUrl = `${window.location.origin}/c/${userRole || 'demo'}/registro`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(registrationUrl);
     setCopied(true);
     toast.success("Enlace de registro copiado al portapapeles");
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleGenerateCredentials = (email: string) => {
+    // Option B: Simulate generating credentials
+    const tempPassword = Math.random().toString(36).slice(-8);
+    toast.success(`Credenciales generadas para ${email}. Contraseña temporal: ${tempPassword}. (Simulado para la demo)`);
   };
 
   const save = useMutation({
@@ -226,17 +244,26 @@ function PacientesPage() {
                   <TableCell className="whitespace-nowrap">{formatDate(p.ultima_visita)}</TableCell>
                   <TableCell className="whitespace-nowrap">{formatDate(p.proxima_cita)}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" aria-label="Ver ficha" asChild>
-                        <Link to="/admin/pacientes/$id" params={{ id: p.id }}>
-                          <Eye className="size-4" />
-                        </Link>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (p.email) handleGenerateCredentials(p.email);
+                          else toast.error("El paciente no tiene email");
+                        }}
+                        title="Opción B: Generar y enviar credenciales (Simulado)"
+                      >
+                        <ShieldCheck className="size-4" />
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        aria-label="Editar paciente"
-                        onClick={() => {
+                        size="sm"
+                        className="h-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setForm(p);
                           setOpen(true);
                         }}
@@ -385,22 +412,36 @@ function PacientesPage() {
               Envía este enlace por WhatsApp o email a tus pacientes. Al hacer clic, accederán al formulario de registro con la marca de tu clínica y se vincularán automáticamente a tu cuenta.
             </p>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold">URL de Registro de Tu Clínica</Label>
-              <div className="flex items-center gap-2">
-                <Input 
-                  readOnly 
-                  value={registrationUrl} 
-                  className="font-mono text-xs bg-muted/50 border-border select-all"
-                />
-                <Button 
-                  size="sm" 
-                  onClick={handleCopy} 
-                  className={copied ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-blue-600 hover:bg-blue-500 text-white"}
-                >
-                  {copied ? <Check className="size-4 mr-1" /> : <Copy className="size-4 mr-1" />}
-                  {copied ? "Copiado" : "Copiar"}
-                </Button>
+            <div className="bg-slate-900/50 p-4 rounded-xl border border-blue-500/20">
+              <h4 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                <ShieldCheck className="size-4 text-blue-400" />
+                Opciones de Acceso para Pacientes
+              </h4>
+              <div className="space-y-4 mt-3">
+                <div>
+                  <p className="text-xs text-slate-300 font-medium mb-1.5">Opción A: Enlace de Auto-registro</p>
+                  <p className="text-[11px] text-slate-400 mb-2">Envía este enlace para que el paciente cree su propia contraseña.</p>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      readOnly 
+                      value={registrationUrl}
+                      className="bg-slate-950/50 border-slate-700 text-xs text-slate-400 h-8"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleCopy}
+                      className="h-8 shrink-0 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border-0"
+                    >
+                      {copied ? <Check className="size-3.5 mr-1.5" /> : <Copy className="size-3.5 mr-1.5" />}
+                      Copiar Enlace
+                    </Button>
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-slate-800">
+                  <p className="text-xs text-slate-300 font-medium mb-1.5">Opción B: Creación de Cuenta (Manual)</p>
+                  <p className="text-[11px] text-slate-400 mb-2">Guarda el paciente primero, luego usa el botón del escudo en la tabla para generarle credenciales temporales.</p>
+                </div>
               </div>
             </div>
 

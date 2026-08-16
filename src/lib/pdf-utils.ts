@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import html2pdf from "html2pdf.js";
 
 export async function downloadElementAsPdf(elementId: string, filename: string) {
   const element = document.getElementById(elementId);
@@ -10,16 +11,6 @@ export async function downloadElementAsPdf(elementId: string, filename: string) 
   const toastId = toast.loading("Generando documento PDF para descarga...");
 
   try {
-    if (!(window as any).html2pdf) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-        script.onload = resolve;
-        script.onerror = () => reject(new Error("No se pudo cargar la biblioteca PDF."));
-        document.head.appendChild(script);
-      });
-    }
-
     const opt = {
       margin: [4, 4, 4, 4],
       filename: filename.endsWith(".pdf") ? filename : `${filename}.pdf`,
@@ -28,7 +19,7 @@ export async function downloadElementAsPdf(elementId: string, filename: string) 
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     };
 
-    await (window as any).html2pdf().set(opt).from(element).save();
+    await html2pdf().set(opt).from(element).save();
     toast.success("Documento PDF descargado correctamente 📄", { id: toastId });
   } catch (error) {
     console.error("Error al generar PDF:", error);

@@ -14,7 +14,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as VerificarFacturaRouteImport } from './routes/verificar-factura'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedSuperadminRouteImport } from './routes/_authenticated/superadmin'
 import { Route as ApiWhatsappRemindersRouteImport } from './routes/api/whatsapp-reminders'
@@ -52,11 +51,6 @@ const VerificarFacturaRoute = VerificarFacturaRouteImport.update({
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
-  id: '/panel',
-  path: '/panel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
@@ -142,7 +136,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/verificar-factura': typeof VerificarFacturaRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/panel': typeof AuthenticatedPanelRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/superadmin': typeof AuthenticatedSuperadminRouteWithChildren
   '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
@@ -162,7 +155,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/verificar-factura': typeof VerificarFacturaRoute
-  '/panel': typeof AuthenticatedPanelRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
   '/api/whatsapp-webhook': typeof ApiWhatsappWebhookRoute
@@ -184,7 +176,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/verificar-factura': typeof VerificarFacturaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/superadmin': typeof AuthenticatedSuperadminRouteWithChildren
   '/api/whatsapp-reminders': typeof ApiWhatsappRemindersRoute
@@ -207,7 +198,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/verificar-factura'
     | '/admin'
-    | '/panel'
     | '/perfil'
     | '/superadmin'
     | '/api/whatsapp-reminders'
@@ -227,7 +217,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/verificar-factura'
-    | '/panel'
     | '/perfil'
     | '/api/whatsapp-reminders'
     | '/api/whatsapp-webhook'
@@ -248,7 +237,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/verificar-factura'
     | '/_authenticated/admin'
-    | '/_authenticated/panel'
     | '/_authenticated/perfil'
     | '/_authenticated/superadmin'
     | '/api/whatsapp-reminders'
@@ -310,13 +298,6 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/panel': {
-      id: '/_authenticated/panel'
-      path: '/panel'
-      fullPath: '/panel'
-      preLoaderRoute: typeof AuthenticatedPanelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/perfil': {
@@ -461,14 +442,12 @@ const AuthenticatedSuperadminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedSuperadminRoute: typeof AuthenticatedSuperadminRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedSuperadminRoute: AuthenticatedSuperadminRouteWithChildren,
 }

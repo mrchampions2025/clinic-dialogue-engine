@@ -26,7 +26,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup">(window.location.hash === '#register' ? 'signup' : 'login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,8 +44,8 @@ function AuthPage() {
 
     const role = await getUserRole(userId);
     // TODO: Add superadmin redirect here once built
-    if (role === "clinic_admin") navigate({ to: "/panel" });
-    else navigate({ to: "/panel" });
+    if (role === "clinic_admin") navigate({ to: "/admin" });
+    else navigate({ to: "/admin" });
   };
 
   useEffect(() => {
