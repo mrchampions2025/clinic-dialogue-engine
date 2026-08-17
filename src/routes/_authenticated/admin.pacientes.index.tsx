@@ -29,6 +29,7 @@ import {
   formatDate,
   type Patient,
 } from "@/lib/clinic-data";
+import { getClinicSettings } from "@/lib/invoices";
 
 export const Route = createFileRoute("/_authenticated/admin/pacientes/")({
   head: () => ({
@@ -63,19 +64,20 @@ function PacientesPage() {
   const [copied, setCopied] = useState(false);
   const [form, setForm] = useState<Partial<Patient>>(empty);
 
-  const { data: userRole } = useQuery({
-    queryKey: ["userRoleData"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      const { data } = await supabase.from("user_roles").select("clinic_id").eq("user_id", user.id).maybeSingle();
-      if (!data?.clinic_id) return null;
-      const { data: clinic } = await supabase.from("clinics").select("slug").eq("id", data.clinic_id).maybeSingle();
-      return clinic?.slug;
-    }
+  const { data: clinicSettings } = useQuery({ 
+    queryKey: ["clinic_settings"], 
+    queryFn: getClinicSettings 
   });
 
-  const registrationUrl = `${window.location.origin}/c/${userRole || 'demo'}/registro`;
+  const clinicSlug = (clinicSettings?.nombre_comercial || clinicSettings?.razon_social || "demo")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-");
+
+  const registrationUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/c/${clinicSlug}/registro`
+    : `https://clinicdental-nu.vercel.app/c/${clinicSlug}/registro`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(registrationUrl);
