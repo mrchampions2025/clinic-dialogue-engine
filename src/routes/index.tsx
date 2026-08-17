@@ -452,71 +452,117 @@ function SaaSLandingPage() {
             </p>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Plan 1 */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-8 flex flex-col justify-between">
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Gratuito */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
               <div>
-                <h3 className="text-lg font-bold text-white">Plan Clínica Starter</h3>
-                <p className="text-xs text-slate-400 mt-1">Para consultas dentales independientes</p>
+                <h3 className="text-xl font-bold text-white">Gratuito</h3>
+                <p className="text-xs text-slate-400 mt-2">Perfecto para empezar como profesional independiente</p>
+                <div className="mt-6 flex items-baseline">
+                  <span className="text-4xl font-extrabold text-white">0 €</span>
+                  <span className="text-xs text-slate-400 ml-1">/ mes</span>
+                </div>
+                <p className="text-[10px] text-emerald-400 mt-1 font-medium">Gratis para siempre • Sin tarjeta de crédito</p>
+                <ul className="mt-8 space-y-3 text-xs text-slate-300">
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> 1 usuario</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Hasta 250 pacientes</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> 500 MB de almacenamiento</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de citas</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de pacientes</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Informes básicos</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Soporte por correo electrónico</li>
+                </ul>
+              </div>
+              <Button asChild variant="outline" className="mt-8 w-full border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300">
+                <Link to="/auth" hash="register">Registrarse gratis</Link>
+              </Button>
+            </div>
+
+            {/* Starter */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-white">Starter</h3>
+                <p className="text-xs text-slate-400 mt-2">Todo lo necesario para gestionar una consulta pequeña</p>
                 <div className="mt-6 flex items-baseline">
                   <span className="text-4xl font-extrabold text-white">49 €</span>
-                  <span className="text-xs text-slate-400 ml-1">/ mes + IVA</span>
+                  <span className="text-xs text-slate-400 ml-1">/ mes</span>
                 </div>
                 <ul className="mt-8 space-y-3 text-xs text-slate-300">
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Hasta 1 Gabinete de atención</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Recepción IA por WhatsApp</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Facturación SIF Veri*Factu RD 1007</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Límite de 10 citas automáticas/día</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> 4 usuarios incluidos</li>
+                  <li className="flex items-center gap-2 text-slate-400"><Check className="size-4 text-emerald-400 shrink-0" /> +5 €/mes por usuario adicional</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> 5 GB de almacenamiento</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Pacientes ilimitados</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de citas</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de pacientes</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de tratamientos</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Facturación</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Notificaciones SMS + WhatsApp</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Informes básicos</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Soporte por email</li>
                 </ul>
               </div>
               <Button asChild variant="outline" className="mt-8 w-full border-slate-700 hover:bg-slate-800 text-white">
-                <Link to="/auth" hash="register">Probar Demo Gratis</Link>
+                <Link to="/auth" hash="register">Comenzar</Link>
               </Button>
             </div>
 
-            {/* Plan 2 - Featured */}
-            <div className="bg-gradient-to-b from-blue-900/50 via-indigo-950/50 to-slate-900 border-2 border-blue-500 rounded-3xl p-8 flex flex-col justify-between relative shadow-2xl shadow-blue-600/20">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
-                Más Popular · Recomendado
+            {/* Pro - Featured */}
+            <div className="bg-[#0f293e] border-2 border-blue-500 rounded-3xl p-6 flex flex-col justify-between relative shadow-2xl shadow-blue-600/20 lg:scale-105 z-10">
+              <div className="absolute -top-3.5 left-6 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                Más Popular
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Plan Pro Clínica</h3>
-                <p className="text-xs text-blue-200 mt-1">Para clínicas con equipo y varios doctores</p>
+                <h3 className="text-xl font-bold text-white mt-2">Pro</h3>
+                <p className="text-xs text-blue-200 mt-2">El plan más popular para clínicas en crecimiento</p>
                 <div className="mt-6 flex items-baseline">
-                  <span className="text-4xl font-extrabold text-white">89 €</span>
-                  <span className="text-xs text-slate-300 ml-1">/ mes + IVA</span>
+                  <span className="text-4xl font-extrabold text-white">99 €</span>
+                  <span className="text-xs text-slate-300 ml-1">/ mes</span>
                 </div>
-                <ul className="mt-8 space-y-3 text-xs text-slate-200">
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Hasta 5 Gabinetes dentales</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Recepción IA Ilimitada</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Firma Digital Certificada AEAT/FNMT</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Sello Oficial de Clínica (+100% ampliado)</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Facturación Veri*Factu con QR & SHA-256</li>
+                <ul className="mt-8 space-y-3 text-xs text-white">
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> 6 usuarios incluidos</li>
+                  <li className="flex items-center gap-2 text-blue-200"><Check className="size-4 text-emerald-400 shrink-0" /> +5 €/mes por usuario adicional</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> 10 GB de almacenamiento</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Pacientes ilimitados</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de citas</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de pacientes</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de tratamientos</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Esquema dental interactivo</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Control de inventario</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Facturación avanzada y seguros</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Notificaciones SMS + WhatsApp</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Análisis e informes detallados</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Integración web</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Soporte prioritario</li>
                 </ul>
               </div>
-              <Button asChild className="mt-8 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-lg">
-                <Link to="/auth" hash="register">Empezar Ahora</Link>
+              <Button asChild className="mt-8 w-full bg-blue-500 hover:bg-blue-400 text-white font-bold shadow-lg">
+                <Link to="/auth" hash="register">Iniciar prueba de 14 días</Link>
               </Button>
             </div>
 
-            {/* Plan 3 */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-8 flex flex-col justify-between">
+            {/* Enterprise */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
               <div>
-                <h3 className="text-lg font-bold text-white">Plan Red de Clínicas</h3>
-                <p className="text-xs text-slate-400 mt-1">Franquicias y grupos dentales multi-centro</p>
-                <div className="mt-6 flex items-baseline">
-                  <span className="text-4xl font-extrabold text-white">169 €</span>
-                  <span className="text-xs text-slate-400 ml-1">/ mes + IVA</span>
+                <h3 className="text-xl font-bold text-white">Enterprise</h3>
+                <p className="text-xs text-slate-400 mt-2">Para grupos dentales con múltiples ubicaciones</p>
+                <div className="mt-6">
+                  <span className="text-2xl font-extrabold text-white leading-none block">Personalizado</span>
+                  <span className="text-[10px] text-slate-400 block mt-1">Precios según el número de clínicas</span>
                 </div>
                 <ul className="mt-8 space-y-3 text-xs text-slate-300">
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Gabinetes e instalaciones ilimitadas</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Múltiples Certificados Digitales por sede</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Soporte telefónico prioritario 24/7</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400" /> Migración de datos sin coste</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Usuarios y clínicas ilimitados</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión multi-sede</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Todo lo incluido en Pro</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Control de inventario</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Integraciones y API</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Opción marca blanca</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Garantía SLA</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Onboarding personalizado</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Soporte prioritario 24/7</li>
                 </ul>
               </div>
               <Button asChild variant="outline" className="mt-8 w-full border-slate-700 hover:bg-slate-800 text-white">
-                <Link to="/auth">Contactar Ventas</Link>
+                <Link to="/auth">Contactar ventas</Link>
               </Button>
             </div>
           </div>
