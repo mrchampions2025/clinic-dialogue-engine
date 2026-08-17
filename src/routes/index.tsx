@@ -452,32 +452,7 @@ function SaaSLandingPage() {
             </p>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Gratuito */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-white">Gratuito</h3>
-                <p className="text-xs text-slate-400 mt-2">Perfecto para empezar como profesional independiente</p>
-                <div className="mt-6 flex items-baseline">
-                  <span className="text-4xl font-extrabold text-white">0 €</span>
-                  <span className="text-xs text-slate-400 ml-1">/ mes</span>
-                </div>
-                <p className="text-[10px] text-emerald-400 mt-1 font-medium">Gratis para siempre • Sin tarjeta de crédito</p>
-                <ul className="mt-8 space-y-3 text-xs text-slate-300">
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> 1 usuario</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Hasta 250 pacientes</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> 500 MB de almacenamiento</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de citas</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Gestión de pacientes</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Informes básicos</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Soporte por correo electrónico</li>
-                </ul>
-              </div>
-              <Button asChild variant="outline" className="mt-8 w-full border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300">
-                <Link to="/auth" hash="register">Registrarse gratis</Link>
-              </Button>
-            </div>
-
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Starter */}
             <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
               <div>
@@ -501,14 +476,14 @@ function SaaSLandingPage() {
                   <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Soporte por email</li>
                 </ul>
               </div>
-              <Button asChild variant="outline" className="mt-8 w-full border-slate-700 hover:bg-slate-800 text-white">
+              <Button asChild className="mt-8 w-full border border-slate-700 bg-slate-800/50 hover:bg-slate-700 text-white font-medium shadow-none">
                 <Link to="/auth" hash="register">Comenzar</Link>
               </Button>
             </div>
 
             {/* Pro - Featured */}
             <div className="bg-[#0f293e] border-2 border-blue-500 rounded-3xl p-6 flex flex-col justify-between relative shadow-2xl shadow-blue-600/20 lg:scale-105 z-10">
-              <div className="absolute -top-3.5 left-6 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
                 Más Popular
               </div>
               <div>
@@ -561,7 +536,7 @@ function SaaSLandingPage() {
                   <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0" /> Soporte prioritario 24/7</li>
                 </ul>
               </div>
-              <Button asChild variant="outline" className="mt-8 w-full border-slate-700 hover:bg-slate-800 text-white">
+              <Button asChild className="mt-8 w-full border border-slate-700 bg-slate-800/50 hover:bg-slate-700 text-white font-medium shadow-none">
                 <Link to="/auth">Contactar ventas</Link>
               </Button>
             </div>
