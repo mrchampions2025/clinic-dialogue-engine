@@ -395,14 +395,17 @@ function AdminPresupuestosPage() {
       {/* Editor de Presupuestos Modal */}
       {openBudgetEditor && (
         <BudgetEditorDialog
+          key={editingBudget?.id ?? "new"}
           open={openBudgetEditor}
-          onOpenChange={setOpenBudgetEditor}
-          patientId={targetPatientForNew}
-          initial={editingBudget || undefined}
-          onSaved={() => {
-            refetch();
-            queryClient.invalidateQueries({ queryKey: ["admin_budgets"] });
+          onOpenChange={(v) => {
+            setOpenBudgetEditor(v);
+            if (!v) {
+              refetch();
+              queryClient.invalidateQueries({ queryKey: ["admin_budgets"] });
+            }
           }}
+          patientId={targetPatientForNew}
+          budget={editingBudget}
         />
       )}
 
