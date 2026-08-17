@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminPresupuestosRouteImport } from './routes/_authenticated/admin.presupuestos'
 import { Route as AuthenticatedAdminTratamientosRouteImport } from './routes/_authenticated/admin.tratamientos'
 import { Route as AuthenticatedSuperadminIndexRouteImport } from './routes/_authenticated/superadmin.index'
+import { Route as CSlugIndexRouteImport } from './routes/c.$slug.index'
 import { Route as CSlugRegistroRouteImport } from './routes/c.$slug.registro'
 import { Route as AuthenticatedAdminPacientesIndexRouteImport } from './routes/_authenticated/admin.pacientes.index'
 import { Route as AuthenticatedAdminPacientesIdRouteImport } from './routes/_authenticated/admin.pacientes.$id'
@@ -113,6 +114,11 @@ const AuthenticatedSuperadminIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSuperadminRoute,
   } as any)
+const CSlugIndexRoute = CSlugIndexRouteImport.update({
+  id: '/c/$slug/',
+  path: '/c/$slug/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CSlugRegistroRoute = CSlugRegistroRouteImport.update({
   id: '/c/$slug/registro',
   path: '/c/$slug/registro',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/c/$slug/registro': typeof CSlugRegistroRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/superadmin/': typeof AuthenticatedSuperadminIndexRoute
+  '/c/$slug/': typeof CSlugIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
   '/admin/pacientes/': typeof AuthenticatedAdminPacientesIndexRoute
 }
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/c/$slug/registro': typeof CSlugRegistroRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/superadmin': typeof AuthenticatedSuperadminIndexRoute
+  '/c/$slug': typeof CSlugIndexRoute
   '/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
   '/admin/pacientes': typeof AuthenticatedAdminPacientesIndexRoute
 }
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/c/$slug/registro': typeof CSlugRegistroRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/superadmin/': typeof AuthenticatedSuperadminIndexRoute
+  '/c/$slug/': typeof CSlugIndexRoute
   '/_authenticated/admin/pacientes/$id': typeof AuthenticatedAdminPacientesIdRoute
   '/_authenticated/admin/pacientes/': typeof AuthenticatedAdminPacientesIndexRoute
 }
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/c/$slug/registro'
     | '/admin/'
     | '/superadmin/'
+    | '/c/$slug/'
     | '/admin/pacientes/$id'
     | '/admin/pacientes/'
   fileRoutesByTo: FileRoutesByTo
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/c/$slug/registro'
     | '/admin'
     | '/superadmin'
+    | '/c/$slug'
     | '/admin/pacientes/$id'
     | '/admin/pacientes'
   id:
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/c/$slug/registro'
     | '/_authenticated/admin/'
     | '/_authenticated/superadmin/'
+    | '/c/$slug/'
     | '/_authenticated/admin/pacientes/$id'
     | '/_authenticated/admin/pacientes/'
   fileRoutesById: FileRoutesById
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   ApiWhatsappRemindersRoute: typeof ApiWhatsappRemindersRoute
   ApiWhatsappWebhookRoute: typeof ApiWhatsappWebhookRoute
   CSlugRegistroRoute: typeof CSlugRegistroRoute
+  CSlugIndexRoute: typeof CSlugIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSuperadminIndexRouteImport
       parentRoute: typeof AuthenticatedSuperadminRoute
     }
+    '/c/$slug/': {
+      id: '/c/$slug/'
+      path: '/c/$slug'
+      fullPath: '/c/$slug/'
+      preLoaderRoute: typeof CSlugIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/c/$slug/registro': {
       id: '/c/$slug/registro'
       path: '/c/$slug/registro'
@@ -463,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWhatsappRemindersRoute: ApiWhatsappRemindersRoute,
   ApiWhatsappWebhookRoute: ApiWhatsappWebhookRoute,
   CSlugRegistroRoute: CSlugRegistroRoute,
+  CSlugIndexRoute: CSlugIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

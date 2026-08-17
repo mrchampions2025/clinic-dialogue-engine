@@ -110,13 +110,24 @@ export async function ensureClinicAndRole(userId: string, email: string): Promis
   const { role } = await getUserRoleData(userId);
   if (role) return; // Ya tiene rol y clínica asignada
 
-  // 1. Crear nueva clínica para este usuario
-  const clinicName = `Clínica ${email.split('@')[0]}`;
-  const slug = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random() * 1000);
+  // 1. Obtener datos extra (metadata) del usuario
+  const { data: { user } } = await supabase.auth.getUser();
+  const metadata = user?.user_metadata || {};
+  
+  const clinicName = metadata.clinic_name || `Clínica ${email.split('@')[0]}`;
+  const slug = (metadata.clinic_name || email.split('@')[0])
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-") + "-" + Math.floor(Math.random() * 1000);
+  const nif = metadata.nif || null;
+  const phone = metadata.phone || null;
   
   const { data: clinic, error: clinicErr } = await supabase.from("clinics").insert({
     name: clinicName,
     slug: slug,
+    nif: nif,
+    phone: phone
   }).select("id").single();
   
   if (clinicErr) {

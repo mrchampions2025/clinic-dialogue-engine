@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS public.clinics (
     active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     -- Columnas extendidas SaaS
+    nif TEXT,
+    phone TEXT,
     plan TEXT DEFAULT 'Pro Plan',
     notes TEXT,
     modules JSONB DEFAULT '{"whatsappBot": true, "verifactu": true, "digitalSign": true}'::jsonb

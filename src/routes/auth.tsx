@@ -29,6 +29,9 @@ function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">(window.location.hash === '#register' ? 'signup' : 'login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [clinicName, setClinicName] = useState("");
+  const [nif, setNif] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleRedirect = async (userId: string, userEmail?: string) => {
@@ -70,7 +73,14 @@ function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { 
+            emailRedirectTo: window.location.origin,
+            data: {
+              clinic_name: clinicName,
+              nif: nif,
+              phone: phone,
+            }
+          },
         });
         if (error) throw error;
         if (data.session) await handleRedirect(data.session.user.id, data.session.user.email);
@@ -141,6 +151,47 @@ function AuthPage() {
               className="bg-slate-800/80 border-slate-700 text-white placeholder:text-slate-500"
             />
           </div>
+
+          {mode === "signup" && (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="clinicName" className="text-xs font-semibold text-slate-300">Nombre de la Clínica</Label>
+                <Input
+                  id="clinicName"
+                  type="text"
+                  required
+                  value={clinicName}
+                  onChange={(e) => setClinicName(e.target.value)}
+                  placeholder="Ej. Clínica Dental San José"
+                  className="bg-slate-800/80 border-slate-700 text-white placeholder:text-slate-500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="nif" className="text-xs font-semibold text-slate-300">NIF / CIF</Label>
+                <Input
+                  id="nif"
+                  type="text"
+                  required
+                  value={nif}
+                  onChange={(e) => setNif(e.target.value)}
+                  placeholder="Ej. B12345678"
+                  className="bg-slate-800/80 border-slate-700 text-white placeholder:text-slate-500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="phone" className="text-xs font-semibold text-slate-300">Teléfono (Opcional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Ej. 910 000 000"
+                  className="bg-slate-800/80 border-slate-700 text-white placeholder:text-slate-500"
+                />
+              </div>
+            </>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="password" className="text-xs font-semibold text-slate-300">Contraseña</Label>
             <Input
