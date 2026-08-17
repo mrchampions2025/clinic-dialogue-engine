@@ -39,8 +39,11 @@ function AuthPage() {
       if (userEmail) {
         await ensureClinicAndRole(userId, userEmail, metadata);
       }
-      // Auto-crear configuración de empresa por defecto en el primer acceso
-      await ensureDefaultClinicSettings(userEmail || email);
+      
+      const role = await getUserRole(userId);
+      if (role !== "patient" && role !== "superadmin") {
+        await ensureDefaultClinicSettings(userEmail || email);
+      }
     } catch (e) {
       console.warn("Error en el aprovisionamiento SaaS auth:", e);
     }

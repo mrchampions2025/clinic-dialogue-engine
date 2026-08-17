@@ -114,6 +114,25 @@ export async function ensureClinicAndRole(userId: string, email: string, fallbac
   const { data: { user } } = await supabase.auth.getUser();
   const metadata = user?.user_metadata || fallbackMetadata || {};
   
+  // SI ES UN PACIENTE REGISTRADO DESDE EL ENLACE PÚBLICO DE LA CLÍNICA:
+  if (metadata.role === "patient") {
+    const targetClinicId = metadata.clinic_id || "00000000-0000-0000-0000-000000000001";
+    await supabase.from("user_roles").upsert({
+      user_id: userId,
+      role: "patient",
+      clinic_id: targetClinicId,
+    });
+    
+    await supabase.from("patients").upsert({
+      id: userId,
+      nombre: metadata.full_name || metadata.nombre || email.split("@")[0],
+      email: email,
+      clinic_id: targetClinicId,
+    });
+    return;
+  }
+
+  // SI ES UN REGISTRO DE NUEVA CLÍNICA / CLIENTE SAAS:
   const clinicName = metadata.clinic_name || `Clínica ${email.split('@')[0]}`;
   const slug = (metadata.clinic_name || email.split('@')[0])
     .toLowerCase()
