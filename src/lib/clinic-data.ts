@@ -331,3 +331,49 @@ export async function listBudgets(): Promise<any[]> {
   if (error && error.code !== "42P01") throw error;
   return data || [];
 }
+
+/* SaaS Invoices */
+export type SaasInvoice = {
+  id: string;
+  clinic_id: string;
+  numero: string;
+  fecha: string;
+  concepto: string;
+  importe: number;
+  estado: "Pagado" | "Impago" | "Pendiente";
+  created_at?: string;
+};
+
+export async function getSaasInvoices(clinicId: string): Promise<SaasInvoice[]> {
+  const { data, error } = await supabase
+    .from("saas_invoices")
+    .select("*")
+    .eq("clinic_id", clinicId)
+    .order("fecha", { ascending: false });
+
+  if (error) {
+    if (error.code === "42P01") return []; // Table doesn't exist yet (not migrated)
+    throw new Error(error.message);
+  }
+  return data as SaasInvoice[];
+}
+
+export async function createSaasInvoice(invoice: Partial<SaasInvoice>): Promise<SaasInvoice> {
+  const payload = {
+    clinic_id: invoice.clinic_id,
+    numero: invoice.numero,
+    fecha: invoice.fecha,
+    concepto: invoice.concepto,
+    importe: invoice.importe,
+    estado: invoice.estado || "Pagado",
+  };
+
+  const { data, error } = await supabase
+    .from("saas_invoices")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as SaasInvoice;
+}

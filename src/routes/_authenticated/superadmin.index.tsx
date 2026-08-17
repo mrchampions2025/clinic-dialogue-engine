@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listClinics, createClinicManual, toggleClinicStatus, deleteClinic, getClinicInternalBillingStats, Clinic } from "@/lib/clinic-data";
+import { 
+  listClinics, 
+  createClinicManual, 
+  toggleClinicStatus, 
+  deleteClinic, 
+  updateClinicDetails,
+  getSaasInvoices,
+  createSaasInvoice,
+  SaasInvoice,
+  Clinic 
+} from "@/lib/clinic-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,16 +32,6 @@ export const Route = createFileRoute("/_authenticated/superadmin/")({
   component: SuperAdminDashboard,
 });
 
-// Estructura de facturas SaaS de la plataforma
-type SaasInvoice = {
-  id: string;
-  numero: string;
-  fecha: string;
-  concepto: string;
-  importe: number;
-  estado: "Pagado" | "Impago" | "Pendiente";
-};
-
 function SuperAdminDashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -46,22 +46,12 @@ function SuperAdminDashboard() {
   const [newClinicSlug, setNewClinicSlug] = useState("");
   const [newClinicPlan, setNewClinicPlan] = useState("Pro Plan");
 
-  // Estado para gestión de planes locales
-  const [clinicPlans, setClinicPlans] = useState<Record<string, string>>({});
-
   // Estado para confirmación de eliminación
   const [clinicToDelete, setClinicToDelete] = useState<Clinic | null>(null);
 
-  // Estado para Modal de Historial de Suscripciones SaaS
+  // Estados para Modales
   const [selectedClinicBilling, setSelectedClinicBilling] = useState<Clinic | null>(null);
-  const [saasInvoices, setSaasInvoices] = useState<Record<string, SaasInvoice[]>>({});
-
-  // Estado para Modal de Configuración de Módulos & Límites
   const [selectedClinicModules, setSelectedClinicModules] = useState<Clinic | null>(null);
-  const [clinicModulesState, setClinicModulesState] = useState<Record<string, { whatsappBot: boolean; verifactu: boolean; digitalSign: boolean; maxPatients: number }>>({});
-
-  // Estado para Notas Privadas del Cliente
-  const [clinicNotes, setClinicNotes] = useState<Record<string, string>>({});
   const [editingNoteClinic, setEditingNoteClinic] = useState<Clinic | null>(null);
   const [tempNoteText, setTempNoteText] = useState("");
 
@@ -69,6 +59,13 @@ function SuperAdminDashboard() {
   const { data: clinics = [], isLoading, isRefetching, refetch } = useQuery({
     queryKey: ["clinics"],
     queryFn: listClinics,
+  });
+
+  // React Query: Obtener facturas SaaS de la clínica seleccionada
+  const { data: selectedInvoices = [], isLoading: isLoadingInvoices } = useQuery({
+    queryKey: ["saasInvoices", selectedClinicBilling?.id],
+    queryFn: () => getSaasInvoices(selectedClinicBilling!.id),
+    enabled: !!selectedClinicBilling,
   });
 
   // Mutación: Crear clínica manualmente
@@ -79,7 +76,8 @@ function SuperAdminDashboard() {
     },
     onSuccess: (createdClinic) => {
       queryClient.invalidateQueries({ queryKey: ["clinics"] });
-      setClinicPlans(prev => ({ ...prev, [createdClinic.id]: newClinicPlan }));
+      // update plan immediately
+      updateDetailsMutation.mutate({ id: createdClinic.id, updates: { plan: newClinicPlan } });
       toast.success(`Licencia creada con éxito para "${createdClinic.name}"`);
       setIsCreateOpen(false);
       setNewClinicName("");
@@ -108,6 +106,19 @@ function SuperAdminDashboard() {
     },
   });
 
+  // Mutación: Actualizar detalles de clínica (Plan, Módulos, Notas)
+  const updateDetailsMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Clinic> }) => {
+      await updateClinicDetails(id, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clinics"] });
+    },
+    onError: (err: Error) => {
+      toast.error(`Error actualizando cliente: ${err.message}`);
+    },
+  });
+
   // Mutación: Eliminar clínica
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -123,6 +134,19 @@ function SuperAdminDashboard() {
     },
   });
 
+  // Mutación: Crear Factura SaaS
+  const createInvoiceMutation = useMutation({
+    mutationFn: createSaasInvoice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saasInvoices", selectedClinicBilling?.id] });
+      toast.success("Cobro registrado correctamente");
+    },
+    onError: (err: Error) => {
+      toast.error(`Error registrando cobro: ${err.message}`);
+    },
+  });
+
+
   // Exportar reporte mensual en CSV
   const handleExportCSV = () => {
     if (clinics.length === 0) {
@@ -131,12 +155,12 @@ function SuperAdminDashboard() {
     }
 
     const headers = ["ID", "Nombre Empresa", "Slug", "Estado Licencia", "Plan Suscripcion", "Fecha Registro"];
-    const rows = clinics.map((c, i) => [
+    const rows = clinics.map((c) => [
       c.id,
       `"${c.name}"`,
       c.slug,
       c.active ? "Activa (Al dia)" : "SUSPENDIDA (Acceso Bloqueado)",
-      clinicPlans[c.id] || (i === 2 ? "Starter Plan" : "Pro Plan"),
+      c.plan || "Pro Plan",
       new Date(c.created_at).toLocaleDateString(),
     ]);
 
@@ -171,65 +195,29 @@ function SuperAdminDashboard() {
 
   // Cambiar plan de clínica
   const handleChangePlan = (clinicId: string, planName: string) => {
-    setClinicPlans(prev => ({ ...prev, [clinicId]: planName }));
+    updateDetailsMutation.mutate({ id: clinicId, updates: { plan: planName } });
     toast.success(`Plan actualizado a "${planName}"`);
   };
 
-  // Agregar factura SaaS ficticia/manual para una clínica
+  // Agregar factura SaaS manual
   const handleAddSaasInvoice = (clinicId: string, plan: string) => {
     const price = plan.includes("Enterprise") ? 299 : plan.includes("Starter") ? 79 : 149;
-    const newInv: SaasInvoice = {
-      id: `saas-${Date.now()}`,
+    createInvoiceMutation.mutate({
+      clinic_id: clinicId,
       numero: `FAC-SAAS-${Math.floor(1000 + Math.random() * 9000)}`,
       fecha: new Date().toISOString().slice(0, 10),
       concepto: `Cuota Mensual SaaS - ${plan}`,
       importe: price,
       estado: "Pagado",
-    };
-
-    setSaasInvoices(prev => ({
-      ...prev,
-      [clinicId]: [newInv, ...(prev[clinicId] || [])],
-    }));
-
-    toast.success(`Cobro registrado correctamente: ${newInv.numero} (${price}€)`);
+    });
   };
-
-  // Obtener facturas SaaS para una clínica (o inicializar por defecto)
-  const getClinicSaasInvoices = (clinic: Clinic): SaasInvoice[] => {
-    const existing = saasInvoices[clinic.id];
-    if (existing) return existing;
-    const plan = clinicPlans[clinic.id] || "Pro Plan";
-
-    const price = plan.includes("Enterprise") ? 299 : plan.includes("Starter") ? 79 : 149;
-    return [
-      {
-        id: `saas-1-${clinic.id}`,
-        numero: `FAC-SAAS-2026-08`,
-        fecha: "2026-08-01",
-        concepto: `Cuota Mensual SaaS - ${plan}`,
-        importe: price,
-        estado: clinic.active ? "Pagado" : "Impago",
-      },
-      {
-        id: `saas-2-${clinic.id}`,
-        numero: `FAC-SAAS-2026-07`,
-        fecha: "2026-07-01",
-        concepto: `Cuota Mensual SaaS - ${plan}`,
-        importe: price,
-        estado: "Pagado",
-      },
-    ];
-  };
-
 
   // Obtener estado de módulos para una clínica
-  const getClinicModules = (clinicId: string) => {
-    return clinicModulesState[clinicId] || {
+  const getClinicModules = (clinic: Clinic) => {
+    return clinic.modules || {
       whatsappBot: true,
       verifactu: true,
       digitalSign: true,
-      maxPatients: 5000,
     };
   };
 
@@ -248,9 +236,9 @@ function SuperAdminDashboard() {
   // Cálculo dinámico de métricas SaaS
   const activeCount = clinics.filter(c => c.active).length;
   const suspendedCount = clinics.filter(c => !c.active).length;
-  const estimatedMRR = clinics.reduce((acc, c, i) => {
+  const estimatedMRR = clinics.reduce((acc, c) => {
     if (!c.active) return acc;
-    const p = clinicPlans[c.id] || (i === 2 ? "Starter Plan" : "Pro Plan");
+    const p = c.plan || "Pro Plan";
     if (p.includes("Starter")) return acc + 79;
     if (p.includes("Enterprise")) return acc + 299;
     return acc + 149;
@@ -435,9 +423,9 @@ function SuperAdminDashboard() {
               )}
 
               {filteredClinics.map((c, i) => {
-                const plan = clinicPlans[c.id] || (i === 2 ? "Starter Plan" : "Pro Plan");
+                const plan = c.plan || "Pro Plan";
                 const price = plan.includes("Enterprise") ? 299 : plan.includes("Starter") ? 79 : 149;
-                const modules = getClinicModules(c.id);
+                const modules = getClinicModules(c);
 
                 return (
                   <TableRow key={c.id} className="border-slate-800 hover:bg-slate-800/30 transition-colors group">
@@ -454,7 +442,7 @@ function SuperAdminDashboard() {
                         <div>
                           <p className="font-bold text-slate-200 flex items-center gap-1.5">
                             {c.name}
-                            {clinicNotes[c.id] && (
+                            {c.notes && (
                               <span className="size-2 rounded-full bg-indigo-400 inline-block" title="Tiene nota privada" />
                             )}
                           </p>
@@ -577,7 +565,7 @@ function SuperAdminDashboard() {
                               <Sliders className="size-3.5 mr-2 text-cyan-400" /> Módulos y Límites de Plan
                             </DropdownMenuItem>
 
-                            <DropdownMenuItem onClick={() => { setEditingNoteClinic(c); setTempNoteText(clinicNotes[c.id] || ""); }} className="hover:bg-slate-800 text-xs cursor-pointer">
+                            <DropdownMenuItem onClick={() => { setEditingNoteClinic(c); setTempNoteText(c.notes || ""); }} className="hover:bg-slate-800 text-xs cursor-pointer">
                               <FileSpreadsheet className="size-3.5 mr-2 text-amber-400" /> Notas Privadas del Cliente
                             </DropdownMenuItem>
 
@@ -652,45 +640,52 @@ function SuperAdminDashboard() {
               <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
                 <div>
                   <p className="text-xs text-slate-400">Plan Actual:</p>
-                  <p className="text-sm font-bold text-white">{clinicPlans[selectedClinicBilling.id] || "Pro Plan"}</p>
+                  <p className="text-sm font-bold text-white">{selectedClinicBilling.plan || "Pro Plan"}</p>
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => handleAddSaasInvoice(selectedClinicBilling.id, clinicPlans[selectedClinicBilling.id] || "Pro Plan")}
+                  onClick={() => handleAddSaasInvoice(selectedClinicBilling.id, selectedClinicBilling.plan || "Pro Plan")}
+                  disabled={createInvoiceMutation.isPending}
                   className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-8"
                 >
-                  <Plus className="size-3.5 mr-1" /> Registrar Cobro Manual
+                  <Plus className="size-3.5 mr-1" /> {createInvoiceMutation.isPending ? "Registrando..." : "Registrar Cobro Manual"}
                 </Button>
               </div>
 
               <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                {getClinicSaasInvoices(selectedClinicBilling).map((inv) => (
-                  <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-950/60 border border-slate-800 text-xs">
-                    <div>
-                      <p className="font-bold text-slate-200">{inv.numero} · {inv.concepto}</p>
-                      <p className="text-[10px] text-slate-500">Fecha: {inv.fecha}</p>
-                    </div>
-                    <div className="text-right flex items-center gap-3">
+                {isLoadingInvoices ? (
+                  <p className="text-xs text-slate-500 text-center py-4">Cargando facturas...</p>
+                ) : selectedInvoices.length === 0 ? (
+                  <p className="text-xs text-slate-500 text-center py-4">No hay facturas registradas.</p>
+                ) : (
+                  selectedInvoices.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-950/60 border border-slate-800 text-xs">
                       <div>
-                        <p className="font-mono font-bold text-white">{inv.importe} €</p>
-                        <span className={`text-[10px] font-semibold ${
-                          inv.estado === "Pagado" ? "text-emerald-400" : "text-red-400"
-                        }`}>
-                          {inv.estado}
-                        </span>
+                        <p className="font-bold text-slate-200">{inv.numero} · {inv.concepto}</p>
+                        <p className="text-[10px] text-slate-500">Fecha: {inv.fecha}</p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => toast.success(`Descargando factura ${inv.numero}.pdf`)}
-                        className="h-7 w-7 text-slate-400 hover:text-white"
-                        title="Descargar Factura PDF"
-                      >
-                        <Download className="size-3.5" />
-                      </Button>
+                      <div className="text-right flex items-center gap-3">
+                        <div>
+                          <p className="font-mono font-bold text-white">{inv.importe} €</p>
+                          <span className={`text-[10px] font-semibold ${
+                            inv.estado === "Pagado" ? "text-emerald-400" : "text-red-400"
+                          }`}>
+                            {inv.estado}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toast.success(`Descargando factura ${inv.numero}.pdf`)}
+                          className="h-7 w-7 text-slate-400 hover:text-white"
+                          title="Descargar Factura PDF"
+                        >
+                          <Download className="size-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -725,12 +720,12 @@ function SuperAdminDashboard() {
                   <p className="text-[10px] text-slate-400">Respuestas y agendamiento automático 24/7</p>
                 </div>
                 <Switch
-                  checked={getClinicModules(selectedClinicModules.id).whatsappBot}
+                  checked={getClinicModules(selectedClinicModules).whatsappBot}
                   onCheckedChange={(checked) => {
-                    setClinicModulesState(prev => ({
-                      ...prev,
-                      [selectedClinicModules.id]: { ...getClinicModules(selectedClinicModules.id), whatsappBot: checked },
-                    }));
+                    updateDetailsMutation.mutate({
+                      id: selectedClinicModules.id,
+                      updates: { modules: { ...getClinicModules(selectedClinicModules), whatsappBot: checked } }
+                    });
                     toast.success(checked ? "Módulo Bot IA Activado" : "Módulo Bot IA Desactivado");
                   }}
                 />
@@ -744,12 +739,12 @@ function SuperAdminDashboard() {
                   <p className="text-[10px] text-slate-400">Generación y firma fiscal de facturas legales</p>
                 </div>
                 <Switch
-                  checked={getClinicModules(selectedClinicModules.id).verifactu}
+                  checked={getClinicModules(selectedClinicModules).verifactu}
                   onCheckedChange={(checked) => {
-                    setClinicModulesState(prev => ({
-                      ...prev,
-                      [selectedClinicModules.id]: { ...getClinicModules(selectedClinicModules.id), verifactu: checked },
-                    }));
+                    updateDetailsMutation.mutate({
+                      id: selectedClinicModules.id,
+                      updates: { modules: { ...getClinicModules(selectedClinicModules), verifactu: checked } }
+                    });
                     toast.success(checked ? "Módulo Veri*Factu Activado" : "Módulo Veri*Factu Desactivado");
                   }}
                 />
@@ -763,12 +758,12 @@ function SuperAdminDashboard() {
                   <p className="text-[10px] text-slate-400">Firma táctil en tablet/pantalla de paciente</p>
                 </div>
                 <Switch
-                  checked={getClinicModules(selectedClinicModules.id).digitalSign}
+                  checked={getClinicModules(selectedClinicModules).digitalSign}
                   onCheckedChange={(checked) => {
-                    setClinicModulesState(prev => ({
-                      ...prev,
-                      [selectedClinicModules.id]: { ...getClinicModules(selectedClinicModules.id), digitalSign: checked },
-                    }));
+                    updateDetailsMutation.mutate({
+                      id: selectedClinicModules.id,
+                      updates: { modules: { ...getClinicModules(selectedClinicModules), digitalSign: checked } }
+                    });
                     toast.success(checked ? "Firma Digital Activada" : "Firma Digital Desactivada");
                   }}
                 />
@@ -777,7 +772,7 @@ function SuperAdminDashboard() {
 
             <DialogFooter>
               <Button onClick={() => setSelectedClinicModules(null)} className="bg-indigo-600 hover:bg-indigo-500 text-white">
-                Guardar Configuración
+                Cerrar Configuración
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -812,7 +807,7 @@ function SuperAdminDashboard() {
               </Button>
               <Button
                 onClick={() => {
-                  setClinicNotes(prev => ({ ...prev, [editingNoteClinic.id]: tempNoteText }));
+                  updateDetailsMutation.mutate({ id: editingNoteClinic.id, updates: { notes: tempNoteText } });
                   toast.success("Nota privada guardada");
                   setEditingNoteClinic(null);
                 }}
