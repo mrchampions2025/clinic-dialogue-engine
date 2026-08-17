@@ -108,39 +108,51 @@ export async function getClinicInternalBillingStats(clinicId: string) {
 
 export async function ensureClinicAndRole(userId: string, email: string, fallbackMetadata?: any): Promise<void> {
   const { role } = await getUserRoleData(userId);
-  if (role) return; // Ya tiene rol y clínica asignada
+  if (role) {
+    console.log("[ensureClinicAndRole] User already has a role:", role);
+    return; // Ya tiene rol y clínica asignada
+  }
 
   // 1. Obtener datos extra (metadata) del usuario
   const { data: { user } } = await supabase.auth.getUser();
-  const metadata = user?.user_metadata || fallbackMetadata || {};
+  const metadata = user?.user_metadata || {};
   
+  const finalMetadata = { ...fallbackMetadata, ...metadata };
+  console.log("[ensureClinicAndRole] Evaluated metadata:", finalMetadata);
+
   // SI ES UN PACIENTE REGISTRADO DESDE EL ENLACE PÚBLICO DE LA CLÍNICA:
-  if (metadata.role === "patient") {
-    const targetClinicId = metadata.clinic_id || "00000000-0000-0000-0000-000000000001";
-    await supabase.from("user_roles").upsert({
+  if (finalMetadata.role === "patient") {
+    console.log("[ensureClinicAndRole] Registrando usuario como PACIENTE.");
+    const targetClinicId = finalMetadata.clinic_id || "00000000-0000-0000-0000-000000000001";
+    
+    const { error: roleErr } = await supabase.from("user_roles").upsert({
       user_id: userId,
       role: "patient",
       clinic_id: targetClinicId,
     });
+    if (roleErr) console.error("Error setting patient role:", roleErr);
     
-    await supabase.from("patients").upsert({
+    const { error: patErr } = await supabase.from("patients").upsert({
       id: userId,
-      nombre: metadata.full_name || metadata.nombre || email.split("@")[0],
+      nombre: finalMetadata.full_name || finalMetadata.nombre || email.split("@")[0],
       email: email,
       clinic_id: targetClinicId,
     });
+    if (patErr) console.error("Error setting patient profile:", patErr);
+    
     return;
   }
 
+  console.log("[ensureClinicAndRole] Registrando usuario como NUEVA CLÍNICA.");
   // SI ES UN REGISTRO DE NUEVA CLÍNICA / CLIENTE SAAS:
-  const clinicName = metadata.clinic_name || `Clínica ${email.split('@')[0]}`;
-  const slug = (metadata.clinic_name || email.split('@')[0])
+  const clinicName = finalMetadata.clinic_name || `Clínica ${email.split('@')[0]}`;
+  const slug = (finalMetadata.clinic_name || email.split('@')[0])
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]/g, "-")
     .replace(/-+/g, "-") + "-" + Math.floor(Math.random() * 1000);
-  const nif = metadata.nif || null;
-  const phone = metadata.phone || null;
+  const nif = finalMetadata.nif || null;
+  const phone = finalMetadata.phone || null;
   
   const { data: clinic, error: clinicErr } = await supabase.from("clinics").insert({
     name: clinicName,
