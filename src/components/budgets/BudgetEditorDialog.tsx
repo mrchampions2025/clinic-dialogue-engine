@@ -39,8 +39,14 @@ export function BudgetEditorDialog({
   const [titulo, setTitulo] = useState(budget?.titulo ?? "Plan de tratamiento");
   const [fecha, setFecha] = useState(budget?.fecha ?? today);
   const [validoHasta, setValidoHasta] = useState(budget?.valido_hasta ?? in30);
+  const [descuento, setDescuento] = useState(Number(budget?.descuento ?? 0));
+  const [notas, setNotas] = useState(budget?.notas ?? "");
+  const [condiciones, setCondiciones] = useState(budget?.condiciones ?? DEFAULT_CONDICIONES);
   const [aseguradora, setAseguradora] = useState(budget?.notas?.match(/\[Seguro: (.*?)\]/)?.[1] ?? "Privado");
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0);
+  const [items, setItems] = useState<BudgetItem[]>(
+    budget?.budget_items?.length ? budget.budget_items.map((i) => ({ ...i })) : [emptyItem()],
+  );
 
   const applyPorcentajeDescuento = (pct: number) => {
     setDescuentoPorcentaje(pct);
