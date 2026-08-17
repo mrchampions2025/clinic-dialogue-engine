@@ -39,12 +39,17 @@ export function BudgetEditorDialog({
   const [titulo, setTitulo] = useState(budget?.titulo ?? "Plan de tratamiento");
   const [fecha, setFecha] = useState(budget?.fecha ?? today);
   const [validoHasta, setValidoHasta] = useState(budget?.valido_hasta ?? in30);
-  const [descuento, setDescuento] = useState(Number(budget?.descuento ?? 0));
-  const [notas, setNotas] = useState(budget?.notas ?? "");
-  const [condiciones, setCondiciones] = useState(budget?.condiciones ?? DEFAULT_CONDICIONES);
-  const [items, setItems] = useState<BudgetItem[]>(
-    budget?.budget_items?.length ? budget.budget_items.map((i) => ({ ...i })) : [emptyItem()],
-  );
+  const [aseguradora, setAseguradora] = useState(budget?.notas?.match(/\[Seguro: (.*?)\]/)?.[1] ?? "Privado");
+  const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0);
+
+  const applyPorcentajeDescuento = (pct: number) => {
+    setDescuentoPorcentaje(pct);
+    if (pct > 0) {
+      const sub = items.reduce((acc, i) => acc + i.cantidad * i.precio, 0);
+      const descCalculado = Math.round((sub * (pct / 100)) * 100) / 100;
+      setDescuento(descCalculado);
+    }
+  };
 
   const { data: treatments = [] } = useQuery({ queryKey: ["treatments"], queryFn: listTreatments });
 
@@ -54,19 +59,23 @@ export function BudgetEditorDialog({
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, ...changes } : it)));
 
   const save = useMutation({
-    mutationFn: (estado: "Borrador" | "Pendiente") =>
-      saveBudget({
+    mutationFn: (estado: "Borrador" | "Pendiente") => {
+      const notasConSeguro = aseguradora !== "Privado"
+        ? `[Seguro: ${aseguradora}] ${notas}`
+        : notas;
+      return saveBudget({
         id: budget?.id,
         patient_id: patientId,
         titulo,
         fecha,
         valido_hasta: validoHasta || null,
         descuento,
-        notas: notas || null,
+        notas: notasConSeguro || null,
         condiciones: condiciones || null,
         estado,
         items,
-      }),
+      });
+    },
     onSuccess: (_d, estado) => {
       qc.invalidateQueries({ queryKey: ["patient_budgets", patientId] });
       toast.success(estado === "Borrador" ? "Borrador guardado" : "Presupuesto enviado al paciente");
@@ -83,21 +92,65 @@ export function BudgetEditorDialog({
         </DialogHeader>
 
         <div className="grid gap-5 py-2">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="grid gap-2 sm:col-span-3">
+          <div className="grid gap-4 sm:grid-cols-4">
+            <div className="grid gap-2 sm:col-span-4">
               <Label>Título del plan</Label>
               <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ej: Plan de ortodoncia invisible" />
             </div>
+
+            <div className="grid gap-2 sm:col-span-2">
+              <Label className="flex items-center gap-1.5 text-blue-600 font-bold">
+                Aseguradora / Cobertura
+              </Label>
+              <select
+                value={aseguradora}
+                onChange={(e) => {
+                  setAseguradora(e.target.value);
+                  if (e.target.value !== "Privado") {
+                    applyPorcentajeDescuento(15); // Aplicar 15% por defecto para mutua
+                  }
+                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="Privado">Privado (Sin Aseguradora)</option>
+                <option value="Sanitas Dental">Sanitas Dental</option>
+                <option value="Adeslas Dental">Adeslas Dental</option>
+                <option value="Asisa Dental">Asisa Dental</option>
+                <option value="DKV Seguros">DKV Seguros</option>
+                <option value="Caser / Santa Lucía">Caser / Santa Lucía / Otra Mutua</option>
+              </select>
+            </div>
+
             <div className="grid gap-2">
               <Label>Fecha de emisión</Label>
               <Input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
             </div>
+
             <div className="grid gap-2">
               <Label>Válido hasta</Label>
               <Input type="date" value={validoHasta ?? ""} onChange={(e) => setValidoHasta(e.target.value)} />
             </div>
-            <div className="grid gap-2">
-              <Label>Descuento global (€)</Label>
+
+            <div className="grid gap-2 sm:col-span-2">
+              <Label>Descuento por Cobertura / Mutua (%)</Label>
+              <div className="flex gap-2">
+                {[5, 10, 15, 20, 25].map((pct) => (
+                  <Button
+                    key={pct}
+                    type="button"
+                    variant={descuentoPorcentaje === pct ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 text-xs"
+                    onClick={() => applyPorcentajeDescuento(pct)}
+                  >
+                    -{pct}%
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-2 sm:col-span-2">
+              <Label>Descuento Global (€)</Label>
               <Input type="number" min="0" value={descuento} onChange={(e) => setDescuento(Number(e.target.value))} />
             </div>
           </div>
