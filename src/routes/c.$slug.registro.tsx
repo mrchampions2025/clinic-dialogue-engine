@@ -26,6 +26,10 @@ function PatientRegistrationPage() {
     queryKey: ["clinic-by-slug", slug],
     queryFn: async () => {
       try {
+        // 0. Obtener el nombre personalizado configurado por el doctor
+        const { data: settings } = await supabase.from("clinic_settings").select("nombre_comercial, razon_social").limit(1).maybeSingle();
+        const customName = settings?.nombre_comercial || settings?.razon_social;
+
         // 1. Intentar por slug exacto
         const { data: bySlug } = await supabase
           .from("clinics")
@@ -33,7 +37,7 @@ function PatientRegistrationPage() {
           .eq("slug", slug)
           .maybeSingle();
 
-        if (bySlug) return bySlug;
+        if (bySlug) return { ...bySlug, name: customName || bySlug.name };
 
         // 2. Fallback: Obtener la primera clínica de la plataforma
         const { data: firstClinic } = await supabase
@@ -42,7 +46,7 @@ function PatientRegistrationPage() {
           .limit(1)
           .maybeSingle();
 
-        if (firstClinic) return firstClinic;
+        if (firstClinic) return { ...firstClinic, name: customName || firstClinic.name };
 
         // 3. Fallback visual garantizado si no hay ninguna en DB
         const formattedName = slug
@@ -51,7 +55,7 @@ function PatientRegistrationPage() {
           
         return {
           id: "00000000-0000-0000-0000-000000000001",
-          name: formattedName,
+          name: customName || formattedName,
           slug: slug || "dentix-madrid",
           logo_url: null,
           active: true,
