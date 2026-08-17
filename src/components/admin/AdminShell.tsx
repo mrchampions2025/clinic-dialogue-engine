@@ -13,6 +13,8 @@ import {
   Menu,
   Bell,
   LogOut,
+  Package,
+  Shield,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,8 @@ const nav = [
   { to: "/admin/pacientes", label: "Pacientes", icon: Users },
   { to: "/admin/presupuestos", label: "Presupuestos", icon: FileText },
   { to: "/admin/tratamientos", label: "Tratamientos", icon: Stethoscope },
+  { to: "/admin/inventario", label: "Inventario", icon: Package },
+  { to: "/admin/seguros", label: "Seguros y Mutuas", icon: Shield },
   { to: "/admin/facturacion", label: "Facturación", icon: Receipt },
   { to: "/admin/configuracion", label: "Configuración", icon: Settings },
 ];

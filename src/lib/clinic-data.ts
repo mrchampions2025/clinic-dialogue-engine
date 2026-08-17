@@ -106,13 +106,13 @@ export async function getClinicInternalBillingStats(clinicId: string) {
 }
 
 
-export async function ensureClinicAndRole(userId: string, email: string): Promise<void> {
+export async function ensureClinicAndRole(userId: string, email: string, fallbackMetadata?: any): Promise<void> {
   const { role } = await getUserRoleData(userId);
   if (role) return; // Ya tiene rol y clínica asignada
 
   // 1. Obtener datos extra (metadata) del usuario
   const { data: { user } } = await supabase.auth.getUser();
-  const metadata = user?.user_metadata || {};
+  const metadata = user?.user_metadata || fallbackMetadata || {};
   
   const clinicName = metadata.clinic_name || `Clínica ${email.split('@')[0]}`;
   const slug = (metadata.clinic_name || email.split('@')[0])

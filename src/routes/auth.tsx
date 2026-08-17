@@ -34,10 +34,10 @@ function AuthPage() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleRedirect = async (userId: string, userEmail?: string) => {
+  const handleRedirect = async (userId: string, userEmail?: string, metadata?: any) => {
     try {
       if (userEmail) {
-        await ensureClinicAndRole(userId, userEmail);
+        await ensureClinicAndRole(userId, userEmail, metadata);
       }
       // Auto-crear configuración de empresa por defecto en el primer acceso
       await ensureDefaultClinicSettings(userEmail || email);
@@ -57,7 +57,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) handleRedirect(data.session.user.id, data.session.user.email);
+      if (data.session) handleRedirect(data.session.user.id, data.session.user.email, data.session.user.user_metadata);
     });
   }, [navigate]);
 
@@ -68,7 +68,7 @@ function AuthPage() {
       if (mode === "login") {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        await handleRedirect(data.user.id, data.user.email);
+        await handleRedirect(data.user.id, data.user.email, data.user.user_metadata);
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -83,10 +83,10 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        if (data.session) await handleRedirect(data.session.user.id, data.session.user.email);
+        if (data.session) await handleRedirect(data.session.user.id, data.session.user.email, data.session.user.user_metadata);
         else {
           toast.success("Cuenta creada correctamente. Te hemos enviado un email de confirmación 😊");
-          await handleRedirect(data.user?.id || "demo-user", email);
+          await handleRedirect(data.user?.id || "demo-user", email, data.user?.user_metadata);
         }
       }
     } catch (error) {
@@ -108,7 +108,7 @@ function AuthPage() {
     
     const { data } = await supabase.auth.getSession();
     if (data.session) {
-      await handleRedirect(data.session.user.id, data.session.user.email);
+      await handleRedirect(data.session.user.id, data.session.user.email, data.session.user.user_metadata);
     }
   }
 

@@ -92,8 +92,35 @@ function AdminConfiguracionPage() {
 
   return (
     <AdminShell title="Configuración SIF & Datos Fiscales" subtitle="IA, firma digital con certificado AEAT/FNMT y cumplimiento RD 1007/2023 / Orden HAC/1177/2024">
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Configuración IA WhatsApp */}
+      <div className="space-y-6">
+        {/* SaaS Plan & Limits Banner */}
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2.5 py-0.5">
+                {formData.razon_social ? "Plan Pro Activo" : "Plan Pro Clínica"}
+              </Badge>
+              <span className="text-xs text-slate-300">Límite de Inquilino SaaS</span>
+            </div>
+            <h3 className="text-lg font-bold mt-1">Capacidad y Usuarios del Inquilino</h3>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Tu plan incluye un máximo de <strong>6 usuarios activos</strong> (+5 €/mes por usuario extra).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <span className="text-2xl font-extrabold text-white">1 / 6</span>
+              <span className="text-[11px] block text-slate-400">Usuarios en uso</span>
+            </div>
+            <Button size="sm" variant="outline" className="text-xs border-slate-600 text-white bg-slate-800/80 hover:bg-slate-700">
+              Ampliar Plan
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Configuración IA WhatsApp */}
         <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h2 className="text-base font-semibold">Agente de IA</h2>
           <p className="text-sm text-muted-foreground">Comportamiento en WhatsApp</p>
@@ -551,6 +578,7 @@ function AdminConfiguracionPage() {
             {updateSettingsMutation.isPending ? "Guardando..." : "Guardar Configuración Fiscal y Firma Digital"}
           </Button>
         </section>
+      </div>
       </div>
 
       {/* Modal Declaración Responsable del Fabricante */}
