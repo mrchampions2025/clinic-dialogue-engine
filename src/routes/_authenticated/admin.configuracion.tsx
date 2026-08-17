@@ -11,7 +11,15 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getClinicSettings, updateClinicSettings, ClinicSettings } from "@/lib/invoices";
 import { DeclaracionResponsableDocument } from "@/components/invoices/DeclaracionResponsableDocument";
-import { Building2, ShieldCheck, Save, Award, FileCheck, Upload, Key, CheckCircle2, FileCode, Trash2 } from "lucide-react";
+import { Building2, ShieldCheck, Save, Award, FileCheck, Upload, Key, CheckCircle2, FileCode, Trash2, CreditCard, ArrowRight, Zap, Check } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracion")({
   component: AdminConfiguracionPage,
@@ -21,6 +29,7 @@ function AdminConfiguracionPage() {
   const qc = useQueryClient();
   const [formData, setFormData] = useState<Partial<ClinicSettings>>({});
   const [showDeclaracion, setShowDeclaracion] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [certFileName, setCertFileName] = useState<string | null>(null);
 
   const { data: clinicData } = useQuery({
@@ -113,7 +122,7 @@ function AdminConfiguracionPage() {
               <span className="text-2xl font-extrabold text-white">1 / 6</span>
               <span className="text-[11px] block text-slate-400">Usuarios en uso</span>
             </div>
-            <Button size="sm" variant="outline" className="text-xs border-slate-600 text-white bg-slate-800/80 hover:bg-slate-700">
+            <Button size="sm" variant="outline" className="text-xs border-slate-600 text-white bg-slate-800/80 hover:bg-slate-700" onClick={() => setShowUpgradeModal(true)}>
               Ampliar Plan
             </Button>
           </div>
@@ -532,6 +541,70 @@ function AdminConfiguracionPage() {
           onClose={() => setShowDeclaracion(false)}
         />
       )}
+
+      {/* Modal de Upgrade / Pasarela de Pago */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-white text-center">
+            <div className="mx-auto size-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4 border border-blue-500/30">
+              <Zap className="size-8 text-blue-400" />
+            </div>
+            <DialogTitle className="text-2xl font-bold mb-2">Desbloquea el Potencial de tu Clínica</DialogTitle>
+            <DialogDescription className="text-slate-300 text-sm max-w-md mx-auto">
+              Estás a punto de superar el límite de usuarios de tu plan actual. Amplía tu capacidad o pásate al Plan Enterprise para obtener acceso ilimitado.
+            </DialogDescription>
+          </div>
+          
+          <div className="p-6 bg-slate-50 dark:bg-slate-900 grid sm:grid-cols-2 gap-4">
+            {/* Opción 1: Añadir Usuarios Extra */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-3 py-1 rounded-bl-lg">
+                FLEXIBLE
+              </div>
+              <h3 className="font-bold text-lg text-slate-800 dark:text-white">Usuarios Extra</h3>
+              <p className="text-xs text-muted-foreground mt-1 mb-4 h-8">Ideal si solo necesitas añadir un par de doctores o higienistas más.</p>
+              <div className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-4">+5€<span className="text-sm font-normal text-muted-foreground">/mes por usuario</span></div>
+              <ul className="space-y-2 mb-6 text-sm text-slate-600 dark:text-slate-300">
+                <li className="flex items-center gap-2"><Check className="size-4 text-emerald-500 shrink-0"/> Mismas ventajas del Plan Pro</li>
+                <li className="flex items-center gap-2"><Check className="size-4 text-emerald-500 shrink-0"/> Cancelable en cualquier momento</li>
+              </ul>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={() => {
+                toast.info("Iniciando pasarela de Stripe...");
+                setTimeout(() => setShowUpgradeModal(false), 1000);
+              }}>
+                <CreditCard className="size-4 mr-2" /> Añadir Usuarios
+              </Button>
+            </div>
+
+            {/* Opción 2: Plan Enterprise */}
+            <div className="bg-gradient-to-b from-purple-900 to-indigo-900 rounded-xl p-5 border border-purple-700 shadow-md text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-amber-400 text-amber-900 text-[10px] font-bold px-3 py-1 rounded-bl-lg">
+                RECOMENDADO
+              </div>
+              <h3 className="font-bold text-lg text-white">Plan Enterprise</h3>
+              <p className="text-xs text-purple-200 mt-1 mb-4 h-8">Para clínicas consolidadas con múltiples boxes y alto volumen.</p>
+              <div className="text-3xl font-extrabold text-white mb-4">199€<span className="text-sm font-normal text-purple-300">/mes</span></div>
+              <ul className="space-y-2 mb-6 text-sm text-purple-100">
+                <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0"/> Usuarios ilimitados</li>
+                <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0"/> Agente de IA para WhatsApp</li>
+                <li className="flex items-center gap-2"><Check className="size-4 text-emerald-400 shrink-0"/> Soporte telefónico prioritario 24/7</li>
+              </ul>
+              <Button className="w-full bg-white hover:bg-slate-100 text-indigo-900 font-bold" onClick={() => {
+                toast.info("Iniciando pasarela de Stripe...");
+                setTimeout(() => setShowUpgradeModal(false), 1000);
+              }}>
+                <CreditCard className="size-4 mr-2" /> Actualizar a Enterprise
+              </Button>
+            </div>
+          </div>
+          
+          <div className="bg-slate-100 dark:bg-slate-950 p-4 text-center border-t border-slate-200 dark:border-slate-800">
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+              <ShieldCheck className="size-4" /> Pagos seguros y encriptados procesados por <strong>Stripe</strong>
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminShell>
   );
 }
