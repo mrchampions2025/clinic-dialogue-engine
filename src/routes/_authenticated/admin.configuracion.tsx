@@ -119,65 +119,9 @@ function AdminConfiguracionPage() {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Configuración IA WhatsApp */}
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-base font-semibold">Agente de IA</h2>
-          <p className="text-sm text-muted-foreground">Comportamiento en WhatsApp</p>
-          <div className="mt-5 space-y-5">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-border pb-2">
-                <div>
-                  <p className="text-xs font-semibold">Respuestas automáticas</p>
-                  <p className="text-[11px] text-muted-foreground">La IA contesta sin intervención humana</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <div className="flex items-center justify-between border-b border-border pb-2">
-                <div>
-                  <p className="text-xs font-semibold">Derivar urgencias a recepción</p>
-                  <p className="text-[11px] text-muted-foreground">Avisa al equipo ante dolor agudo</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <div className="flex items-center justify-between border-b border-border pb-2">
-                <div>
-                  <p className="text-xs font-semibold">Confirmación de citas 24 h antes</p>
-                  <p className="text-[11px] text-muted-foreground">Recordatorio automático</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-            </div>
-
-            <div className="space-y-4 border-t border-border pt-4 mt-2">
-              <Label htmlFor="citas_automaticas_limite" className="font-semibold text-sm">Límite de Citas Automáticas Diarias</Label>
-              <p className="text-[11px] text-muted-foreground mt-0">
-                Número máximo de citas que se aceptan ("Confirmada") automáticamente por día. A partir de este límite, las citas entrarán en estado "Pendiente" para revisión manual.
-              </p>
-              <Input
-                id="citas_automaticas_limite"
-                type="number"
-                min="0"
-                value={formData.citas_automaticas_limite ?? 10}
-                onChange={(e) => setFormData({ ...formData, citas_automaticas_limite: parseInt(e.target.value) || 0 })}
-                className="w-24"
-              />
-            </div>
-            
-            <div className="space-y-2 pt-2 border-t border-border">
-              <Label htmlFor="tono">Tono y personalidad</Label>
-              <Textarea
-                id="tono"
-                rows={3}
-                defaultValue="Eres Marta, de recepción de Clínica Dental Dentix. Cercana, breve y profesional, con estilo WhatsApp."
-              />
-            </div>
-            <Button size="sm">Guardar Cambios de IA</Button>
-          </div>
-        </section>
-
-        {/* Configuración Fiscal & SIF RD 1007/2023 */}
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-5">
+        <div className="space-y-6">
+          {/* Configuración Fiscal & SIF RD 1007/2023 */}
+          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold flex items-center gap-2">

@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getClinicSettings } from "@/lib/invoices";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -89,6 +91,20 @@ export function AdminShell({
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
+  const { data: clinicSettings } = useQuery({
+    queryKey: ["clinic_settings"],
+    queryFn: () => getClinicSettings(),
+  });
+
+  const clinicName = clinicSettings?.nombre_comercial || clinicSettings?.razon_social || "Mi Clínica Dental";
+  const initials = clinicName
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "CL";
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/auth" });
@@ -102,12 +118,12 @@ export function AdminShell({
         <div className="mt-auto border-t border-border p-4">
           <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">
-                MR
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-100 dark:bg-blue-950 text-xs font-bold text-blue-700 dark:text-blue-300">
+                {initials}
               </span>
               <div className="min-w-0 leading-tight">
-                <p className="truncate text-sm font-medium">Marta Reyes</p>
-                <p className="truncate text-xs text-muted-foreground">Recepción</p>
+                <p className="truncate text-sm font-semibold">{clinicName}</p>
+                <p className="truncate text-[11px] text-muted-foreground">Administrador</p>
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 text-muted-foreground hover:text-red-500" title="Cerrar sesión">
