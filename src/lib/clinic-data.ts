@@ -357,8 +357,9 @@ export function formatDate(iso: string | null): string {
   const [y, m, d] = iso.split("-");
   return `${d}/${m}/${y}`;
 }
-export function formatTime(t: string): string {
-  return t.slice(0, 5);
+export function formatTime(t: string | null | undefined): string {
+  if (!t) return "—";
+  return String(t).slice(0, 5);
 }
 
 /* Finances & Budgets */
