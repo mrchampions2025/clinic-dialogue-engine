@@ -46,22 +46,22 @@ function PerfilPage() {
   const [hora, setHora] = useState("");
   const [tratamiento, setTratamiento] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [nombre, setNombre] = useState(user.user_metadata?.full_name || "");
+  const [nombre, setNombre] = useState(user?.user_metadata?.full_name || "");
 
   const { data: citas = [], isLoading: loadingCitas } = useQuery({
-    queryKey: ["mis-citas"],
-    queryFn: () => listUserAppointments(user.id),
+    queryKey: ["mis-citas", user?.id],
+    queryFn: () => listUserAppointments(user?.id || ""),
   });
 
   const { data: historial = [], isLoading: loadingHistorial } = useQuery({
-    queryKey: ["mis-tratamientos", user.id],
+    queryKey: ["mis-tratamientos", user?.id],
     queryFn: async () => {
       // Intentamos buscar historial si la tabla existe
       try {
         const { data, error } = await supabase
           .from("medical_records" as any)
           .select("*")
-          .eq("patient_id", user.id)
+          .eq("patient_id", user?.id)
           .order("fecha", { ascending: false });
         
         if (error) {
@@ -77,8 +77,8 @@ function PerfilPage() {
   });
 
   const { data: presupuestos = [], isLoading: loadingPresupuestos } = useQuery({
-    queryKey: ["mis-presupuestos", user.id],
-    queryFn: () => listPatientBudgets(user.id),
+    queryKey: ["mis-presupuestos", user?.id],
+    queryFn: () => listPatientBudgets(user?.id || ""),
   });
 
   const [firmando, setFirmando] = useState<Budget | null>(null);
@@ -89,14 +89,14 @@ function PerfilPage() {
     mutationFn: async () => {
       const estadoAuto = await determineAppointmentEstado(fecha);
       const { error } = await supabase.from("appointments").insert({
-        paciente: nombre || user.email,
+        paciente: nombre || user?.email,
         telefono: telefono || "",
         fecha,
         hora,
         tratamiento,
         canal: "Web (Portal)",
         estado: estadoAuto,
-        patient_id: user.id,
+        patient_id: user?.id,
       });
       if (error) throw new Error(error.message);
       return estadoAuto;
@@ -130,7 +130,7 @@ function PerfilPage() {
             </div>
             <div>
               <h1 className="text-3xl font-semibold tracking-tight">Mi Portal del Paciente</h1>
-              <p className="text-muted-foreground">{user.email}</p>
+              <p className="text-muted-foreground">{user?.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -335,8 +335,8 @@ function PerfilPage() {
               budget={firmando}
               open={!!firmando}
               onOpenChange={(v) => !v && setFirmando(null)}
-              defaultName={nombre || user.email}
-              invalidateKey={["mis-presupuestos", user.id]}
+              defaultName={nombre || user?.email}
+              invalidateKey={["mis-presupuestos", user?.id]}
             />
           )}
         </TabsContent>
@@ -346,7 +346,7 @@ function PerfilPage() {
       {selectedBudgetForPrint && (
         <BudgetInvoice 
           budget={selectedBudgetForPrint} 
-          patient={{ nombre: nombre || user.email, email: user.email, telefono: telefono }} 
+          patient={{ nombre: nombre || user?.email, email: user?.email, telefono: telefono }} 
           onClose={() => setSelectedBudgetForPrint(null)} 
         />
       )}
