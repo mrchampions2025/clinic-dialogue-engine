@@ -171,18 +171,19 @@ export async function updateClinicSettings(settings: Partial<ClinicSettings>): P
 
   // Sincronizar el nombre y el slug con la tabla pública 'clinics' para que el auto-registro funcione
   try {
-    const { data: userData } = await db.auth.getUser();
-    if (userData?.user) {
-      const { data: role } = await db.from("user_roles").select("clinic_id").eq("user_id", userData.user.id).maybeSingle();
-      if (role?.clinic_id) {
-        const customName = settings.razon_social || current.razon_social;
-        const newSlug = (customName || "demo").toLowerCase().trim().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
-        
-        await db.from("clinics").update({
-          name: customName,
-          slug: newSlug
-        }).eq("id", role.clinic_id);
-      }
+    const customName = settings.razon_social || settings.nombre_comercial || current.razon_social;
+    const newSlug = (customName || "demo").toLowerCase().trim().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
+    
+    // Obtener el ID de la clínica directamente de los ajustes actuales (la BD lo devuelve por el SELECT *)
+    const targetClinicId = (current as any).clinic_id;
+
+    if (targetClinicId) {
+      await db.from("clinics").update({
+        name: customName,
+        slug: newSlug
+      }).eq("id", targetClinicId);
+    } else {
+      console.warn("No se encontró clinic_id en los ajustes actuales para sincronizar la tabla clinics.");
     }
   } catch (syncErr) {
     console.warn("No se pudo sincronizar el slug con la tabla clinics:", syncErr);
