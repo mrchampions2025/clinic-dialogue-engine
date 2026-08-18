@@ -57,13 +57,22 @@ function PerfilPage() {
     queryKey: ["mis-tratamientos", user.id],
     queryFn: async () => {
       // Intentamos buscar historial si la tabla existe
-      const { data, error } = await supabase
-        .from("medical_records" as any)
-        .select("*")
-        .eq("patient_id", user.id)
-        .order("fecha", { ascending: false });
-      if (error && error.code !== "42P01") throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from("medical_records" as any)
+          .select("*")
+          .eq("patient_id", user.id)
+          .order("fecha", { ascending: false });
+        
+        if (error) {
+          console.warn("Medical records query failed (table might not exist):", error);
+          return [];
+        }
+        return data || [];
+      } catch (err) {
+        console.warn("Exception fetching medical records:", err);
+        return [];
+      }
     },
   });
 
